@@ -46,7 +46,7 @@ public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderServ
         }
     */
     //json
-    public void fetchAndSaveData(String timeSeriesLabel, String ticker, String interval, String month) {
+    public int fetchAndSaveData(String timeSeriesLabel, String ticker, String interval, String month) {
         String url = baseUrl + timeSeriesLabel + "&symbol=" + ticker + "&interval=" + interval + "&month=" + month
                 + "&outputsize=full&apikey=" + apiKey;
         ResponseEntity<String> response = restTemplate.getForEntity(
@@ -76,6 +76,7 @@ public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderServ
             intradayDataList.add(sharePrice);
             //    System.out.println("sharePrice =" + sharePrice);
         }
-        sharePriceRepository.saveAll(intradayDataList);
+        List<SharePrice> saved = sharePriceRepository.saveAll(intradayDataList);
+        return saved.size();
     }
 }

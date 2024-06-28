@@ -16,7 +16,27 @@
 </head>
 <body>
 <h1>Share Price Dashboard</h1>
-
+<div class="section">
+    <h2>Fetch and Save Share Price Data</h2>
+    <input type="text" id="fetchTicker" placeholder="Ticker">
+    <select id="timeSeriesLabel">
+        <option value="TIME_SERIES_INTRADAY">Intraday</option>
+        <option value="TIME_SERIES_DAILY">Daily</option>
+        <option value="TIME_SERIES_WEEKLY">Weekly</option>
+        <option value="TIME_SERIES_MONTHLY">Monthly</option>
+    </select>
+    <select id="interval">
+        <option value="1min">1 min</option>
+        <option value="5min">5 min</option>
+        <option value="15min">15 min</option>
+        <option value="30min">30 min</option>
+        <option value="60min">60 min</option>
+    </select>
+    <input type="month" id="monthInput">
+    <button onclick="fetchAndSaveData()">Fetch and Save Data</button>
+    <div id="fetchResult"></div>
+    <div id="downloadProgress"></div>
+</div>
 <div class="section">
     <h2>Get Share Price</h2>
     <input type="text" id="ticker" placeholder="Ticker">
@@ -144,6 +164,76 @@
         html += '</table>';
         document.getElementById(elementId).innerHTML = html;
     }
+
+    async function fetchAndSaveData() {
+    const ticker = document.getElementById('fetchTicker').value;
+    const timeSeriesLabel = document.getElementById('timeSeriesLabel').value;
+    const interval = document.getElementById('interval').value;
+    const monthInput = document.getElementById('monthInput').value;
+
+    const month = monthInput.slice(0, 7); // This will give us "YYYY-MM"
+
+    if (!ticker || !monthInput) {
+        updateFetchResult('Error: Please fill in all fields');
+        return;
+    }
+
+    try {
+        const response = await axios.post(`${API_BASE_URL}/fetch`, null, {
+            params: {
+                timeSeriesLabel,
+                ticker,
+                interval,
+                month
+            }
+        });
+        updateFetchResult(`${response.data}`);
+        startProgressMonitoring();
+    } catch (error) {
+        console.error('Error:', error);
+        updateFetchResult(`Error: ${error.response?.data || error.message}`);
+    }
+}
+
+function startProgressMonitoring() {
+    const progressDiv = document.getElementById('downloadProgress');
+    if (!progressDiv) {
+        console.error('Download progress element not found');
+        return;
+    }
+
+    const eventSource = new EventSource(`${API_BASE_URL}/fetch-status`);
+
+    updateProgress('Download in progress...');
+
+    eventSource.addEventListener('complete', (event) => {
+        updateProgress(event.data);
+        eventSource.close();
+    });
+
+    eventSource.onerror = () => {
+        updateProgress('Error occurred while fetching status');
+        eventSource.close();
+    };
+}
+
+function updateFetchResult(message) {
+    const fetchResultDiv = document.getElementById('fetchResult');
+    if (fetchResultDiv) {
+        fetchResultDiv.innerHTML = message;
+    } else {
+        console.error('Fetch result element not found');
+    }
+}
+
+function updateProgress(message) {
+    const progressDiv = document.getElementById('downloadProgress');
+    if (progressDiv) {
+        progressDiv.innerHTML = message;
+    } else {
+        console.error('Download progress element not found');
+    }
+}
 </script>
 </body>
 </html>
