@@ -22,8 +22,6 @@ class ScreenerApplicationTests {
 	@Autowired
 	private RestTemplate restTemplate;
 	@Autowired
-	@Qualifier("json")
-	//private FetchDataService intradayDataService;
 	private SharePriceDownLoaderService sharePriceDownLoaderService;
 	@Autowired
 	private PriceReaderService priceReaderService;

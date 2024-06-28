@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Price Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { margin-bottom: 30px; }
+        input, button { margin: 5px 0; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+<h1>Share Price Dashboard</h1>
+
+<div class="section">
+    <h2>Get Share Price</h2>
+    <input type="text" id="ticker" placeholder="Ticker">
+    <input type="date" id="dateInput">
+    <input type="time" id="timeInput" step="1">
+    <button onclick="getSharePrice()">Get Price</button>
+    <div id="sharePriceResult"></div>
+</div>
+
+<div class="section">
+    <h2>Get Share Prices</h2>
+    <input type="text" id="tickerList" placeholder="Ticker">
+    <input type="number" id="page" placeholder="Page" value="0">
+    <input type="number" id="size" placeholder="Size" value="10">
+    <button onclick="getSharePrices()">Get Prices</button>
+    <div id="sharePricesResult"></div>
+</div>
+
+<div class="section">
+    <h2>Get Share Prices Between Dates</h2>
+    <input type="text" id="tickerBetween" placeholder="Ticker">
+    <input type="date" id="startDateInput">
+    <input type="time" id="startTimeInput" step="1">
+    <input type="date" id="endDateInput">
+    <input type="time" id="endTimeInput" step="1">
+    <input type="number" id="pageBetween" placeholder="Page" value="0">
+    <input type="number" id="sizeBetween" placeholder="Size" value="10">
+    <button onclick="getSharePricesBetweenDates()">Get Prices</button>
+    <div id="sharePricesBetweenResult"></div>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:8080/api/share-prices';
+
+   async function getSharePrice() {
+    const ticker = document.getElementById('ticker').value;
+    const date = document.getElementById('dateInput').value;
+    const time = document.getElementById('timeInput').value || '00:00:00'; // Default to midnight if no time is selected
+    const dateTime = `${date}T${time}`;
+    try {
+        const response = await axios.get(`${API_BASE_URL}/${ticker}/${encodeURIComponent(dateTime)}`);
+        displaySharePrice(response.data, 'sharePriceResult');
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('sharePriceResult').innerHTML = `Error: ${error.response?.data?.message || error.message}`;
+    }
+}
+
+    async function getSharePrices() {
+        const ticker = document.getElementById('tickerList').value;
+        const page = document.getElementById('page').value;
+        const size = document.getElementById('size').value;
+        try {
+            const response = await axios.get(`${API_BASE_URL}/${ticker}?page=${page}&size=${size}`);
+            displaySharePrices(response.data.content, 'sharePricesResult');
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('sharePricesResult').innerHTML = `Error: ${error.response?.data?.message || error.message}`;
+        }
+    }
+
+   async function getSharePricesBetweenDates() {
+    const ticker = document.getElementById('tickerBetween').value;
+    const startDate = document.getElementById('startDateInput').value;
+    const startTime = document.getElementById('startTimeInput').value || '00:00:00';
+    const endDate = document.getElementById('endDateInput').value;
+    const endTime = document.getElementById('endTimeInput').value || '23:59:59';
+    const startDateTime = `${startDate}T${startTime}`;
+    const endDateTime = `${endDate}T${endTime}`;
+    const page = document.getElementById('pageBetween').value;
+    const size = document.getElementById('sizeBetween').value;
+    try {
+        const response = await axios.get(`${API_BASE_URL}/${ticker}/between`, {
+            params: {
+                startDate: startDateTime,
+                endDate: endDateTime,
+                page: page,
+                size: size
+            }
+        });
+        displaySharePrices(response.data.content, 'sharePricesBetweenResult');
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('sharePricesBetweenResult').innerHTML = `Error: ${error.response?.data?.message || error.message}`;
+    }
+}
+    function displaySharePrice(sharePrice, elementId) {
+        let html = `
+            <h3>Share Price for ${sharePrice.ticker} on ${sharePrice.date}</h3>
+            <table>
+                <tr><th>Open</th><td>${sharePrice.open}</td></tr>
+                <tr><th>Close</th><td>${sharePrice.close}</td></tr>
+                <tr><th>High</th><td>${sharePrice.high}</td></tr>
+                <tr><th>Low</th><td>${sharePrice.low}</td></tr>
+                <tr><th>Volume</th><td>${sharePrice.volume}</td></tr>
+            </table>
+        `;
+        document.getElementById(elementId).innerHTML = html;
+    }
+
+    function displaySharePrices(sharePrices, elementId) {
+        let html = `
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Open</th>
+                    <th>Close</th>
+                    <th>High</th>
+                    <th>Low</th>
+                    <th>Volume</th>
+                </tr>
+        `;
+        sharePrices.forEach(price => {
+            html += `
+                <tr>
+                    <td>${price.date}</td>
+                    <td>${price.open}</td>
+                    <td>${price.close}</td>
+                    <td>${price.high}</td>
+                    <td>${price.low}</td>
+                    <td>${price.volume}</td>
+                </tr>
+            `;
+        });
+        html += '</table>';
+        document.getElementById(elementId).innerHTML = html;
+    }
+</script>
+</body>
+</html>

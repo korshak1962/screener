@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("/api/share-prices")
@@ -25,10 +26,15 @@ public class SharePriceController {
     @GetMapping("/{ticker}/{date}")
     public ResponseEntity<SharePrice> getSharePrice(
             @PathVariable String ticker,
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date) {
-        return priceReaderService.getSharePrice(ticker, date)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            @PathVariable String date) {
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(date);
+            return priceReaderService.getSharePrice(ticker, dateTime)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/{ticker}")
@@ -58,24 +64,4 @@ public class SharePriceController {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
         return ResponseEntity.ok(priceReaderService.getSharePricesBetweenDates(ticker, startDate, endDate, pageRequest));
     }
-/*
-    @PutMapping("/{ticker}/{date}")
-    public ResponseEntity<SharePrice> updateSharePrice(
-            @PathVariable String ticker,
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date,
-            @RequestBody SharePrice sharePrice) {
-        if (!ticker.equals(sharePrice.getTicker()) || !date.equals(sharePrice.getDate())) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(sharePriceService.updateSharePrice(sharePrice));
-    }
-
-    @DeleteMapping("/{ticker}/{date}")
-    public ResponseEntity<Void> deleteSharePrice(
-            @PathVariable String ticker,
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date) {
-        sharePriceService.deleteSharePrice(ticker, date);
-        return ResponseEntity.noContent().build();
-    }
- */
 }

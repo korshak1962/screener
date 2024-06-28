@@ -2,7 +2,6 @@ package korshak.com.screener;
 
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -15,7 +14,6 @@ public class ScreenerApplication implements CommandLineRunner {
     }
 
     @Autowired
-    @Qualifier("json")
     private SharePriceDownLoaderService sharePriceDownLoaderService;
 
     @Override

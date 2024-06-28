@@ -16,7 +16,6 @@ import java.time.Month;
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class PriceReaderServiceTest {
     @Autowired
-    @Qualifier("json")
     private SharePriceDownLoaderService sharePriceDownLoaderService;
     @Autowired
     private PriceReaderService priceReaderService;
@@ -34,6 +33,7 @@ public class PriceReaderServiceTest {
         LocalDateTime end = LocalDateTime.of(2009, Month.JANUARY, 8, 0, 0);
         Page<SharePrice> prices = priceReaderService.getSharePricesBetweenDates(ticker, start, end, Pageable.unpaged());
         System.out.println("==========prices.getTotalElements() = " + prices.getTotalElements());
-       // prices.forEach(s -> System.out.println(s.getDate()));
+        SharePrice first =prices.stream().findFirst().get();
+        System.out.println(" date = "+first.getDate() + first.getClose());
     }
 }

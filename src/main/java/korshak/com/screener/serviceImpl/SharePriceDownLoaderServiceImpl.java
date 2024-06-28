@@ -18,7 +18,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
-@Qualifier("json")
 public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderService {
     String apiKey;
     String baseUrl;
