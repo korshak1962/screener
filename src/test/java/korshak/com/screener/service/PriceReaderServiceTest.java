@@ -1,9 +1,8 @@
 package korshak.com.screener.service;
 
-import korshak.com.screener.dao.SharePrice;
+import korshak.com.screener.dao.PriceMin5;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,9 +30,9 @@ public class PriceReaderServiceTest {
 
         LocalDateTime start = LocalDateTime.of(2009, Month.JANUARY, 4, 0, 0);
         LocalDateTime end = LocalDateTime.of(2009, Month.JANUARY, 8, 0, 0);
-        Page<SharePrice> prices = priceReaderService.getSharePricesBetweenDates(ticker, start, end, Pageable.unpaged());
+        Page<PriceMin5> prices = priceReaderService.getSharePricesBetweenDates(ticker, start, end, Pageable.unpaged());
         System.out.println("==========prices.getTotalElements() = " + prices.getTotalElements());
-        SharePrice first =prices.stream().findFirst().get();
-        System.out.println(" date = "+first.getDate() + first.getClose());
+        PriceMin5 first =prices.stream().findFirst().get();
+        System.out.println(" date = "+first.getId().getDate() + first.getClose());
     }
 }

@@ -1,6 +1,6 @@
 package korshak.com.screener.controller;
 
-import korshak.com.screener.dao.SharePrice;
+import korshak.com.screener.dao.PriceMin5;
 import korshak.com.screener.service.PriceReaderService;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +71,7 @@ public class SharePriceController {
     }
 
     @GetMapping("/{ticker}/{date}")
-    public ResponseEntity<SharePrice> getSharePrice(
+    public ResponseEntity<PriceMin5> getSharePrice(
             @PathVariable String ticker,
             @PathVariable String date) {
         try {
@@ -85,7 +85,7 @@ public class SharePriceController {
     }
 
     @GetMapping("/{ticker}")
-    public ResponseEntity<Page<SharePrice>> getSharePrices(
+    public ResponseEntity<Page<PriceMin5>> getSharePrices(
             @PathVariable String ticker,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -98,7 +98,7 @@ public class SharePriceController {
     }
 
     @GetMapping("/{ticker}/between")
-    public ResponseEntity<Page<SharePrice>> getSharePricesBetweenDates(
+    public ResponseEntity<Page<PriceMin5>> getSharePricesBetweenDates(
             @PathVariable String ticker,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,

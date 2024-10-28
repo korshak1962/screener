@@ -1,8 +1,9 @@
 package korshak.com.screener.serviceImpl;
 
-import korshak.com.screener.dao.SharePrice;
-import korshak.com.screener.dao.SharePriceId;
-import korshak.com.screener.dao.SharePriceRepository;
+import korshak.com.screener.dao.PriceKey;
+import korshak.com.screener.dao.PriceMin5;
+
+import korshak.com.screener.dao.PriceMin5Repository;
 import korshak.com.screener.service.PriceReaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,19 +17,19 @@ import java.util.Optional;
 public class PriceReaderServiceImpl implements PriceReaderService {
 
     @Autowired
-    private SharePriceRepository sharePriceRepository;
+    private PriceMin5Repository priceMin5Repository;
 
     @Override
-    public Page<SharePrice> getSharePricesBetweenDates(String ticker, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        return sharePriceRepository.findByTickerAndDateBetween(ticker, startDate, endDate, pageable);
+    public Page<PriceMin5> getSharePricesBetweenDates(String ticker, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return priceMin5Repository.findById_TickerAndId_DateBetween(ticker, startDate, endDate, pageable);
     }
     @Override
-    public Optional<SharePrice> getSharePrice(String ticker, LocalDateTime date) {
-        return sharePriceRepository.findById(new SharePriceId(ticker, date));
+    public Optional<PriceMin5> getSharePrice(String ticker, LocalDateTime date) {
+        return priceMin5Repository.findById(new PriceKey(ticker, date));
     }
 
     @Override
-    public Page<SharePrice> getSharePrices(String ticker, Pageable pageable) {
-        return sharePriceRepository.findByTicker(ticker, pageable);
+    public Page<PriceMin5> getSharePrices(String ticker, Pageable pageable) {
+        return priceMin5Repository.findById_Ticker(ticker, pageable);
     }
 }

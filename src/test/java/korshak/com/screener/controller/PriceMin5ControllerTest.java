@@ -1,7 +1,8 @@
 package korshak.com.screener.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import korshak.com.screener.dao.SharePrice;
+import korshak.com.screener.dao.PriceKey;
+import korshak.com.screener.dao.PriceMin5;
 import korshak.com.screener.service.PriceReaderService;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,8 +13,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -26,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(SharePriceController.class)
-public class SharePriceControllerTest {
+public class PriceMin5ControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -40,12 +39,12 @@ public class SharePriceControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private SharePrice sampleSharePrice;
-    private Page<SharePrice> sampleSharePricePage;
+    private PriceMin5 sampleSharePrice;
+    private Page<PriceMin5> sampleSharePricePage;
 
     @BeforeEach
     void setUp() {
-        sampleSharePrice = new SharePrice("AAPL", LocalDateTime.now(), 150.0,100,200,180,1000);
+        sampleSharePrice = new PriceMin5(new PriceKey("AAPL", LocalDateTime.now()), 150.0,100,200,180,1000);
         sampleSharePricePage = new PageImpl<>(Arrays.asList(sampleSharePrice));
     }
 

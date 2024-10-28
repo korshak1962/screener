@@ -1,19 +1,12 @@
 package korshak.com.screener;
 
-import korshak.com.screener.dao.SharePrice;
 import korshak.com.screener.service.PriceReaderService;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
-
-import java.time.LocalDateTime;
-import java.time.Month;
 
 @SpringBootTest
 @TestPropertySource(locations = "classpath:application-test.properties")
