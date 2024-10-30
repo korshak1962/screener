@@ -50,7 +50,7 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
   @Transactional
   public void aggregateData(String ticker, TimeFrame timeFrame) {
     List<PriceMin5> min5Data = priceMin5Repository.findById_Ticker(ticker);
-
+System.out.println("found " + min5Data.size());
     // Group by the specified timeframe
     Map<LocalDateTime, List<PriceMin5>> groupedPrices = min5Data.stream()
         .collect(Collectors.groupingBy(price -> truncateToTimeFrame(
@@ -63,24 +63,28 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
         List<PriceHour> hourPrices = groupedPrices.entrySet().stream()
             .map(entry -> createAggregatedPrice(entry.getKey(), entry.getValue(), ticker, new PriceHour()))
             .collect(Collectors.toList());
+        System.out.println("hourPrices to be saved = " + hourPrices.size());
         priceHourRepository.saveAll(hourPrices);
         break;
       case DAY:
         List<PriceDay> dayPrices = groupedPrices.entrySet().stream()
             .map(entry -> createAggregatedPrice(entry.getKey(), entry.getValue(), ticker, new PriceDay()))
             .collect(Collectors.toList());
+        System.out.println("dayPrices to be saved = " + dayPrices.size());
         priceDayRepository.saveAll(dayPrices);
         break;
       case WEEK:
         List<PriceWeek> weekPrices = groupedPrices.entrySet().stream()
             .map(entry -> createAggregatedPrice(entry.getKey(), entry.getValue(), ticker, new PriceWeek()))
             .collect(Collectors.toList());
+        System.out.println("weekPrices to be saved = " + weekPrices.size());
         priceWeekRepository.saveAll(weekPrices);
         break;
       case MONTH:
         List<PriceMonth> monthPrices = groupedPrices.entrySet().stream()
             .map(entry -> createAggregatedPrice(entry.getKey(), entry.getValue(), ticker, new PriceMonth()))
             .collect(Collectors.toList());
+        System.out.println("monthPrices to be saved = " + monthPrices.size());
         priceMonthRepository.saveAll(monthPrices);
         break;
     }

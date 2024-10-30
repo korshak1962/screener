@@ -1,8 +1,14 @@
 package korshak.com.screener;
 
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.ChartService;
+import korshak.com.screener.service.PriceAggregationService;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import korshak.com.screener.service.SmaCalculationService;
+import korshak.com.screener.service.Strategy;
+import korshak.com.screener.service.TradeService;
+import korshak.com.screener.serviceImpl.ChartServiceImpl;
+import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -23,34 +29,58 @@ public class ScreenerApplication implements CommandLineRunner {
   private SharePriceDownLoaderService sharePriceDownLoaderService;
   @Autowired
   private SmaCalculationService smaCalculationService;
+  @Autowired
+  private PriceAggregationService priceAggregationService;
+  @Autowired
+  private TradeService tradeService;
+  @Autowired
+  private Strategy strategy;
 
   @Override
   public void run(String... args) throws Exception {
-    downloadSeries();
-    //long start = System.currentTimeMillis();
-    /*
-    System.out.println("started ");
-    calcSMA();
-    System.out.println("total = "+(System.currentTimeMillis()-start));
+    evaluateStrategy();
+    //downloadSeries();
+    //aggregate();
+    //calcSMA();
+   // System.exit(0);
+  }
 
-     */
-    System.exit(0);
+  private void evaluateStrategy() {
+    String ticker = "SPY";
+    TimeFrame timeFrame = TimeFrame.DAY;
+    StrategyResult strategyResult=tradeService.calculateProfitAndDrawdown(strategy,ticker, timeFrame);
+    System.out.println(strategyResult);
+    System.setProperty("java.awt.headless", "false");
+    ChartService chartService  = new ChartServiceImpl(strategy.getName());
+    chartService.drawChart(strategyResult.getPrices(),strategyResult.getTrades());
+  }
+
+  private void aggregate() {
+    String ticker = "SPY";
+    priceAggregationService.aggregateData(ticker,TimeFrame.MONTH);
   }
 
   private void calcSMA() {
     String ticker = "SPY";
-    int length = 3;
-    smaCalculationService.calculateSMA(ticker,length,TimeFrame.HOUR);
+    int startLength = 3;
+    int endLength = 201;
+    long start = System.currentTimeMillis();
+    System.out.println("started ");
+    for (int length=startLength;length<=endLength;length += 3) {
+      smaCalculationService.calculateSMA(ticker, length, TimeFrame.HOUR);
+      System.out.println("length = " + length);
+    }
+    System.out.println("total = "+(System.currentTimeMillis()-start));
   }
 
 
   private void downloadSeries() {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "SPY";
+    final String ticker = "GLD";
     String interval = "5min";
-    String year = "2021-";
+    String year = "2022-";
     String yearMonth;
-    int startMonth = 1;
+    int startMonth = 5;
     int finalMonth = 12;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
