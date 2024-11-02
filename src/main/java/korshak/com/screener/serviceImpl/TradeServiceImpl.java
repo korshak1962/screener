@@ -50,7 +50,6 @@ public class TradeServiceImpl implements TradeService {
                                                    TimeFrame timeFrame) {
 
     List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);
-
     return getStrategyResult(strategy, prices);
   }
 

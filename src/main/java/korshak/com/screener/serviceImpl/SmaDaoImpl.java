@@ -1,5 +1,6 @@
 package korshak.com.screener.serviceImpl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.dao.SmaDay;
@@ -8,6 +9,7 @@ import korshak.com.screener.dao.SmaHour;
 import korshak.com.screener.dao.SmaHourRepository;
 import korshak.com.screener.dao.SmaMonth;
 import korshak.com.screener.dao.SmaMonthRepository;
+import korshak.com.screener.dao.SmaRepository;
 import korshak.com.screener.dao.SmaWeek;
 import korshak.com.screener.dao.SmaWeekRepository;
 import korshak.com.screener.dao.TimeFrame;
@@ -36,12 +38,19 @@ public class SmaDaoImpl implements SmaDao {
 
   @Override
   public void deleteByTickerAndLength(String ticker, int length, TimeFrame timeFrame) {
+    SmaRepository smaRepository = getSmaRepository(timeFrame);
+    smaRepository.deleteByIdTickerAndIdLength(ticker, length);
+  }
+
+  private SmaRepository getSmaRepository(TimeFrame timeFrame) {
+    SmaRepository smaRepository = null;
     switch (timeFrame) {
-      case HOUR -> hourRepository.deleteByIdTickerAndIdLength(ticker, length);
-      case DAY -> dayRepository.deleteByIdTickerAndIdLength(ticker, length);
-      case WEEK -> weekRepository.deleteByIdTickerAndIdLength(ticker, length);
-      case MONTH -> monthRepository.deleteByIdTickerAndIdLength(ticker, length);
+      case HOUR -> smaRepository = hourRepository;
+      case DAY -> smaRepository = dayRepository;
+      case WEEK -> smaRepository = weekRepository;
+      case MONTH -> smaRepository = monthRepository;
     }
+    return smaRepository;
   }
 
   @Override
@@ -54,4 +63,23 @@ public class SmaDaoImpl implements SmaDao {
       case MONTH -> monthRepository.saveAll((List<SmaMonth>) smaList);
     }
   }
+
+  @Override
+  public List<? extends BaseSma> findAllByTicker(String ticker, TimeFrame timeFrame, int length) {
+    SmaRepository smaRepository = getSmaRepository(timeFrame);
+    return smaRepository.findByIdTickerAndIdLengthOrderByIdDateAsc(ticker, length);
+  }
+
+  @Override
+  public List<? extends BaseSma> findByDateRange(
+      String ticker,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      TimeFrame timeFrame,
+      int length) {
+    SmaRepository smaRepository = getSmaRepository(timeFrame);
+   return smaRepository.findByIdTickerAndIdLengthAndIdDateBetweenOrderByIdDateAsc(
+        ticker, length, startDate, endDate);
+  }
+
 }

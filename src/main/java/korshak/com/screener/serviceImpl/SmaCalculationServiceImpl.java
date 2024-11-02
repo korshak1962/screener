@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
-
 import korshak.com.screener.dao.SmaDay;
 import korshak.com.screener.dao.SmaHour;
 import korshak.com.screener.dao.SmaKey;
@@ -53,7 +52,9 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
     smaDao.deleteByTickerAndLength(ticker, length, timeFrame);
 
     List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);
-
+    if (prices.isEmpty()) {
+      throw new RuntimeException("prices for timeframe." + timeFrame + " not found");
+    }
     calculateAndSaveSMA(prices, ticker, length, timeFrame);
   }
 
@@ -75,15 +76,11 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       sum += prices.get(i).getClose();
     }
 
-    BaseSma sma = switch(timeFrame) {
-      case HOUR -> new SmaHour();
-      case DAY -> new SmaDay();
-      case WEEK -> new SmaWeek();
-      case MONTH -> new SmaMonth();
-    };
-
     // Calculate SMAs
     for (int i = length - 1; i < prices.size(); i++) {
+
+      BaseSma sma = getBaseSma(timeFrame);
+
       SmaKey smaKey = new SmaKey(
           ticker,
           prices.get(i).getId().getDate(),
@@ -107,5 +104,15 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
     if (!smaResults.isEmpty()) {
       smaDao.saveAll(smaResults, timeFrame);
     }
+  }
+
+  private static BaseSma getBaseSma(TimeFrame timeFrame) {
+    BaseSma sma = switch (timeFrame) {
+      case HOUR -> new SmaHour();
+      case DAY -> new SmaDay();
+      case WEEK -> new SmaWeek();
+      case MONTH -> new SmaMonth();
+    };
+    return sma;
   }
 }

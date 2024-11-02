@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 
 public class Trade {
 
-  private  LocalDateTime date;
-  double price;
-  int action;  // -1 sell ;1 buy
-  int value;
+    private  LocalDateTime date;
+    double price;
+    int action;  // -1 sell ;1 buy
+    int value; // qnty of shares, usualy 1
 
 
   public Trade(LocalDateTime date, double price, int action, int value) {

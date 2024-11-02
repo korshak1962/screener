@@ -10,6 +10,7 @@ import korshak.com.screener.service.TradeService;
 import korshak.com.screener.serviceImpl.ChartServiceImpl;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,6 +35,8 @@ public class ScreenerApplication implements CommandLineRunner {
   @Autowired
   private TradeService tradeService;
   @Autowired
+ // @Qualifier("TiltStrategy")
+  @Qualifier("BuyAndHoldStrategy")
   private Strategy strategy;
 
   @Override
@@ -56,21 +59,23 @@ public class ScreenerApplication implements CommandLineRunner {
   }
 
   private void aggregate() {
-    String ticker = "SPY";
-    priceAggregationService.aggregateData(ticker,TimeFrame.MONTH);
+    String ticker = "GLD";
+    priceAggregationService.aggregateData(ticker,TimeFrame.DAY);
+    System.exit(0);
   }
 
   private void calcSMA() {
     String ticker = "SPY";
-    int startLength = 3;
-    int endLength = 201;
+    int startLength = 9;
+    int endLength = 9;
     long start = System.currentTimeMillis();
     System.out.println("started ");
     for (int length=startLength;length<=endLength;length += 3) {
-      smaCalculationService.calculateSMA(ticker, length, TimeFrame.HOUR);
+      smaCalculationService.calculateSMA(ticker, length, TimeFrame.DAY);
       System.out.println("length = " + length);
     }
     System.out.println("total = "+(System.currentTimeMillis()-start));
+    System.exit(0);
   }
 
 
@@ -80,7 +85,7 @@ public class ScreenerApplication implements CommandLineRunner {
     String interval = "5min";
     String year = "2022-";
     String yearMonth;
-    int startMonth = 5;
+    int startMonth = 1;
     int finalMonth = 12;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
@@ -94,5 +99,6 @@ public class ScreenerApplication implements CommandLineRunner {
           .fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
       System.out.println("saved = " + saved);
     }
+    System.exit(0);
   }
 }
