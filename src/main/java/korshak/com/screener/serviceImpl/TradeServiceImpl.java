@@ -2,10 +2,13 @@ package korshak.com.screener.serviceImpl;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.PriceDao;
 import korshak.com.screener.service.Strategy;
@@ -41,7 +44,7 @@ public class TradeServiceImpl implements TradeService {
         endDate,
         timeFrame);
 
-    return getStrategyResult(strategy, prices);
+    return getStrategyResult(strategy.getTrades(prices), prices);
   }
 
   @Override
@@ -50,26 +53,33 @@ public class TradeServiceImpl implements TradeService {
                                                    TimeFrame timeFrame) {
 
     List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);
-    return getStrategyResult(strategy, prices);
+    return getStrategyResult(strategy.getTrades(prices), prices);
   }
 
-  private static StrategyResult getStrategyResult(Strategy strategy,
-                                                  List<? extends BasePrice> prices) {
+  private StrategyResult getStrategyResult(List<Trade> trades,
+                                           List<? extends BasePrice> prices) {
     double totalPnL = 0;
     double maxProfit = 0;
     double maxDrawdown = 0;
     double currentDrawdown = 0;
-
-    List<Trade> trades = strategy.getTrades(prices);
+    Trade tradeBuy = null;
+    Map<LocalDateTime, Double> unrealizedDrawDownsPerTrade = new HashMap<>(trades.size());
     // Keep track of open positions
     Map<Double, Integer> openPositions = new HashMap<>();
 
     for (Trade trade : trades) {
+
       if (trade.getAction() == 1) { // Buy
+        tradeBuy = trade;
         // Add to open positions
         openPositions.put(trade.getPrice(),
             openPositions.getOrDefault(trade.getPrice(), 0) + trade.getValue());
+
       } else if (trade.getAction() == -1) { // Sell
+        BasePrice minPricePerTrade =
+            caclMinPricePerTrade(tradeBuy.getDate(), trade.getDate(), prices);
+        unrealizedDrawDownsPerTrade.put(minPricePerTrade.getId().getDate(),
+            minPricePerTrade.getClose() - tradeBuy.getPrice());
         // Calculate PnL for this trade
         double pnl = 0;
         int remainingToSell = trade.getValue();
@@ -111,7 +121,32 @@ public class TradeServiceImpl implements TradeService {
         maxDrawdown = Math.max(maxDrawdown, currentDrawdown);
       }
     }
-    return new StrategyResult(prices, maxDrawdown, totalPnL, maxProfit, trades);
+    return new StrategyResult(prices, maxDrawdown, totalPnL, maxProfit, trades,
+        unrealizedDrawDownsPerTrade);
   }
 
+  private BasePrice caclMinPricePerTrade(LocalDateTime buyDate, LocalDateTime sellDate,
+                                         List<? extends BasePrice> prices) {
+    int priceIndex = Collections.binarySearch(
+        prices,
+        new BasePrice() {
+          @Override
+          public PriceKey getId() {
+            return new PriceKey(null, buyDate);
+          }
+        },
+        Comparator.comparing(price -> price.getId().getDate())
+    );
+    BasePrice minPricePerTrade = prices.get(priceIndex);
+
+    while (prices.get(++priceIndex).getId().getDate().isBefore(sellDate)) {
+      minPricePerTrade =
+          minPricePerTrade.getClose() > prices.get(priceIndex).getClose() ? prices.get(priceIndex) :
+              minPricePerTrade;
+    }
+
+    return minPricePerTrade.getClose() > prices.get(priceIndex).getClose() ?
+        prices.get(priceIndex) :
+        minPricePerTrade;
+  }
 }
