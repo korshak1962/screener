@@ -11,18 +11,18 @@ public class StrategyResult {
   double maxDrawdown = 0;
   double totalPnL = 0;
   double maxProfit = 0;
-  List<Trade> trades;
+  List<Signal> signals;
   Map<LocalDateTime, Double> unrealizedDrawDownsPerTrade;
 
   public StrategyResult(List<? extends BasePrice> prices,
                         double maxDrawdown, double totalPnL,
-                        double maxProfit, List<Trade> trades,
+                        double maxProfit, List<Signal> signals,
                         Map<LocalDateTime, Double> unrealizedDrawDownsPerTrade) {
     this.prices = prices;
     this.maxDrawdown = maxDrawdown;
     this.totalPnL = totalPnL;
     this.maxProfit = maxProfit;
-    this.trades = trades;
+    this.signals = signals;
     this.unrealizedDrawDownsPerTrade = unrealizedDrawDownsPerTrade;
   }
 
@@ -42,8 +42,8 @@ public class StrategyResult {
     return maxProfit;
   }
 
-  public List<Trade> getTrades() {
-    return trades;
+  public List<Signal> getTrades() {
+    return signals;
   }
 
   @Override
@@ -70,7 +70,7 @@ public class StrategyResult {
   public double getAnnualPercentageReturn() {
     long days = ChronoUnit.DAYS.between(prices.get(0).getId().getDate(),
         prices.getLast().getId().getDate());
-    double profitPercent = totalPnL / trades.getFirst().getPrice();
+    double profitPercent = totalPnL / signals.getFirst().getPrice();
     double years = 365.0 / days;
     return (profitPercent * years) * 100;
   }

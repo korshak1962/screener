@@ -2,11 +2,15 @@ package korshak.com.screener.serviceImpl;
 
 import java.awt.Color;
 import java.awt.Shape;
+import java.awt.BasicStroke;
 import java.awt.geom.Path2D;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.service.ChartService;
-import korshak.com.screener.vo.Trade;
+import korshak.com.screener.vo.Signal;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -21,14 +25,14 @@ import org.jfree.data.time.ohlc.OHLCSeries;
 import org.jfree.data.time.ohlc.OHLCSeriesCollection;
 import org.jfree.data.xy.OHLCDataset;
 
-
-public class ChartServiceImpl  extends ApplicationFrame implements ChartService{
+public class ChartServiceImpl extends ApplicationFrame implements ChartService {
 
   public ChartServiceImpl(String title) {
     super(title);
   }
 
-  private  JFreeChart createChart(List<? extends BasePrice> prices, List<Trade> trades) {
+  private JFreeChart createChart(List<? extends BasePrice> prices, List<Signal> signals,
+                                 List<? extends BaseSma> smaList) {
     // Create candlestick dataset
     OHLCDataset candlestickData = createCandlestickDataset(prices);
 
@@ -54,9 +58,63 @@ public class ChartServiceImpl  extends ApplicationFrame implements ChartService{
     candlestickRenderer.setDrawVolume(true);
 
     // Add trade markers
-    addTradeMarkers(plot, trades);
+    addTradeMarkers(plot, signals);
+
+    // Add SMA lines if provided
+    if (smaList != null && !smaList.isEmpty()) {
+      addSmaLines(plot, smaList);
+    }
 
     return chart;
+  }
+
+  private void addSmaLines(XYPlot plot, List<? extends BaseSma> smaList) {
+    // Create a new renderer for SMA lines
+    XYLineAndShapeRenderer smaRenderer = new XYLineAndShapeRenderer(true, false);
+    TimeSeriesCollection smaDataset = new TimeSeriesCollection();
+
+    // Group SMAs by length to create separate lines for each length
+    Map<Integer, List<BaseSma>> smasByLength = smaList.stream()
+        .collect(Collectors.groupingBy(sma -> sma.getId().getLength()));
+
+    int seriesIndex = 0;
+    for (Map.Entry<Integer, List<BaseSma>> entry : smasByLength.entrySet()) {
+      TimeSeries smaSeries = new TimeSeries("SMA(" + entry.getKey() + ")");
+
+      for (BaseSma sma : entry.getValue()) {
+        smaSeries.add(
+            new Millisecond(java.sql.Timestamp.valueOf(sma.getId().getDate())),
+            sma.getValue()
+        );
+      }
+
+      smaDataset.addSeries(smaSeries);
+
+      // Set different colors for different SMA lengths
+      Color lineColor = getColorForSma(seriesIndex);
+      smaRenderer.setSeriesPaint(seriesIndex, lineColor);
+      smaRenderer.setSeriesStroke(seriesIndex, new BasicStroke(1.5f));
+
+      seriesIndex++;
+    }
+
+    // Add the SMA dataset and renderer
+    // Use dataset index 2 (0 is candlesticks, 1 is trade markers)
+    plot.setDataset(2, smaDataset);
+    plot.setRenderer(2, smaRenderer);
+  }
+
+  private Color getColorForSma(int index) {
+    // Define different colors for different SMA lengths
+    Color[] colors = {
+        new Color(0, 0, 255),     // Blue
+        new Color(255, 165, 0),   // Orange
+        new Color(128, 0, 128),   // Purple
+        new Color(0, 128, 0),     // Dark Green
+        new Color(165, 42, 42),   // Brown
+        new Color(64, 224, 208)   // Turquoise
+    };
+    return colors[index % colors.length];
   }
 
   private static OHLCDataset createCandlestickDataset(List<? extends BasePrice> prices) {
@@ -77,7 +135,7 @@ public class ChartServiceImpl  extends ApplicationFrame implements ChartService{
     return dataset;
   }
 
-  private static void addTradeMarkers(XYPlot plot, List<Trade> trades) {
+  private static void addTradeMarkers(XYPlot plot, List<Signal> signals) {
     // Create triangular shapes for buy/sell markers
     Shape buyMarker = createTriangle(true);
     Shape sellMarker = createTriangle(false);
@@ -88,15 +146,15 @@ public class ChartServiceImpl  extends ApplicationFrame implements ChartService{
     TimeSeries buySeries = new TimeSeries("Buy");
     TimeSeries sellSeries = new TimeSeries("Sell");
 
-    for (Trade trade : trades) {
+    for (Signal signal : signals) {
       Millisecond timePoint = new Millisecond(
-          java.sql.Timestamp.valueOf(trade.getDate())
+          java.sql.Timestamp.valueOf(signal.getDate())
       );
 
-      if (trade.getAction() == 1) { // Buy
-        buySeries.add(timePoint, trade.getPrice());
-      } else if (trade.getAction() == -1) { // Sell
-        sellSeries.add(timePoint, trade.getPrice());
+      if (signal.getAction() == 1) { // Buy
+        buySeries.add(timePoint, signal.getPrice());
+      } else if (signal.getAction() == -1) { // Sell
+        sellSeries.add(timePoint, signal.getPrice());
       }
     }
 
@@ -110,8 +168,8 @@ public class ChartServiceImpl  extends ApplicationFrame implements ChartService{
     // Configure trade markers appearance
     tradeRenderer.setSeriesShape(0, buyMarker);
     tradeRenderer.setSeriesShape(1, sellMarker);
-    tradeRenderer.setSeriesPaint(0, Color.GREEN);
-    tradeRenderer.setSeriesPaint(1, Color.RED);
+    tradeRenderer.setSeriesPaint(0, Color.BLUE);
+    tradeRenderer.setSeriesPaint(1, Color.MAGENTA);
   }
 
   private static Shape createTriangle(boolean pointUp) {
@@ -132,8 +190,13 @@ public class ChartServiceImpl  extends ApplicationFrame implements ChartService{
   }
 
   @Override
-  public void drawChart(List<? extends BasePrice> prices, List<Trade> trades) {
-    JFreeChart chart = createChart(prices, trades);
+  public void drawChart(List<? extends BasePrice> prices, List<Signal> signals) {
+    drawChart(prices, signals, null);
+  }
+
+  public void drawChart(List<? extends BasePrice> prices, List<Signal> signals,
+                        List<? extends BaseSma> smaList) {
+    JFreeChart chart = createChart(prices, signals, smaList);
     ChartPanel chartPanel = new ChartPanel(chart);
     chartPanel.setPreferredSize(new java.awt.Dimension(1000, 600));
     setContentPane(chartPanel);

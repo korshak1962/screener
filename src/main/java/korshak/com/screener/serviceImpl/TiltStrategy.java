@@ -10,17 +10,18 @@ import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.SmaDao;
 import korshak.com.screener.service.Strategy;
-import korshak.com.screener.vo.Trade;
+import korshak.com.screener.vo.Signal;
 import org.springframework.stereotype.Service;
 
 @Service("TiltStrategy")
 public class TiltStrategy implements Strategy {
-  private double tiltBuy = 0.01;        // Default value
-  private double tiltSell = -0.01;      // Default value
+  private double tiltBuy = 0.02;        // Default value
+  private double tiltSell = -0.02;      // Default value
   private int tiltPeriod = 5;          // Default value
   private int length = 9;             // Default value
   private TimeFrame timeFrame = TimeFrame.DAY;  // Default value
   private final SmaDao smaDao;
+  private List<? extends BaseSma> smaList;
 
   public TiltStrategy(SmaDao smaDao) {
     this.smaDao = smaDao;
@@ -108,17 +109,17 @@ public class TiltStrategy implements Strategy {
   }
 
   @Override
-  public List<Trade> getTrades(List<? extends BasePrice> prices) {
-    List<Trade> trades = new ArrayList<>();
+  public List<Signal> getTrades(List<? extends BasePrice> prices) {
+    List<Signal> signals = new ArrayList<>();
     if (prices == null || prices.isEmpty()) {
-      return trades;
+      return signals;
     }
 
     String ticker = prices.get(0).getId().getTicker();
     LocalDateTime startDate = prices.get(0).getId().getDate();
     LocalDateTime endDate = prices.get(prices.size() - 1).getId().getDate();
 
-    List<? extends BaseSma> smaList = smaDao.findByDateRange(
+    smaList = smaDao.findByDateRange(
         ticker,
         startDate,
         endDate,
@@ -139,7 +140,7 @@ public class TiltStrategy implements Strategy {
 
     // Need at least tiltPeriod + 1 SMAs to calculate tilt
     if (smaList.size() <= tiltPeriod) {
-      return trades;
+      return signals;
     }
 
     // Create a sliding window for tilt calculation
@@ -164,7 +165,7 @@ public class TiltStrategy implements Strategy {
         double currentTilt = calculateTilt(slidingWindow);
 
         if (!inPosition && currentTilt > tiltBuy && previousTilt <= tiltBuy) {
-          trades.add(new Trade(
+          signals.add(new Signal(
               currentDate,
               price.getClose(),
               1,  // buy
@@ -173,7 +174,7 @@ public class TiltStrategy implements Strategy {
           inPosition = true;
         }
         else if (inPosition && currentTilt < tiltSell && previousTilt >= tiltSell) {
-          trades.add(new Trade(
+          signals.add(new Signal(
               currentDate,
               price.getClose(),
               -1, // sell
@@ -186,7 +187,7 @@ public class TiltStrategy implements Strategy {
       }
     }
 
-    return trades;
+    return signals;
   }
 
   @Override
@@ -220,5 +221,9 @@ public class TiltStrategy implements Strategy {
     double normalizedSlope = (slope / avgSma) * 100;
 
     return normalizedSlope;
+  }
+
+  public List<? extends BaseSma> getSmaList() {
+    return smaList;
   }
 }

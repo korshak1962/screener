@@ -14,7 +14,7 @@ import korshak.com.screener.service.PriceDao;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.vo.StrategyResult;
-import korshak.com.screener.vo.Trade;
+import korshak.com.screener.vo.Signal;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -56,33 +56,33 @@ public class TradeServiceImpl implements TradeService {
     return getStrategyResult(strategy.getTrades(prices), prices);
   }
 
-  private StrategyResult getStrategyResult(List<Trade> trades,
+  private StrategyResult getStrategyResult(List<Signal> signals,
                                            List<? extends BasePrice> prices) {
     double totalPnL = 0;
     double maxProfit = 0;
     double maxDrawdown = 0;
     double currentDrawdown = 0;
-    Trade tradeBuy = null;
-    Map<LocalDateTime, Double> unrealizedDrawDownsPerTrade = new HashMap<>(trades.size());
+    Signal signalBuy = null;
+    Map<LocalDateTime, Double> unrealizedDrawDownsPerTrade = new HashMap<>(signals.size());
     // Keep track of open positions
     Map<Double, Integer> openPositions = new HashMap<>();
 
-    for (Trade trade : trades) {
+    for (Signal signal : signals) {
 
-      if (trade.getAction() == 1) { // Buy
-        tradeBuy = trade;
+      if (signal.getAction() == 1) { // Buy
+        signalBuy = signal;
         // Add to open positions
-        openPositions.put(trade.getPrice(),
-            openPositions.getOrDefault(trade.getPrice(), 0) + trade.getValue());
+        openPositions.put(signal.getPrice(),
+            openPositions.getOrDefault(signal.getPrice(), 0) + signal.getValue());
 
-      } else if (trade.getAction() == -1) { // Sell
+      } else if (signal.getAction() == -1) { // Sell
         BasePrice minPricePerTrade =
-            caclMinPricePerTrade(tradeBuy.getDate(), trade.getDate(), prices);
+            caclMinPricePerTrade(signalBuy.getDate(), signal.getDate(), prices);
         unrealizedDrawDownsPerTrade.put(minPricePerTrade.getId().getDate(),
-            minPricePerTrade.getClose() - tradeBuy.getPrice());
+            minPricePerTrade.getClose() - signalBuy.getPrice());
         // Calculate PnL for this trade
         double pnl = 0;
-        int remainingToSell = trade.getValue();
+        int remainingToSell = signal.getValue();
 
         // Sort open positions by price to implement FIFO
         List<Map.Entry<Double, Integer>> sortedPositions =
@@ -99,7 +99,7 @@ public class TradeServiceImpl implements TradeService {
           int sharesToSell = Math.min(remainingToSell, availableShares);
 
           // Calculate PnL for this portion
-          pnl += (trade.getPrice() - buyPrice) * sharesToSell;
+          pnl += (signal.getPrice() - buyPrice) * sharesToSell;
 
           // Update remaining shares to sell
           remainingToSell -= sharesToSell;
@@ -121,7 +121,7 @@ public class TradeServiceImpl implements TradeService {
         maxDrawdown = Math.max(maxDrawdown, currentDrawdown);
       }
     }
-    return new StrategyResult(prices, maxDrawdown, totalPnL, maxProfit, trades,
+    return new StrategyResult(prices, maxDrawdown, totalPnL, maxProfit, signals,
         unrealizedDrawDownsPerTrade);
   }
 

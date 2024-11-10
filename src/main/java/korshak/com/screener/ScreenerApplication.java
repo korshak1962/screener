@@ -8,6 +8,7 @@ import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.serviceImpl.ChartServiceImpl;
+import korshak.com.screener.serviceImpl.TiltStrategy;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,9 +36,11 @@ public class ScreenerApplication implements CommandLineRunner {
   @Autowired
   private TradeService tradeService;
   @Autowired
- // @Qualifier("TiltStrategy")
+  @Qualifier("TiltStrategy")
+  private Strategy tiltStrategy;
+  @Autowired
   @Qualifier("BuyAndHoldStrategy")
-  private Strategy strategy;
+  private Strategy buyAndHoldStrategy;
 
   @Override
   public void run(String... args) throws Exception {
@@ -51,11 +54,14 @@ public class ScreenerApplication implements CommandLineRunner {
   private void evaluateStrategy() {
     String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
-    StrategyResult strategyResult=tradeService.calculateProfitAndDrawdown(strategy,ticker, timeFrame);
-    System.out.println(strategyResult);
+    StrategyResult BuyAndHoldstrategyResult=tradeService.calculateProfitAndDrawdown(buyAndHoldStrategy,ticker, timeFrame);
+    StrategyResult strategyResult=tradeService.calculateProfitAndDrawdown(tiltStrategy,ticker, timeFrame);
+    System.out.println(tiltStrategy.getName()+" result: "  +strategyResult);
+    System.out.println(buyAndHoldStrategy.getName()+" result: "  +BuyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
-    ChartService chartService  = new ChartServiceImpl(strategy.getName());
-    chartService.drawChart(strategyResult.getPrices(),strategyResult.getTrades());
+    ChartService chartService  = new ChartServiceImpl(tiltStrategy.getName());
+    chartService.drawChart(strategyResult.getPrices(),strategyResult.getTrades(),((TiltStrategy)tiltStrategy).getSmaList());
+    //chartService.drawChart(strategyResult.getPrices(),strategyResult.getTrades());
   }
 
   private void aggregate() {

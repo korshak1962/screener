@@ -2,9 +2,9 @@ package korshak.com.screener.service;
 
 import java.util.List;
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.vo.Trade;
+import korshak.com.screener.vo.Signal;
 
 public interface Strategy {
-  List<Trade> getTrades(List<? extends BasePrice> prices);
+  List<Signal> getTrades(List<? extends BasePrice> prices);
   String getName();
 }

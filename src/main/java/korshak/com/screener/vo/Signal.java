@@ -2,7 +2,7 @@ package korshak.com.screener.vo;
 
 import java.time.LocalDateTime;
 
-public class Trade {
+public class Signal {
 
     private  LocalDateTime date;
     double price;
@@ -10,7 +10,7 @@ public class Trade {
     int value; // qnty of shares, usualy 1
 
 
-  public Trade(LocalDateTime date, double price, int action, int value) {
+  public Signal(LocalDateTime date, double price, int action, int value) {
     this.date = date;
     this.price = price;
     this.action = action;
