@@ -7,7 +7,7 @@ import korshak.com.screener.service.SharePriceDownLoaderService;
 import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.service.TradeService;
-import korshak.com.screener.serviceImpl.ChartServiceImpl;
+import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.TiltStrategy;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -12,6 +12,7 @@ public class StrategyResult {
   double totalPnL = 0;
   double maxProfit = 0;
   List<Signal> signals;
+  List<Trade>  trades;
   Map<LocalDateTime, Double> unrealizedDrawDownsPerTrade;
 
   public StrategyResult(List<? extends BasePrice> prices,
