@@ -6,6 +6,7 @@ import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.vo.Signal;
 import java.awt.*;
 import java.util.List;
+import korshak.com.screener.vo.Trade;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ui.ApplicationFrame;
@@ -28,12 +29,12 @@ public class ChartServiceImpl extends ApplicationFrame implements ChartService {
 
   @Override
   public void drawChart(List<? extends BasePrice> prices, List<Signal> signals) {
-    drawChart(prices, signals, null);
+    drawChart(prices, signals, List.of(),List.of());
   }
 
   public void drawChart(List<? extends BasePrice> prices, List<Signal> signals,
-                        List<? extends BaseSma> smaList) {
-    ChartBuilder builder = new ChartBuilder(prices, signals, smaList);
+                        List<? extends BaseSma> smaList, List<Trade> trades) {
+    ChartBuilder builder = new ChartBuilder(prices, signals, smaList,trades);
     JFreeChart chart = builder.build();
 
     configureChartPanel(chart);

@@ -3,9 +3,11 @@ package korshak.com.screener.serviceImpl.chart;
 import java.awt.geom.Point2D;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import org.jfree.chart.axis.ValueAxis;
+import java.util.List;
 
 public class ChartController {
   private static final double SCALE_FACTOR = 0.1; // For mouse wheel scaling
@@ -33,80 +35,169 @@ public class ChartController {
   }
 
   private void handleAxisScale(MouseWheelEvent e) {
-    XYPlot plot = (XYPlot) chartPanel.getChart().getPlot();
     Point2D p = chartPanel.translateScreenToJava2D(e.getPoint());
     Rectangle2D plotArea = chartPanel.getScreenDataArea();
 
-    if (e.isShiftDown()) {
-      // Scale time axis when shift is held
-      ValueAxis domainAxis = plot.getDomainAxis();
-      double centerX = domainAxis.java2DToValue(p.getX(), plotArea, plot.getDomainAxisEdge());
-      scaleAxisAroundValue(domainAxis, e.getWheelRotation(), centerX);
+    if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot) {
+      CombinedDomainXYPlot combinedPlot = (CombinedDomainXYPlot) chartPanel.getChart().getPlot();
+
+      // Handle time axis scaling when shift is held
+      if (e.isShiftDown()) {
+        ValueAxis domainAxis = combinedPlot.getDomainAxis();
+        if (domainAxis != null) {
+          double centerX = domainAxis.java2DToValue(p.getX(), plotArea, combinedPlot.getDomainAxisEdge());
+          scaleAxisAroundValue(domainAxis, e.getWheelRotation(), centerX);
+        }
+        return;
+      }
+
+      // Determine which subplot to scale based on mouse position
+      @SuppressWarnings("unchecked")
+      List<XYPlot> subplots = combinedPlot.getSubplots();
+
+      double relativeY = e.getY() - plotArea.getY();
+      double totalHeight = plotArea.getHeight();
+      double mainPlotHeight = totalHeight * 0.75;
+
+      XYPlot targetPlot;
+      Rectangle2D targetArea;
+
+      if (relativeY <= mainPlotHeight) {
+        // Main plot
+        targetPlot = subplots.get(0);
+        targetArea = new Rectangle2D.Double(
+            plotArea.getX(),
+            plotArea.getY(),
+            plotArea.getWidth(),
+            mainPlotHeight
+        );
+      } else {
+        // Histogram plot
+        targetPlot = subplots.get(1);
+        targetArea = new Rectangle2D.Double(
+            plotArea.getX(),
+            plotArea.getY() + mainPlotHeight + combinedPlot.getGap(),
+            plotArea.getWidth(),
+            totalHeight - mainPlotHeight - combinedPlot.getGap()
+        );
+      }
+
+      ValueAxis rangeAxis = targetPlot.getRangeAxis();
+      if (rangeAxis != null) {
+        double centerY = rangeAxis.java2DToValue(p.getY(), targetArea, targetPlot.getRangeAxisEdge());
+        scaleAxisAroundValue(rangeAxis, e.getWheelRotation(), centerY);
+      }
     } else {
-      // Scale price axis
-      ValueAxis rangeAxis = plot.getRangeAxis();
-      double centerY = rangeAxis.java2DToValue(p.getY(), plotArea, plot.getRangeAxisEdge());
-      scaleAxisAroundValue(rangeAxis, e.getWheelRotation(), centerY);
+      XYPlot plot = (XYPlot) chartPanel.getChart().getPlot();
+      if (e.isShiftDown()) {
+        ValueAxis domainAxis = plot.getDomainAxis();
+        if (domainAxis != null) {
+          double centerX = domainAxis.java2DToValue(p.getX(), plotArea, plot.getDomainAxisEdge());
+          scaleAxisAroundValue(domainAxis, e.getWheelRotation(), centerX);
+        }
+      } else {
+        ValueAxis rangeAxis = plot.getRangeAxis();
+        if (rangeAxis != null) {
+          double centerY = rangeAxis.java2DToValue(p.getY(), plotArea, plot.getRangeAxisEdge());
+          scaleAxisAroundValue(rangeAxis, e.getWheelRotation(), centerY);
+        }
+      }
     }
   }
 
   private void scaleAxisAroundValue(ValueAxis axis, int wheelRotation, double centerValue) {
-    // Get current bounds
     double lower = axis.getLowerBound();
     double upper = axis.getUpperBound();
     double length = upper - lower;
 
-    // Calculate how much to expand/contract the range
     double scaleFactor = wheelRotation < 0 ? (1 + SCALE_FACTOR) : (1 - SCALE_FACTOR);
     double newLength = length * scaleFactor;
 
-    // Calculate new bounds while keeping the center point
     double ratio = (centerValue - lower) / length;
     double newLower = centerValue - (ratio * newLength);
     double newUpper = newLower + newLength;
 
-    // Set new range
     axis.setRange(newLower, newUpper);
   }
 
-  // Menu button methods
   public void zoomIn() {
     if (chartPanel != null) {
-      XYPlot plot = (XYPlot) chartPanel.getChart().getPlot();
-      ValueAxis domainAxis = plot.getDomainAxis();
-      ValueAxis rangeAxis = plot.getRangeAxis();
+      if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot) {
+        CombinedDomainXYPlot combinedPlot = (CombinedDomainXYPlot) chartPanel.getChart().getPlot();
+        ValueAxis domainAxis = combinedPlot.getDomainAxis();
+        double domainCenter = (domainAxis.getLowerBound() + domainAxis.getUpperBound()) / 2;
+        scaleAxisAroundValue(domainAxis, 1, domainCenter);
 
-      // Get the center of each axis
-      double domainCenter = (domainAxis.getLowerBound() + domainAxis.getUpperBound()) / 2;
-      double rangeCenter = (rangeAxis.getLowerBound() + rangeAxis.getUpperBound()) / 2;
+        @SuppressWarnings("unchecked")
+        List<XYPlot> subplots = combinedPlot.getSubplots();
+        for (XYPlot subplot : subplots) {
+          ValueAxis rangeAxis = subplot.getRangeAxis();
+          if (rangeAxis != null) {
+            double rangeCenter = (rangeAxis.getLowerBound() + rangeAxis.getUpperBound()) / 2;
+            scaleAxisAroundValue(rangeAxis, 1, rangeCenter);
+          }
+        }
+      } else {
+        XYPlot plot = (XYPlot) chartPanel.getChart().getPlot();
+        ValueAxis domainAxis = plot.getDomainAxis();
+        ValueAxis rangeAxis = plot.getRangeAxis();
 
-      // Zoom in both axes
-      scaleAxisAroundValue(domainAxis, 1, domainCenter);
-      scaleAxisAroundValue(rangeAxis, 1, rangeCenter);
+        double domainCenter = (domainAxis.getLowerBound() + domainAxis.getUpperBound()) / 2;
+        double rangeCenter = (rangeAxis.getLowerBound() + rangeAxis.getUpperBound()) / 2;
+
+        scaleAxisAroundValue(domainAxis, 1, domainCenter);
+        scaleAxisAroundValue(rangeAxis, 1, rangeCenter);
+      }
     }
   }
 
   public void zoomOut() {
     if (chartPanel != null) {
-      XYPlot plot = (XYPlot) chartPanel.getChart().getPlot();
-      ValueAxis domainAxis = plot.getDomainAxis();
-      ValueAxis rangeAxis = plot.getRangeAxis();
+      if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot) {
+        CombinedDomainXYPlot combinedPlot = (CombinedDomainXYPlot) chartPanel.getChart().getPlot();
+        ValueAxis domainAxis = combinedPlot.getDomainAxis();
+        double domainCenter = (domainAxis.getLowerBound() + domainAxis.getUpperBound()) / 2;
+        scaleAxisAroundValue(domainAxis, -1, domainCenter);
 
-      // Get the center of each axis
-      double domainCenter = (domainAxis.getLowerBound() + domainAxis.getUpperBound()) / 2;
-      double rangeCenter = (rangeAxis.getLowerBound() + rangeAxis.getUpperBound()) / 2;
+        @SuppressWarnings("unchecked")
+        List<XYPlot> subplots = combinedPlot.getSubplots();
+        for (XYPlot subplot : subplots) {
+          ValueAxis rangeAxis = subplot.getRangeAxis();
+          if (rangeAxis != null) {
+            double rangeCenter = (rangeAxis.getLowerBound() + rangeAxis.getUpperBound()) / 2;
+            scaleAxisAroundValue(rangeAxis, -1, rangeCenter);
+          }
+        }
+      } else {
+        XYPlot plot = (XYPlot) chartPanel.getChart().getPlot();
+        ValueAxis domainAxis = plot.getDomainAxis();
+        ValueAxis rangeAxis = plot.getRangeAxis();
 
-      // Zoom out both axes
-      scaleAxisAroundValue(domainAxis, -1, domainCenter);
-      scaleAxisAroundValue(rangeAxis, -1, rangeCenter);
+        double domainCenter = (domainAxis.getLowerBound() + domainAxis.getUpperBound()) / 2;
+        double rangeCenter = (rangeAxis.getLowerBound() + rangeAxis.getUpperBound()) / 2;
+
+        scaleAxisAroundValue(domainAxis, -1, domainCenter);
+        scaleAxisAroundValue(rangeAxis, -1, rangeCenter);
+      }
     }
   }
 
   public void resetZoom() {
     if (chartPanel != null) {
-      XYPlot plot = (XYPlot) chartPanel.getChart().getPlot();
-      plot.getDomainAxis().setAutoRange(true);
-      plot.getRangeAxis().setAutoRange(true);
+      if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot) {
+        CombinedDomainXYPlot combinedPlot = (CombinedDomainXYPlot) chartPanel.getChart().getPlot();
+        combinedPlot.getDomainAxis().setAutoRange(true);
+
+        @SuppressWarnings("unchecked")
+        List<XYPlot> subplots = combinedPlot.getSubplots();
+        for (XYPlot subplot : subplots) {
+          subplot.getRangeAxis().setAutoRange(true);
+        }
+      } else {
+        XYPlot plot = (XYPlot) chartPanel.getChart().getPlot();
+        plot.getDomainAxis().setAutoRange(true);
+        plot.getRangeAxis().setAutoRange(true);
+      }
     }
   }
 

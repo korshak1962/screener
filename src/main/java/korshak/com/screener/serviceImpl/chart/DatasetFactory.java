@@ -3,6 +3,7 @@ package korshak.com.screener.serviceImpl.chart;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.vo.Signal;
+import korshak.com.screener.vo.Trade;
 import org.jfree.data.time.*;
 import org.jfree.data.time.ohlc.*;
 import java.util.*;
@@ -70,5 +71,9 @@ public class DatasetFactory {
     }
 
     return dataset;
+  }
+
+  public TradeHistogramDataset createTradeHistogramDataset(List<Trade> trades) {
+    return new TradeHistogramDataset(trades);
   }
 }

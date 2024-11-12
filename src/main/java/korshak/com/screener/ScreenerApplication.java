@@ -7,8 +7,8 @@ import korshak.com.screener.service.SharePriceDownLoaderService;
 import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.service.TradeService;
-import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.TiltStrategy;
+import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,25 +48,29 @@ public class ScreenerApplication implements CommandLineRunner {
     //downloadSeries();
     //aggregate();
     //calcSMA();
-   // System.exit(0);
+    // System.exit(0);
   }
 
   private void evaluateStrategy() {
     String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
-    StrategyResult buyAndHoldstrategyResult=tradeService.calculateProfitAndDrawdown(buyAndHoldStrategy,ticker, timeFrame);
-    StrategyResult strategyResultTilt=tradeService.calculateProfitAndDrawdown(tiltStrategy,ticker, timeFrame);
-    System.out.println(tiltStrategy.getName()+" result: "  +strategyResultTilt);
-    System.out.println(buyAndHoldStrategy.getName()+" result: "  +buyAndHoldstrategyResult);
+    StrategyResult buyAndHoldstrategyResult =
+        tradeService.calculateProfitAndDrawdown(buyAndHoldStrategy, ticker, timeFrame);
+    StrategyResult strategyResultTilt =
+        tradeService.calculateProfitAndDrawdown(tiltStrategy, ticker, timeFrame);
+    System.out.println(tiltStrategy.getName() + " result: " + strategyResultTilt);
+    System.out.println(buyAndHoldStrategy.getName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
-    ChartService chartService  = new ChartServiceImpl(tiltStrategy.getName());
-    chartService.drawChart(strategyResultTilt.getPrices(),strategyResultTilt.getSignals(),((TiltStrategy)tiltStrategy).getSmaList());
+    ChartService chartService = new ChartServiceImpl(tiltStrategy.getName());
+    chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
+        , ((TiltStrategy) tiltStrategy).getSmaList()
+        , strategyResultTilt.getTradesLong());
     //chartService.drawChart(strategyResult.getPrices(),strategyResult.getTrades());
   }
 
   private void aggregate() {
     String ticker = "GLD";
-    priceAggregationService.aggregateData(ticker,TimeFrame.DAY);
+    priceAggregationService.aggregateData(ticker, TimeFrame.DAY);
     System.exit(0);
   }
 
@@ -76,11 +80,11 @@ public class ScreenerApplication implements CommandLineRunner {
     int endLength = 9;
     long start = System.currentTimeMillis();
     System.out.println("started ");
-    for (int length=startLength;length<=endLength;length += 3) {
+    for (int length = startLength; length <= endLength; length += 3) {
       smaCalculationService.calculateSMA(ticker, length, TimeFrame.DAY);
       System.out.println("length = " + length);
     }
-    System.out.println("total = "+(System.currentTimeMillis()-start));
+    System.out.println("total = " + (System.currentTimeMillis() - start));
     System.exit(0);
   }
 

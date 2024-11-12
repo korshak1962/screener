@@ -34,6 +34,13 @@ public class RendererFactory {
     return renderer;
   }
 
+  public TradeHistogramRenderer createTradeHistogramRenderer() {
+    return new TradeHistogramRenderer(
+        new Color(0, 150, 0, 180),  // Positive color
+        new Color(150, 0, 0, 180)   // Negative color
+    );
+  }
+
   private Shape createTriangle(boolean pointUp) {
     Path2D.Double triangle = new Path2D.Double();
     int size = 8;
