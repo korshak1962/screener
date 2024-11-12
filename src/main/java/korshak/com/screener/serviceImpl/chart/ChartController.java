@@ -23,7 +23,7 @@ public class ChartController {
   }
 
   private void setupListeners() {
-    crosshairManager.setupCrosshairListeners();
+    //crosshairManager.setupCrosshairListeners();
 
     // Add mouse wheel listener for scaling
     chartPanel.addMouseWheelListener(new MouseWheelListener() {
