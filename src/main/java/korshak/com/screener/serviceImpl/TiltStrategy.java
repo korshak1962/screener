@@ -168,8 +168,7 @@ public class TiltStrategy implements Strategy {
           signals.add(new Signal(
               currentDate,
               price.getClose(),
-              1,  // buy
-              1   // 1 share
+              1  // buy
           ));
           inPosition = true;
         }
@@ -177,8 +176,7 @@ public class TiltStrategy implements Strategy {
           signals.add(new Signal(
               currentDate,
               price.getClose(),
-              -1, // sell
-              1   // 1 share
+              -1 // sell
           ));
           inPosition = false;
         }

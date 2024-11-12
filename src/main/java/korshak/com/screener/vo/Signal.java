@@ -7,14 +7,12 @@ public class Signal {
     private  LocalDateTime date;
     double price;
     int action;  // -1 sell ;1 buy
-    int value; // qnty of shares, usualy 1
 
 
-  public Signal(LocalDateTime date, double price, int action, int value) {
+  public Signal(LocalDateTime date, double price, int action) {
     this.date = date;
     this.price = price;
     this.action = action;
-    this.value = value;
   }
   public LocalDateTime getDate() {
     return date;
@@ -38,13 +36,5 @@ public class Signal {
 
   public void setAction(int action) {
     this.action = action;
-  }
-
-  public int getValue() {
-    return value;
-  }
-
-  public void setValue(int value) {
-    this.value = value;
   }
 }

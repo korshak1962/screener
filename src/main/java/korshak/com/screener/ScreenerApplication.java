@@ -54,13 +54,13 @@ public class ScreenerApplication implements CommandLineRunner {
   private void evaluateStrategy() {
     String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
-    StrategyResult BuyAndHoldstrategyResult=tradeService.calculateProfitAndDrawdown(buyAndHoldStrategy,ticker, timeFrame);
-    StrategyResult strategyResult=tradeService.calculateProfitAndDrawdown(tiltStrategy,ticker, timeFrame);
-    System.out.println(tiltStrategy.getName()+" result: "  +strategyResult);
-    System.out.println(buyAndHoldStrategy.getName()+" result: "  +BuyAndHoldstrategyResult);
+    StrategyResult buyAndHoldstrategyResult=tradeService.calculateProfitAndDrawdown(buyAndHoldStrategy,ticker, timeFrame);
+    StrategyResult strategyResultTilt=tradeService.calculateProfitAndDrawdown(tiltStrategy,ticker, timeFrame);
+    System.out.println(tiltStrategy.getName()+" result: "  +strategyResultTilt);
+    System.out.println(buyAndHoldStrategy.getName()+" result: "  +buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
     ChartService chartService  = new ChartServiceImpl(tiltStrategy.getName());
-    chartService.drawChart(strategyResult.getPrices(),strategyResult.getTrades(),((TiltStrategy)tiltStrategy).getSmaList());
+    chartService.drawChart(strategyResultTilt.getPrices(),strategyResultTilt.getSignals(),((TiltStrategy)tiltStrategy).getSmaList());
     //chartService.drawChart(strategyResult.getPrices(),strategyResult.getTrades());
   }
 

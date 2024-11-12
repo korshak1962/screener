@@ -13,8 +13,8 @@ public class BuyAndHoldStrategy implements Strategy {
   @Override
   public List<Signal> getTrades(List<? extends BasePrice> prices) {
     List<Signal> signals = new ArrayList<>();
-    signals.add(new Signal(prices.get(0).getId().getDate(), prices.get(0).getClose(), 1, 1));
-    signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(), -1, 1));
+    signals.add(new Signal(prices.get(0).getId().getDate(), prices.get(0).getClose(), 1));
+    signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(), -1));
     return signals;
   }
   @Override
