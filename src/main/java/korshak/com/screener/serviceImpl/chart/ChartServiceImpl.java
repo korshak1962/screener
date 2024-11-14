@@ -1,5 +1,8 @@
 package korshak.com.screener.serviceImpl.chart;
 
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.TreeMap;
 import korshak.com.screener.service.ChartService;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
@@ -29,12 +32,12 @@ public class ChartServiceImpl extends ApplicationFrame implements ChartService {
 
   @Override
   public void drawChart(List<? extends BasePrice> prices, List<Signal> signals) {
-    drawChart(prices, signals, List.of(),List.of());
+    drawChart(prices, signals, List.of(),List.of(),null);
   }
 
   public void drawChart(List<? extends BasePrice> prices, List<Signal> signals,
-                        List<? extends BaseSma> smaList, List<Trade> trades) {
-    ChartBuilder builder = new ChartBuilder(prices, signals, smaList,trades);
+                        List<? extends BaseSma> smaList, List<Trade> trades,Map<String, TreeMap<LocalDateTime, Double>> indicators) {
+    ChartBuilder builder = new ChartBuilder(prices, signals, smaList,trades,indicators);
     JFreeChart chart = builder.build();
 
     configureChartPanel(chart);

@@ -14,6 +14,21 @@ public class RendererFactory {
       new Color(64, 224, 208)   // Turquoise
   };
 
+  private static final Color[] INDICATOR_COLORS = {
+      new Color(75, 0, 130),    // Indigo
+      new Color(0, 100, 0),     // Dark Green
+      new Color(139, 0, 0),     // Dark Red
+      new Color(25, 25, 112),   // Midnight Blue
+      new Color(148, 0, 211),   // Dark Violet
+      new Color(184, 134, 11),  // Dark Goldenrod
+      new Color(0, 139, 139),   // Dark Cyan
+      new Color(169, 169, 169), // Dark Gray
+      Color.BLUE,
+      Color.RED,
+      Color.GREEN,
+      Color.ORANGE
+  };
+
   public XYLineAndShapeRenderer createSignalRenderer() {
     XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
     renderer.setSeriesShape(0, createTriangle(true));  // Buy marker
@@ -29,6 +44,24 @@ public class RendererFactory {
     for (int i = 0; i < SMA_COLORS.length; i++) {
       renderer.setSeriesPaint(i, SMA_COLORS[i]);
       renderer.setSeriesStroke(i, new BasicStroke(1.5f));
+    }
+
+    return renderer;
+  }
+
+  public XYLineAndShapeRenderer createMultipleIndicatorsRenderer(int seriesCount) {
+    XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(true, true);
+
+    // Create a small shape for data points
+    Shape dataPoint = new java.awt.geom.Ellipse2D.Double(-2, -2, 4, 4);
+
+    // Configure each series
+    for (int i = 0; i < seriesCount; i++) {
+      Color color = INDICATOR_COLORS[i % INDICATOR_COLORS.length];
+      renderer.setSeriesPaint(i, color);
+      renderer.setSeriesStroke(i, new BasicStroke(1.5f));
+      renderer.setSeriesShape(i, dataPoint);
+      renderer.setSeriesShapesVisible(i, true);
     }
 
     return renderer;

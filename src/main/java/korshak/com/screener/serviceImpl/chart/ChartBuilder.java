@@ -9,8 +9,14 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.time.Millisecond;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
 import java.text.SimpleDateFormat;
-import java.util.List;
+import java.util.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.awt.Color;
 import java.awt.Font;
 
@@ -19,15 +25,18 @@ public class ChartBuilder {
   private final List<Signal> signals;
   private final List<? extends BaseSma> smaList;
   private final List<Trade> tradesLong;
+  private final Map<String, TreeMap<LocalDateTime, Double>> indicators;
   private final DatasetFactory datasetFactory;
   private final RendererFactory rendererFactory;
 
   public ChartBuilder(List<? extends BasePrice> prices, List<Signal> signals,
-                      List<? extends BaseSma> smaList, List<Trade> tradesLong) {
+                      List<? extends BaseSma> smaList, List<Trade> tradesLong,
+                      Map<String, TreeMap<LocalDateTime, Double>> indicators) {
     this.prices = prices;
     this.signals = signals;
     this.smaList = smaList;
     this.tradesLong = tradesLong;
+    this.indicators = indicators;
     this.datasetFactory = new DatasetFactory();
     this.rendererFactory = new RendererFactory();
   }
@@ -37,12 +46,30 @@ public class ChartBuilder {
     XYPlot mainPlot = (XYPlot) candlestickChart.getPlot();
     customizePlot(mainPlot);
 
+    // Create histogram subplot
+    XYPlot histogramPlot = null;
     if (tradesLong != null && !tradesLong.isEmpty()) {
-      XYPlot histogramPlot = createHistogramPlot();
+      histogramPlot = createHistogramPlot();
+    }
 
+    // Create indicators subplot
+    XYPlot indicatorsPlot = null;
+    if (indicators != null && !indicators.isEmpty()) {
+      indicatorsPlot = createIndicatorsPlot();
+    }
+
+    // If we have additional plots, create a combined plot
+    if (histogramPlot != null || indicatorsPlot != null) {
       CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot(mainPlot.getDomainAxis());
-      combinedPlot.add(mainPlot, 3);
-      combinedPlot.add(histogramPlot, 1);
+      combinedPlot.add(mainPlot, 6);  // Main plot gets 6 parts
+
+      if (histogramPlot != null) {
+        combinedPlot.add(histogramPlot, 2);  // Histogram gets 2 parts
+      }
+
+      if (indicatorsPlot != null) {
+        combinedPlot.add(indicatorsPlot, 2);  // Indicators get 2 parts
+      }
 
       combinedPlot.setGap(8.0);
       combinedPlot.setBackgroundPaint(Color.WHITE);
@@ -106,6 +133,43 @@ public class ChartBuilder {
     rangeAxis.setAutoRangeIncludesZero(true);
     XYPlot plot = new XYPlot(dataset, null, rangeAxis, renderer);
 
+    plot.setBackgroundPaint(Color.WHITE);
+    plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+    plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
+
+    return plot;
+  }
+
+  private XYPlot createIndicatorsPlot() {
+    TimeSeriesCollection dataset = new TimeSeriesCollection();
+    int seriesIndex = 0;
+
+    // Create time series for each indicator
+    for (Map.Entry<String, TreeMap<LocalDateTime, Double>> indicator : indicators.entrySet()) {
+      TimeSeries series = new TimeSeries(indicator.getKey());
+
+      for (Map.Entry<LocalDateTime, Double> entry : indicator.getValue().entrySet()) {
+        LocalDateTime dateTime = entry.getKey();
+        Millisecond timePeriod = new Millisecond(
+            java.util.Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant())
+        );
+        series.add(timePeriod, entry.getValue());
+      }
+
+      dataset.addSeries(series);
+      seriesIndex++;
+    }
+
+    // Create plot
+    NumberAxis rangeAxis = new NumberAxis("Indicators");
+    rangeAxis.setAutoRangeIncludesZero(false);
+
+    // Create custom renderer for multiple lines
+    XYLineAndShapeRenderer renderer = rendererFactory.createMultipleIndicatorsRenderer(indicators.size());
+
+    XYPlot plot = new XYPlot(dataset, null, rangeAxis, renderer);
+
+    // Customize appearance
     plot.setBackgroundPaint(Color.WHITE);
     plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
     plot.setDomainGridlinePaint(Color.LIGHT_GRAY);

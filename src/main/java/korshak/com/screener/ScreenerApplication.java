@@ -64,7 +64,11 @@ public class ScreenerApplication implements CommandLineRunner {
     ChartService chartService = new ChartServiceImpl(tiltStrategy.getName());
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
         , ((TiltStrategy) tiltStrategy).getSmaList()
+        , strategyResultTilt.getTradesLong(),strategyResultTilt.getIndicators());
+    /*chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
+        , ((TiltStrategy) tiltStrategy).getSmaList()
         , strategyResultTilt.getTradesLong());
+     */
     //chartService.drawChart(strategyResult.getPrices(),strategyResult.getTrades());
   }
 
