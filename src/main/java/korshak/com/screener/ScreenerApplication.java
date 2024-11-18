@@ -1,5 +1,11 @@
 package korshak.com.screener;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.ChartService;
 import korshak.com.screener.service.PriceAggregationService;
@@ -62,9 +68,13 @@ public class ScreenerApplication implements CommandLineRunner {
     System.out.println(buyAndHoldStrategy.getName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
     ChartService chartService = new ChartServiceImpl(tiltStrategy.getName());
+    List<? extends BaseSma> smaList = ((TiltStrategy) tiltStrategy).getSmaList();
+    Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();
+    priceIndicators.put("SMA_" + smaList.getFirst().getId().getLength(),
+        Utils.convertBaseSmaListToTreeMap(smaList));
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
-        , ((TiltStrategy) tiltStrategy).getSmaList()
-        , strategyResultTilt.getTradesLong(),strategyResultTilt.getIndicators());
+        , priceIndicators
+        , strategyResultTilt.getTradesLong(), strategyResultTilt.getIndicators());
     /*chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
         , ((TiltStrategy) tiltStrategy).getSmaList()
         , strategyResultTilt.getTradesLong());
@@ -95,12 +105,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void downloadSeries() {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "GLD";
+    final String ticker = "TLT";
     String interval = "5min";
-    String year = "2022-";
+    String year = "2024-";
     String yearMonth;
-    int startMonth = 1;
-    int finalMonth = 12;
+    int startMonth = 3;
+    int finalMonth = 11;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
         yearMonth = year + "0" + month;

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.TimeFrame;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class TradeServiceImpl implements TradeService {
-  Map<String, TreeMap<LocalDateTime, Double>> indicators = new HashMap<>();
+  Map<String, NavigableMap<LocalDateTime, Double>> indicators = new HashMap<>();
   private final PriceDao priceDao;
 
   public TradeServiceImpl(PriceDao priceDao) {

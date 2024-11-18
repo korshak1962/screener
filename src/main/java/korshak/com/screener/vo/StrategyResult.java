@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 
@@ -18,14 +19,14 @@ public class StrategyResult {
   private final List<Trade> tradesLong;
   private final List<Trade> tradesShort;
   private final List<Signal> signals;
-  private Map<String,TreeMap<LocalDateTime,Double>> indicators;
+  private Map<String, NavigableMap<LocalDateTime,Double>> indicators;
 
 
   public StrategyResult(List<? extends BasePrice> prices, double longPnL, double shortPnL,
                         double totalPnL, Map<LocalDateTime, Double> minLongPnl,
                         Map<LocalDateTime, Double> minShortPnl, List<Trade> tradesLong,
                         List<Trade> tradesShort, List<Signal> signals, double maxPossibleLoss,
-                        Map<String,TreeMap<LocalDateTime,Double>> indicators) {
+                        Map<String,NavigableMap<LocalDateTime,Double>> indicators) {
     this.prices = prices;
     this.longPnL = longPnL;
     this.shortPnL = shortPnL;
@@ -101,7 +102,7 @@ public class StrategyResult {
     return maxPossibleLoss;
   }
 
-  public Map<String, TreeMap<LocalDateTime, Double>> getIndicators() {
+  public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
     return indicators;
   }
 }

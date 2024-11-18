@@ -1,7 +1,6 @@
 package korshak.com.screener.serviceImpl.chart;
 
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.Trade;
 import org.jfree.chart.*;
@@ -23,18 +22,19 @@ import java.awt.Font;
 public class ChartBuilder {
   private final List<? extends BasePrice> prices;
   private final List<Signal> signals;
-  private final List<? extends BaseSma> smaList;
+  private final Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators;
   private final List<Trade> tradesLong;
-  private final Map<String, TreeMap<LocalDateTime, Double>> indicators;
+  private final Map<String, NavigableMap<LocalDateTime, Double>> indicators;
   private final DatasetFactory datasetFactory;
   private final RendererFactory rendererFactory;
 
   public ChartBuilder(List<? extends BasePrice> prices, List<Signal> signals,
-                      List<? extends BaseSma> smaList, List<Trade> tradesLong,
-                      Map<String, TreeMap<LocalDateTime, Double>> indicators) {
+                      Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators,
+                      List<Trade> tradesLong,
+                      Map<String, NavigableMap<LocalDateTime, Double>> indicators) {
     this.prices = prices;
     this.signals = signals;
-    this.smaList = smaList;
+    this.priceIndicators = priceIndicators;
     this.tradesLong = tradesLong;
     this.indicators = indicators;
     this.datasetFactory = new DatasetFactory();
@@ -119,9 +119,25 @@ public class ChartBuilder {
       plot.setRenderer(1, rendererFactory.createSignalRenderer());
     }
 
-    if (smaList != null && !smaList.isEmpty()) {
-      plot.setDataset(2, datasetFactory.createSmaDataset(smaList));
-      plot.setRenderer(2, rendererFactory.createSmaRenderer());
+    if (priceIndicators != null && !priceIndicators.isEmpty()) {
+      TimeSeriesCollection indicatorsDataset = new TimeSeriesCollection();
+
+      for (Map.Entry<String, NavigableMap<LocalDateTime, Double>> indicator : priceIndicators.entrySet()) {
+        TimeSeries series = new TimeSeries(indicator.getKey());
+
+        for (Map.Entry<LocalDateTime, Double> entry : indicator.getValue().entrySet()) {
+          LocalDateTime dateTime = entry.getKey();
+          Millisecond timePeriod = new Millisecond(
+              java.util.Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant())
+          );
+          series.add(timePeriod, entry.getValue());
+        }
+
+        indicatorsDataset.addSeries(series);
+      }
+
+      plot.setDataset(2, indicatorsDataset);
+      plot.setRenderer(2, rendererFactory.createMultipleIndicatorsRenderer(priceIndicators.size()));
     }
   }
 
@@ -142,10 +158,8 @@ public class ChartBuilder {
 
   private XYPlot createIndicatorsPlot() {
     TimeSeriesCollection dataset = new TimeSeriesCollection();
-    int seriesIndex = 0;
 
-    // Create time series for each indicator
-    for (Map.Entry<String, TreeMap<LocalDateTime, Double>> indicator : indicators.entrySet()) {
+    for (Map.Entry<String, NavigableMap<LocalDateTime, Double>> indicator : indicators.entrySet()) {
       TimeSeries series = new TimeSeries(indicator.getKey());
 
       for (Map.Entry<LocalDateTime, Double> entry : indicator.getValue().entrySet()) {
@@ -157,7 +171,6 @@ public class ChartBuilder {
       }
 
       dataset.addSeries(series);
-      seriesIndex++;
     }
 
     // Create plot
