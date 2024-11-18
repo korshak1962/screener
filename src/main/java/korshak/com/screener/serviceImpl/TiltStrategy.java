@@ -22,6 +22,8 @@ public class TiltStrategy implements Strategy {
   private TimeFrame timeFrame = TimeFrame.DAY;  // Default value
   private final SmaDao smaDao;
   private List<? extends BaseSma> smaList;
+  String ticker;
+  List<? extends BasePrice> prices;
 
   public TiltStrategy(SmaDao smaDao) {
     this.smaDao = smaDao;
@@ -34,7 +36,8 @@ public class TiltStrategy implements Strategy {
 
   public void setTiltBuy(double tiltBuy) {
     if (tiltBuy <= tiltSell) {
-      throw new IllegalArgumentException("Tilt buy threshold must be greater than tilt sell threshold");
+      throw new IllegalArgumentException(
+          "Tilt buy threshold must be greater than tilt sell threshold");
     }
     this.tiltBuy = tiltBuy;
   }
@@ -45,7 +48,8 @@ public class TiltStrategy implements Strategy {
 
   public void setTiltSell(double tiltSell) {
     if (tiltSell >= tiltBuy) {
-      throw new IllegalArgumentException("Tilt sell threshold must be less than tilt buy threshold");
+      throw new IllegalArgumentException(
+          "Tilt sell threshold must be less than tilt buy threshold");
     }
     this.tiltSell = tiltSell;
   }
@@ -85,13 +89,15 @@ public class TiltStrategy implements Strategy {
 
   /**
    * Sets both buy and sell thresholds at once, ensuring they maintain proper relationship
-   * @param tiltBuy the buy threshold
+   *
+   * @param tiltBuy  the buy threshold
    * @param tiltSell the sell threshold
    * @throws IllegalArgumentException if tiltBuy <= tiltSell
    */
   public void setTiltThresholds(double tiltBuy, double tiltSell) {
     if (tiltBuy <= tiltSell) {
-      throw new IllegalArgumentException("Tilt buy threshold must be greater than tilt sell threshold");
+      throw new IllegalArgumentException(
+          "Tilt buy threshold must be greater than tilt sell threshold");
     }
     this.tiltBuy = tiltBuy;
     this.tiltSell = tiltSell;
@@ -110,24 +116,18 @@ public class TiltStrategy implements Strategy {
 
   @Override
   public List<Signal> getTrades(List<? extends BasePrice> prices) {
+    this.prices = prices;
     List<Signal> signals = new ArrayList<>();
     if (prices == null || prices.isEmpty()) {
       return signals;
     }
 
-    String ticker = prices.get(0).getId().getTicker();
-    LocalDateTime startDate = prices.get(0).getId().getDate();
-    LocalDateTime endDate = prices.get(prices.size() - 1).getId().getDate();
+    ticker = prices.get(0).getId().getTicker();
+    smaList = getSma(this.timeFrame, this.length);
 
-    smaList = smaDao.findByDateRange(
-        ticker,
-        startDate,
-        endDate,
-        timeFrame,
-        length
-    );
-
-    if (smaList.isEmpty()) throw new RuntimeException("No SMAs found");
+    if (smaList.isEmpty()) {
+      throw new RuntimeException("No SMAs found");
+    }
 
     Map<LocalDateTime, BaseSma> smaMap = smaList.stream()
         .collect(Collectors.toMap(
@@ -171,8 +171,7 @@ public class TiltStrategy implements Strategy {
               1  // buy
           ));
           inPosition = true;
-        }
-        else if (inPosition && currentTilt < tiltSell && previousTilt >= tiltSell) {
+        } else if (inPosition && currentTilt < tiltSell && previousTilt >= tiltSell) {
           signals.add(new Signal(
               currentDate,
               price.getClose(),
@@ -186,6 +185,17 @@ public class TiltStrategy implements Strategy {
     }
 
     return signals;
+  }
+
+  public List<? extends BaseSma> getSma(TimeFrame timeFrame,
+                                        int length) {
+    return smaDao.findByDateRange(
+        ticker,
+        prices.get(0).getId().getDate(),
+        prices.get(prices.size() - 1).getId().getDate(),
+        timeFrame,
+        length
+    );
   }
 
   @Override

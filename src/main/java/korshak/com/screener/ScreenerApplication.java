@@ -68,8 +68,12 @@ public class ScreenerApplication implements CommandLineRunner {
     System.out.println(buyAndHoldStrategy.getName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
     ChartService chartService = new ChartServiceImpl(tiltStrategy.getName());
-    List<? extends BaseSma> smaList = ((TiltStrategy) tiltStrategy).getSmaList();
+    TiltStrategy tiltStrategyFull = (TiltStrategy) tiltStrategy;
+    List<? extends BaseSma> smaList = tiltStrategyFull.getSmaList();
     Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();
+    List<? extends BaseSma> trendSmaList = tiltStrategyFull.getSma(TimeFrame.DAY,45);
+    priceIndicators.put("SMA_" + trendSmaList.getFirst().getId().getLength(),
+        Utils.convertBaseSmaListToTreeMap(trendSmaList));
     priceIndicators.put("SMA_" + smaList.getFirst().getId().getLength(),
         Utils.convertBaseSmaListToTreeMap(smaList));
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
@@ -90,12 +94,14 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void calcSMA() {
     String ticker = "SPY";
-    int startLength = 9;
-    int endLength = 9;
+    TimeFrame timeFrame = TimeFrame.DAY;
+    int startLength = 48;
+    int endLength = 201;
     long start = System.currentTimeMillis();
     System.out.println("started ");
     for (int length = startLength; length <= endLength; length += 3) {
-      smaCalculationService.calculateSMA(ticker, length, TimeFrame.DAY);
+
+      smaCalculationService.calculateSMA(ticker, length, timeFrame);
       System.out.println("length = " + length);
     }
     System.out.println("total = " + (System.currentTimeMillis() - start));

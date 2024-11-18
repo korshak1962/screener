@@ -1,7 +1,6 @@
 package korshak.com.screener.dao;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 
 @MappedSuperclass
 public abstract class BaseSma {
