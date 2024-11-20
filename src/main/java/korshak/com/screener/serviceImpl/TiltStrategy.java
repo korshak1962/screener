@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
@@ -24,6 +25,7 @@ public class TiltStrategy implements Strategy {
   private List<? extends BaseSma> smaList;
   String ticker;
   List<? extends BasePrice> prices;
+  TreeMap<LocalDateTime,Double> dateToTiltValue = new TreeMap<>();
 
   public TiltStrategy(SmaDao smaDao) {
     this.smaDao = smaDao;
@@ -125,7 +127,7 @@ public class TiltStrategy implements Strategy {
     ticker = prices.get(0).getId().getTicker();
     smaList = getSma(this.timeFrame, this.length);
 
-    if (smaList.isEmpty()) {
+    if (smaList.isEmpty()|| prices.size()-smaList.size()>length) {
       throw new RuntimeException("No SMAs found");
     }
 
@@ -163,7 +165,7 @@ public class TiltStrategy implements Strategy {
       // Only calculate tilt when we have enough data points
       if (slidingWindow.size() == tiltPeriod) {
         double currentTilt = calculateTilt(slidingWindow);
-
+        dateToTiltValue.put(currentDate,currentTilt);
         if (!inPosition && currentTilt > tiltBuy && previousTilt <= tiltBuy) {
           signals.add(new Signal(
               currentDate,
@@ -233,5 +235,9 @@ public class TiltStrategy implements Strategy {
 
   public List<? extends BaseSma> getSmaList() {
     return smaList;
+  }
+
+  public TreeMap<LocalDateTime, Double> getDateToTiltValue() {
+    return dateToTiltValue;
   }
 }

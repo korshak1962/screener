@@ -76,9 +76,13 @@ public class ScreenerApplication implements CommandLineRunner {
         Utils.convertBaseSmaListToTreeMap(trendSmaList));
     priceIndicators.put("SMA_" + smaList.getFirst().getId().getLength(),
         Utils.convertBaseSmaListToTreeMap(smaList));
+    Map<String, NavigableMap<LocalDateTime, Double>> indicators = new HashMap<>();
+    indicators.put("Tilt",tiltStrategyFull.getDateToTiltValue());
+
+       // strategyResultTilt.getIndicators();
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
         , priceIndicators
-        , strategyResultTilt.getTradesLong(), strategyResultTilt.getIndicators());
+        , strategyResultTilt.getTradesLong(), indicators);
     /*chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
         , ((TiltStrategy) tiltStrategy).getSmaList()
         , strategyResultTilt.getTradesLong());
