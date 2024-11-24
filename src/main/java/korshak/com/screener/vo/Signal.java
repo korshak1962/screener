@@ -6,10 +6,10 @@ public class Signal {
 
     private  LocalDateTime date;
     double price;
-    int action;  // -1 sell ;1 buy
+    SignalType action;  // -1 sell ;1 buy
 
 
-  public Signal(LocalDateTime date, double price, int action) {
+  public Signal(LocalDateTime date, double price, SignalType action) {
     this.date = date;
     this.price = price;
     this.action = action;
@@ -30,11 +30,11 @@ public class Signal {
     this.price = price;
   }
 
-  public int getAction() {
+  public SignalType getAction() {
     return action;
   }
 
-  public void setAction(int action) {
+  public void setAction(SignalType action) {
     this.action = action;
   }
 }

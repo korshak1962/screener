@@ -12,6 +12,7 @@ import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.SmaDao;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.vo.Signal;
+import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
 
 @Service("TiltStrategy")
@@ -117,7 +118,7 @@ public class TiltStrategy implements Strategy {
   }
 
   @Override
-  public List<Signal> getTrades(List<? extends BasePrice> prices) {
+  public List<Signal> getSignals(List<? extends BasePrice> prices) {
     this.prices = prices;
     List<Signal> signals = new ArrayList<>();
     if (prices == null || prices.isEmpty()) {
@@ -170,14 +171,14 @@ public class TiltStrategy implements Strategy {
           signals.add(new Signal(
               currentDate,
               price.getClose(),
-              1  // buy
+              SignalType.Buy  // buy
           ));
           inPosition = true;
         } else if (inPosition && currentTilt < tiltSell && previousTilt >= tiltSell) {
           signals.add(new Signal(
               currentDate,
               price.getClose(),
-              -1 // sell
+              SignalType.Sell // sell
           ));
           inPosition = false;
         }
@@ -198,6 +199,17 @@ public class TiltStrategy implements Strategy {
         timeFrame,
         length
     );
+  }
+
+  @Override
+  public List<Signal> getSignals() {
+    return List.of();
+  }
+
+  @Override
+  public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+                   LocalDateTime endDate) {
+
   }
 
   @Override

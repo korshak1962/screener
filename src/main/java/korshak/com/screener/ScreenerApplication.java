@@ -1,6 +1,7 @@
 package korshak.com.screener;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import korshak.com.screener.service.SharePriceDownLoaderService;
 import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.service.TradeService;
+import korshak.com.screener.serviceImpl.DoubleTiltStrategy;
 import korshak.com.screener.serviceImpl.TiltStrategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.vo.StrategyResult;
@@ -45,12 +47,16 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("TiltStrategy")
   private Strategy tiltStrategy;
   @Autowired
+  @Qualifier("DoubleTiltStrategy")
+  private Strategy doubleTiltStrategy;
+  @Autowired
   @Qualifier("BuyAndHoldStrategy")
   private Strategy buyAndHoldStrategy;
 
   @Override
   public void run(String... args) throws Exception {
-    evaluateStrategy();
+    evaluateDoubleTiltStrategy();
+    //evaluateStrategy();
     //downloadSeries();
     //aggregate();
     //calcSMA();
@@ -60,10 +66,22 @@ public class ScreenerApplication implements CommandLineRunner {
   private void evaluateStrategy() {
     String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
+    LocalDateTime startDate = LocalDateTime.of(2021, Month.JANUARY,1,0,0);
+    LocalDateTime endDate = LocalDateTime.of(2024, Month.DECEMBER,1,0,0);
+
     StrategyResult buyAndHoldstrategyResult =
-        tradeService.calculateProfitAndDrawdown(buyAndHoldStrategy, ticker, timeFrame);
+        tradeService.calculateProfitAndDrawdown(buyAndHoldStrategy, ticker,
+            startDate,
+            endDate,
+            timeFrame);
+    //StrategyResult strategyResultTilt =
+    //    tradeService.calculateProfitAndDrawdown(tiltStrategy, ticker, timeFrame);
+
     StrategyResult strategyResultTilt =
-        tradeService.calculateProfitAndDrawdown(tiltStrategy, ticker, timeFrame);
+        tradeService.calculateProfitAndDrawdown(tiltStrategy, ticker,
+             startDate,
+             endDate,
+            timeFrame);
     System.out.println(tiltStrategy.getName() + " result: " + strategyResultTilt);
     System.out.println(buyAndHoldStrategy.getName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
@@ -87,11 +105,61 @@ public class ScreenerApplication implements CommandLineRunner {
         , ((TiltStrategy) tiltStrategy).getSmaList()
         , strategyResultTilt.getTradesLong());
      */
-    //chartService.drawChart(strategyResult.getPrices(),strategyResult.getTrades());
+    //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignals());
+  }
+  private void evaluateDoubleTiltStrategy() {
+    String ticker = "SPY";
+    TimeFrame timeFrame = TimeFrame.DAY;
+    LocalDateTime startDate = LocalDateTime.of(2021, Month.JANUARY,1,0,0);
+    LocalDateTime endDate = LocalDateTime.of(2024, Month.DECEMBER,1,0,0);
+
+    StrategyResult buyAndHoldstrategyResult =
+        tradeService.calculateProfitAndDrawdown(buyAndHoldStrategy, ticker,
+            startDate,
+            endDate,
+            timeFrame);
+    //StrategyResult strategyResultDoubleTilt =
+    //    tradeService.calculateProfitAndDrawdown(tiltStrategy, ticker, timeFrame);
+    doubleTiltStrategy.init(ticker,timeFrame,startDate, endDate);
+    DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy)doubleTiltStrategy;
+    fullDoubleTiltStrategy.setTiltPeriod(5);
+    fullDoubleTiltStrategy.setTiltShortBuy(.02);
+    fullDoubleTiltStrategy.setTiltShortSell(-.02);
+    fullDoubleTiltStrategy.setTiltLongBuy(-100);
+    fullDoubleTiltStrategy.setTiltLongSell(-200);
+    fullDoubleTiltStrategy.setLongLength(45);
+    fullDoubleTiltStrategy.setShortLength(9);
+    StrategyResult strategyResultDoubleTilt =
+        tradeService.calculateProfitAndDrawdown(doubleTiltStrategy, ticker,
+            startDate,
+            endDate,
+            timeFrame);
+    System.out.println(doubleTiltStrategy.getName() + " result: " + strategyResultDoubleTilt);
+    System.out.println(buyAndHoldStrategy.getName() + " result: " + buyAndHoldstrategyResult);
+    System.setProperty("java.awt.headless", "false");
+    ChartService chartService = new ChartServiceImpl(doubleTiltStrategy.getName());
+
+
+    Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();
+
+    priceIndicators.put("SMA_" + fullDoubleTiltStrategy.getSmaLongList().getFirst().getId().getLength(),
+        Utils.convertBaseSmaListToTreeMap(fullDoubleTiltStrategy.getSmaLongList()));
+    priceIndicators.put("SMA_" + fullDoubleTiltStrategy.getSmaShortList().getFirst().getId().getLength(),
+        Utils.convertBaseSmaListToTreeMap(fullDoubleTiltStrategy.getSmaShortList()));
+
+    // strategyResultDoubleTilt.getIndicators();
+    chartService.drawChart(strategyResultDoubleTilt.getPrices(), strategyResultDoubleTilt.getSignals()
+        , priceIndicators
+        , strategyResultDoubleTilt.getTradesLong(), strategyResultDoubleTilt.getIndicators());
+    /*chartService.drawChart(strategyResultDoubleTilt.getPrices(), strategyResultDoubleTilt.getSignals()
+        , ((TiltStrategy) tiltStrategy).getSmaList()
+        , strategyResultDoubleTilt.getTradesLong());
+     */
+    //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignals());
   }
 
   private void aggregate() {
-    String ticker = "GLD";
+    String ticker = "SPY";
     priceAggregationService.aggregateData(ticker, TimeFrame.DAY);
     System.exit(0);
   }
@@ -99,7 +167,7 @@ public class ScreenerApplication implements CommandLineRunner {
   private void calcSMA() {
     String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
-    int startLength = 48;
+    int startLength = 3;
     int endLength = 201;
     long start = System.currentTimeMillis();
     System.out.println("started ");
@@ -115,12 +183,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void downloadSeries() {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "TLT";
+    final String ticker = "SPY";
     String interval = "5min";
-    String year = "2024-";
+    String year = "2018-";
     String yearMonth;
-    int startMonth = 3;
-    int finalMonth = 11;
+    int startMonth = 1;
+    int finalMonth = 8;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
         yearMonth = year + "0" + month;

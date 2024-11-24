@@ -4,4 +4,6 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "price_hour")
-public class PriceHour extends BasePrice {}
+public class PriceHour extends BasePrice {
+
+}

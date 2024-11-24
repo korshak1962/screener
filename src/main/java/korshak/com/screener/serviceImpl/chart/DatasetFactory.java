@@ -3,6 +3,7 @@ package korshak.com.screener.serviceImpl.chart;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.vo.Signal;
+import korshak.com.screener.vo.SignalType;
 import korshak.com.screener.vo.Trade;
 import org.jfree.data.time.*;
 import org.jfree.data.time.ohlc.*;
@@ -39,9 +40,9 @@ public class DatasetFactory {
           java.sql.Timestamp.valueOf(signal.getDate())
       );
 
-      if (signal.getAction() == 1) {
+      if (signal.getAction() == SignalType.Buy) {
         buySeries.add(timePoint, signal.getPrice());
-      } else if (signal.getAction() == -1) {
+      } else if (signal.getAction() == SignalType.Sell) {
         sellSeries.add(timePoint, signal.getPrice());
       }
     }

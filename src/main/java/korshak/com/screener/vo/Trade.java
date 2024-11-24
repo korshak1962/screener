@@ -8,7 +8,10 @@ public class Trade {
   public Trade(Signal open, Signal close) {
     this.open = open;
     this.close = close;
-    pnl = (close.price  - open.price)*open.getAction();
+    pnl = (close.price  - open.price);
+    if (close.getAction()==SignalType.Buy){ // short trade
+      pnl=-pnl;
+    }
   }
 
   public Double getPnl() {

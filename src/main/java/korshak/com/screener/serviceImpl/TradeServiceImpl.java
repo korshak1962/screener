@@ -15,6 +15,7 @@ import korshak.com.screener.service.PriceDao;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.vo.Signal;
+import korshak.com.screener.vo.SignalType;
 import korshak.com.screener.vo.StrategyResult;
 import korshak.com.screener.vo.Trade;
 import org.springframework.stereotype.Service;
@@ -46,7 +47,7 @@ public class TradeServiceImpl implements TradeService {
         endDate,
         timeFrame);
 
-    return getStrategyResult(strategy.getTrades(prices), prices);
+    return getStrategyResult(strategy.getSignals(prices), prices);
   }
 
   @Override
@@ -55,7 +56,7 @@ public class TradeServiceImpl implements TradeService {
                                                    TimeFrame timeFrame) {
 
     List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);
-    return getStrategyResult(strategy.getTrades(prices), prices);
+    return getStrategyResult(strategy.getSignals(prices), prices);
   }
 
   private StrategyResult getStrategyResult(List<Signal> signals,
@@ -70,15 +71,13 @@ public class TradeServiceImpl implements TradeService {
     List<Trade> tradesLong = new ArrayList<>();
     List<Trade> tradesShort = new ArrayList<>();
 
-    Map<LocalDateTime, Double> unrealizedDrawDownsPerTrade = new HashMap<>(signals.size());
     Iterator<Signal> iteratorSignal = signals.iterator();
     Signal prevSignal = iteratorSignal.next();
     Double prevPnl = null;
     while (iteratorSignal.hasNext()) {
       Signal currentSignal = iteratorSignal.next();
       Trade trade = new Trade(prevSignal, currentSignal);
-      prevSignal = currentSignal;
-      if (currentSignal.getAction() == -1) { // Buy was now sell
+      if (currentSignal.getAction() == SignalType.Sell) { // Buy was now sell, this is long trade
         tradesLong.add(trade);
         longPnL += trade.getPnl();
         prevPnl = currentPnL.lastEntry() == null ? 0 : currentPnL.lastEntry().getValue();
@@ -86,14 +85,16 @@ public class TradeServiceImpl implements TradeService {
         if (minLongPnl.isEmpty() || minLongPnl.values().iterator().next() > longPnL) {
           minLongPnl.put(trade.getClose().getDate(), longPnL);
         }
-      } else if (currentSignal.getAction() == 1) { // Sell was now buy
+      } else if (currentSignal.getAction() == SignalType.Buy) { // Sell was now buy, this is short trade
         tradesShort.add(trade);
         shortPnL += trade.getPnl();
         if (minShortPnl.isEmpty() || minShortPnl.values().iterator().next() > shortPnL) {
           minShortPnl.put(trade.getClose().getDate(), shortPnL);
         }
       }
-
+      if (iteratorSignal.hasNext()) {
+        prevSignal = iteratorSignal.next();
+      }
     }
     totalPnL = longPnL + shortPnL;
     double maxPossibleLoss = calcMaxPossibleLoss(prices);
