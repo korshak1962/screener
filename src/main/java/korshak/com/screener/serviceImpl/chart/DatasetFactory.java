@@ -30,7 +30,7 @@ public class DatasetFactory {
     return dataset;
   }
 
-  public TimeSeriesCollection createSignalDataset(List<Signal> signals) {
+  public TimeSeriesCollection createSignalDataset(List<? extends Signal> signals) {
     TimeSeriesCollection dataset = new TimeSeriesCollection();
     TimeSeries buySeries = new TimeSeries("Buy");
     TimeSeries sellSeries = new TimeSeries("Sell");

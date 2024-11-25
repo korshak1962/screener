@@ -32,11 +32,11 @@ public class ChartServiceImpl extends ApplicationFrame implements ChartService {
   }
 
   @Override
-  public void drawChart(List<? extends BasePrice> prices, List<Signal> signals) {
+  public void drawChart(List<? extends BasePrice> prices, List<? extends Signal> signals) {
     drawChart(prices, signals, Map.of(),List.of(),null);
   }
 
-  public void drawChart(List<? extends BasePrice> prices, List<Signal> signals,
+  public void drawChart(List<? extends BasePrice> prices, List<? extends Signal> signals,
                         Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators, List<Trade> trades,Map<String, NavigableMap<LocalDateTime, Double>> indicators) {
     ChartBuilder builder = new ChartBuilder(prices, signals, priceIndicators,trades,indicators);
     JFreeChart chart = builder.build();

@@ -21,14 +21,14 @@ import java.awt.Font;
 
 public class ChartBuilder {
   private final List<? extends BasePrice> prices;
-  private final List<Signal> signals;
+  private final List<? extends Signal> signals;
   private final Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators;
   private final List<Trade> tradesLong;
   private final Map<String, NavigableMap<LocalDateTime, Double>> indicators;
   private final DatasetFactory datasetFactory;
   private final RendererFactory rendererFactory;
 
-  public ChartBuilder(List<? extends BasePrice> prices, List<Signal> signals,
+  public ChartBuilder(List<? extends BasePrice> prices, List<? extends Signal> signals,
                       Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators,
                       List<Trade> tradesLong,
                       Map<String, NavigableMap<LocalDateTime, Double>> indicators) {

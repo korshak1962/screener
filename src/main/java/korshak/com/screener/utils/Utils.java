@@ -1,4 +1,4 @@
-package korshak.com.screener;
+package korshak.com.screener.utils;
 
 import java.time.LocalDateTime;
 import java.util.List;

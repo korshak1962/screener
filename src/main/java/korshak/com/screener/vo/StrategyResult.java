@@ -18,14 +18,14 @@ public class StrategyResult {
   private final Map<LocalDateTime, Double> minShortPnl;
   private final List<Trade> tradesLong;
   private final List<Trade> tradesShort;
-  private final List<Signal> signals;
+  private final List<? extends Signal> signals;
   private Map<String, NavigableMap<LocalDateTime,Double>> indicators;
 
 
   public StrategyResult(List<? extends BasePrice> prices, double longPnL, double shortPnL,
                         double totalPnL, Map<LocalDateTime, Double> minLongPnl,
                         Map<LocalDateTime, Double> minShortPnl, List<Trade> tradesLong,
-                        List<Trade> tradesShort, List<Signal> signals, double maxPossibleLoss,
+                        List<Trade> tradesShort, List<? extends Signal> signals, double maxPossibleLoss,
                         Map<String,NavigableMap<LocalDateTime,Double>> indicators) {
     this.prices = prices;
     this.longPnL = longPnL;
@@ -94,7 +94,7 @@ public class StrategyResult {
     return tradesShort;
   }
 
-  public List<Signal> getSignals() {
+  public List<? extends Signal> getSignals() {
     return signals;
   }
 

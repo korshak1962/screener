@@ -1,5 +1,6 @@
 package korshak.com.screener;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.HashMap;
@@ -17,6 +18,8 @@ import korshak.com.screener.service.TradeService;
 import korshak.com.screener.serviceImpl.DoubleTiltStrategy;
 import korshak.com.screener.serviceImpl.TiltStrategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
+import korshak.com.screener.utils.ExcelExportService;
+import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,7 +66,7 @@ public class ScreenerApplication implements CommandLineRunner {
     // System.exit(0);
   }
 
-  private void evaluateStrategy() {
+  private void evaluateStrategy() throws IOException {
     String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
     LocalDateTime startDate = LocalDateTime.of(2021, Month.JANUARY,1,0,0);
@@ -97,7 +100,7 @@ public class ScreenerApplication implements CommandLineRunner {
     Map<String, NavigableMap<LocalDateTime, Double>> indicators = new HashMap<>();
     indicators.put("Tilt",tiltStrategyFull.getDateToTiltValue());
 
-       // strategyResultTilt.getIndicators();
+      // strategyResultTilt.getIndicators();
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
         , priceIndicators
         , strategyResultTilt.getTradesLong(), indicators);
@@ -107,7 +110,7 @@ public class ScreenerApplication implements CommandLineRunner {
      */
     //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignals());
   }
-  private void evaluateDoubleTiltStrategy() {
+  private void evaluateDoubleTiltStrategy() throws IOException {
     String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
     LocalDateTime startDate = LocalDateTime.of(2021, Month.JANUARY,1,0,0);
@@ -123,12 +126,14 @@ public class ScreenerApplication implements CommandLineRunner {
     doubleTiltStrategy.init(ticker,timeFrame,startDate, endDate);
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy)doubleTiltStrategy;
     fullDoubleTiltStrategy.setTiltPeriod(5);
+    fullDoubleTiltStrategy.setLongLength(45);
+
+    fullDoubleTiltStrategy.setShortLength(9);
     fullDoubleTiltStrategy.setTiltShortBuy(.02);
     fullDoubleTiltStrategy.setTiltShortSell(-.02);
     fullDoubleTiltStrategy.setTiltLongBuy(-100);
     fullDoubleTiltStrategy.setTiltLongSell(-200);
-    fullDoubleTiltStrategy.setLongLength(45);
-    fullDoubleTiltStrategy.setShortLength(9);
+
     StrategyResult strategyResultDoubleTilt =
         tradeService.calculateProfitAndDrawdown(doubleTiltStrategy, ticker,
             startDate,
@@ -147,10 +152,16 @@ public class ScreenerApplication implements CommandLineRunner {
     priceIndicators.put("SMA_" + fullDoubleTiltStrategy.getSmaShortList().getFirst().getId().getLength(),
         Utils.convertBaseSmaListToTreeMap(fullDoubleTiltStrategy.getSmaShortList()));
 
+    ExcelExportService.exportTradesToExcel(strategyResultDoubleTilt.getTradesLong(), "trades_report.xlsx");
+
+
     // strategyResultDoubleTilt.getIndicators();
+    Map<String, NavigableMap<LocalDateTime, Double>> indicators =
+        strategyResultDoubleTilt.getIndicators();
+    //((DoubleTiltStrategy) doubleTiltStrategy).getShortSmaTilt()
     chartService.drawChart(strategyResultDoubleTilt.getPrices(), strategyResultDoubleTilt.getSignals()
         , priceIndicators
-        , strategyResultDoubleTilt.getTradesLong(), strategyResultDoubleTilt.getIndicators());
+        , strategyResultDoubleTilt.getTradesLong(), indicators);
     /*chartService.drawChart(strategyResultDoubleTilt.getPrices(), strategyResultDoubleTilt.getSignals()
         , ((TiltStrategy) tiltStrategy).getSmaList()
         , strategyResultDoubleTilt.getTradesLong());
@@ -183,12 +194,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void downloadSeries() {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "SPY";
+    final String ticker = "QQQ";
     String interval = "5min";
-    String year = "2018-";
+    String year = "2022-";
     String yearMonth;
-    int startMonth = 1;
-    int finalMonth = 8;
+    int startMonth = 5;
+    int finalMonth = 12;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
         yearMonth = year + "0" + month;

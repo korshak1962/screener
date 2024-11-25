@@ -59,7 +59,7 @@ public class TradeServiceImpl implements TradeService {
     return getStrategyResult(strategy.getSignals(prices), prices);
   }
 
-  private StrategyResult getStrategyResult(List<Signal> signals,
+  private StrategyResult getStrategyResult(List<? extends Signal> signals,
                                            List<? extends BasePrice> prices) {
     double longPnL = 0;
     double shortPnL = 0;
@@ -71,7 +71,7 @@ public class TradeServiceImpl implements TradeService {
     List<Trade> tradesLong = new ArrayList<>();
     List<Trade> tradesShort = new ArrayList<>();
 
-    Iterator<Signal> iteratorSignal = signals.iterator();
+    Iterator<? extends Signal> iteratorSignal = signals.iterator();
     Signal prevSignal = iteratorSignal.next();
     Double prevPnl = null;
     while (iteratorSignal.hasNext()) {
