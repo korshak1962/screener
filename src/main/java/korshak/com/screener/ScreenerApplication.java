@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.TreeMap;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.ChartService;
@@ -16,6 +17,7 @@ import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.serviceImpl.DoubleTiltStrategy;
+import korshak.com.screener.serviceImpl.Optimizator;
 import korshak.com.screener.serviceImpl.TiltStrategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.utils.ExcelExportService;
@@ -58,6 +60,7 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
+    //optimazeDoubleTiltStrategy();
     evaluateDoubleTiltStrategy();
     //evaluateStrategy();
     //downloadSeries();
@@ -110,6 +113,20 @@ public class ScreenerApplication implements CommandLineRunner {
      */
     //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignals());
   }
+  @Autowired
+  Optimizator optimizator;
+  private void optimazeDoubleTiltStrategy(){
+    String ticker = "SPY";
+    TimeFrame timeFrame = TimeFrame.DAY;
+    LocalDateTime startDate = LocalDateTime.of(2021, Month.JANUARY,1,0,0);
+    LocalDateTime endDate = LocalDateTime.of(2024, Month.DECEMBER,1,0,0);
+
+    optimizator.init(ticker,timeFrame,startDate,endDate);
+    Map<String, Double> params = optimizator.findOptimumParameters();
+    System.out.println(params);
+    System.exit(0);
+  }
+
   private void evaluateDoubleTiltStrategy() throws IOException {
     String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
@@ -128,7 +145,7 @@ public class ScreenerApplication implements CommandLineRunner {
     fullDoubleTiltStrategy.setTiltPeriod(5);
     fullDoubleTiltStrategy.setLongLength(45);
 
-    fullDoubleTiltStrategy.setShortLength(9);
+    fullDoubleTiltStrategy.setShortLength(3);
     fullDoubleTiltStrategy.setTiltShortBuy(.02);
     fullDoubleTiltStrategy.setTiltShortSell(-.02);
     fullDoubleTiltStrategy.setTiltLongBuy(-100);
@@ -155,9 +172,10 @@ public class ScreenerApplication implements CommandLineRunner {
     ExcelExportService.exportTradesToExcel(strategyResultDoubleTilt.getTradesLong(), "trades_report.xlsx");
 
 
-    // strategyResultDoubleTilt.getIndicators();
-    Map<String, NavigableMap<LocalDateTime, Double>> indicators =
-        strategyResultDoubleTilt.getIndicators();
+    // Map<String, NavigableMap<LocalDateTime, Double>> indicators = strategyResultDoubleTilt.getIndicators();
+    Map<String, NavigableMap<LocalDateTime, Double>> indicators = new TreeMap<>();
+    indicators.put("shortSmaTilt",((DoubleTiltStrategy) doubleTiltStrategy).getshortSmaTilt());
+
     //((DoubleTiltStrategy) doubleTiltStrategy).getShortSmaTilt()
     chartService.drawChart(strategyResultDoubleTilt.getPrices(), strategyResultDoubleTilt.getSignals()
         , priceIndicators
@@ -178,11 +196,12 @@ public class ScreenerApplication implements CommandLineRunner {
   private void calcSMA() {
     String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
-    int startLength = 3;
-    int endLength = 201;
+    int startLength = 1;
+    int endLength = 101;
+    int step = 2;
     long start = System.currentTimeMillis();
     System.out.println("started ");
-    for (int length = startLength; length <= endLength; length += 3) {
+    for (int length = startLength; length <= endLength; length += step) {
 
       smaCalculationService.calculateSMA(ticker, length, timeFrame);
       System.out.println("length = " + length);
@@ -196,10 +215,10 @@ public class ScreenerApplication implements CommandLineRunner {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
     final String ticker = "QQQ";
     String interval = "5min";
-    String year = "2022-";
+    String year = "2024-";
     String yearMonth;
-    int startMonth = 5;
-    int finalMonth = 12;
+    int startMonth = 6;
+    int finalMonth = 11;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
         yearMonth = year + "0" + month;

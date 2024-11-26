@@ -3,6 +3,8 @@ package korshak.com.screener.serviceImpl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.dao.TimeFrame;
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 @Service("DoubleTiltStrategy")
 public class DoubleTiltStrategy implements Strategy {
-  private List<SignalTilt> signals = new ArrayList<>();
+  private List<SignalTilt> signals;
   private TimeFrame timeFrame = TimeFrame.DAY;  // Default value
   private final SmaDao smaDao;
   private final PriceDao priceDao;
@@ -43,11 +45,13 @@ public class DoubleTiltStrategy implements Strategy {
 
   @Override
   public List<SignalTilt> getSignals(List<? extends BasePrice> prices) {
+
     return getSignals();
   }
 
   @Override
   public List<SignalTilt> getSignals() {
+    signals = new ArrayList<>();
     double shortTilt = 0.0;
     double longTilt = 0.0;
     for (int i = 0; i < shortSmaTilt.size(); i++) {
@@ -75,10 +79,10 @@ public class DoubleTiltStrategy implements Strategy {
     }
     SignalTilt last = signals.getLast();
     if (last.getAction() == SignalType.Buy) {
-      System.out.println("======== Last Signal" + last);
+      System.out.println("======== Last Signal " + last);
     }
-    System.out.println("======== shortTilt" + shortTilt);
-    System.out.println("======== longTilt" + longTilt);
+    System.out.println("======== shortTilt = " + shortTilt);
+    System.out.println("======== longTilt = " + longTilt);
     return signals;
   }
 
@@ -237,5 +241,13 @@ public class DoubleTiltStrategy implements Strategy {
 
   public List<Double> getLongSmaTilt() {
     return longSmaTilt;
+  }
+
+  public NavigableMap<LocalDateTime, Double> getshortSmaTilt(){
+    NavigableMap<LocalDateTime, Double> dateToTilt = new TreeMap<>();
+    for (int i=0;i<shortSmaTilt.size();i++){
+      dateToTilt.put(prices.get(i).getId().getDate(),shortSmaTilt.get(i));
+    }
+    return dateToTilt;
   }
 }
