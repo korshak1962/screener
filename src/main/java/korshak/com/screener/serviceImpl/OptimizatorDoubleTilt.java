@@ -30,7 +30,7 @@ public class OptimizatorDoubleTilt extends Optimizator {
     StrategyResult strategyResultDoubleTilt;
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy) this.strategy;
     fullDoubleTiltStrategy.setTiltPeriod(5);
-    fullDoubleTiltStrategy.setLongLength(15);
+    fullDoubleTiltStrategy.setTrendLengthSma(15);
 
     fullDoubleTiltStrategy.setTiltLongOpen(.02);
     fullDoubleTiltStrategy.setTiltLongClose(-.02);
@@ -38,7 +38,7 @@ public class OptimizatorDoubleTilt extends Optimizator {
     fullDoubleTiltStrategy.setTiltHigherTrendShort(-200);
     for (int currentShortLength = minShortLength; currentShortLength < maxShortLength;
          currentShortLength += numStepsShortStep) {
-      fullDoubleTiltStrategy.setShortLength(currentShortLength);
+      fullDoubleTiltStrategy.setSmaLength(currentShortLength);
       strategyResultDoubleTilt =
           tradeService.calculateProfitAndDrawdown(strategy,
               ticker,

@@ -62,53 +62,54 @@ public class DoubleTiltStrategy implements Strategy {
       if (shortTilt > tiltLongOpen && longTilt > tiltHigherTrendLong) {
 
         //close short if have
-        if (!signals.isEmpty() && signals.getLast().getSignalType()==SignalType.ShortOpen){
+        if (!signals.isEmpty() && signals.getLast().getSignalType() == SignalType.ShortOpen) {
           signals.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
-              SignalType.ShortClose,shortTilt,longTilt));
+              SignalType.ShortClose, shortTilt, longTilt));
         }
         // then open long
-        if (signals.isEmpty() ||  signals.getLast().getSignalType()!=SignalType.LongOpen) {
+        if (signals.isEmpty() || signals.getLast().getSignalType() != SignalType.LongOpen) {
           signals.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
-              SignalType.LongOpen,shortTilt,longTilt));
+              SignalType.LongOpen, shortTilt, longTilt));
         }
       }
-      if (shortTilt > tiltShortClose ) {
+      if (shortTilt > tiltShortClose) {
         //close short
-        if (!signals.isEmpty() &&  signals.getLast().getSignalType()==SignalType.ShortOpen) {
+        if (!signals.isEmpty() && signals.getLast().getSignalType() == SignalType.ShortOpen) {
           signals.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
-              SignalType.ShortClose,shortTilt,longTilt));
+              SignalType.ShortClose, shortTilt, longTilt));
         }
       }
-       if (shortTilt < tiltLongClose ) {
+      if (shortTilt < tiltLongClose) {
         //close long
-        if (!signals.isEmpty() &&  signals.getLast().getSignalType()==SignalType.LongOpen) {
+        if (!signals.isEmpty() && signals.getLast().getSignalType() == SignalType.LongOpen) {
           signals.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
-              SignalType.LongClose,shortTilt,longTilt));
+              SignalType.LongClose, shortTilt, longTilt));
         }
       }
-       if (shortTilt < tiltShortOpen  && longTilt < tiltHigherTrendShort) {
+      if (shortTilt < tiltShortOpen && longTilt < tiltHigherTrendShort) {
         // open short
-         if (signals.isEmpty() ||  signals.getLast().getSignalType()!=SignalType.ShortOpen) {
-           signals.add(new SignalTilt(
-               prices.get(i).getId().getDate(),
-               prices.get(i).getClose(),
-               SignalType.ShortOpen,shortTilt,longTilt));
-         }
+        if (signals.isEmpty() || signals.getLast().getSignalType() != SignalType.ShortOpen) {
+          signals.add(new SignalTilt(
+              prices.get(i).getId().getDate(),
+              prices.get(i).getClose(),
+              SignalType.ShortOpen, shortTilt, longTilt));
+        }
       }
     }
     SignalTilt last = signals.getLast();
     if (last.getSignalType() == SignalType.LongOpen) {
       System.out.println("======== Last Signal " + last);
     }
-    System.out.println("======== shortTilt = " + shortTilt);
+    System.out.println(
+        "======== shortTilt = " + shortTilt + " for date = " + prices.getLast().getId().getDate());
     System.out.println("======== longTilt = " + longTilt);
     return signals;
   }
@@ -203,7 +204,7 @@ public class DoubleTiltStrategy implements Strategy {
     return longLength;
   }
 
-  public void setLongLength(int longLength) {
+  public void setTrendLengthSma(int longLength) {
     this.longLength = longLength;
     this.smaLongList = getSma(longLength);
     if (prices.size() != smaLongList.size()) {
@@ -212,7 +213,7 @@ public class DoubleTiltStrategy implements Strategy {
     this.longSmaTilt = calculateTiltList(smaLongList);
   }
 
-  public void setShortLength(int shortLength) {
+  public void setSmaLength(int shortLength) {
     this.shortLength = shortLength;
     this.smaShortList = getSma(shortLength);
     if (prices.size() != smaShortList.size()) {
@@ -270,10 +271,10 @@ public class DoubleTiltStrategy implements Strategy {
     return longSmaTilt;
   }
 
-  public NavigableMap<LocalDateTime, Double> getshortSmaTilt(){
+  public NavigableMap<LocalDateTime, Double> getshortSmaTilt() {
     NavigableMap<LocalDateTime, Double> dateToTilt = new TreeMap<>();
-    for (int i=0;i<shortSmaTilt.size();i++){
-      dateToTilt.put(prices.get(i).getId().getDate(),shortSmaTilt.get(i));
+    for (int i = 0; i < shortSmaTilt.size(); i++) {
+      dateToTilt.put(prices.get(i).getId().getDate(), shortSmaTilt.get(i));
     }
     return dateToTilt;
   }

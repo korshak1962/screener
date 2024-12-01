@@ -42,7 +42,7 @@ public class DatasetFactory {
 
       if (signal.getSignalType() == SignalType.LongOpen) {
         buySeries.add(timePoint, signal.getPrice());
-      } else if (signal.getSignalType() == SignalType.ShortOpen) {
+      } else if (signal.getSignalType() == SignalType.LongClose) {
         sellSeries.add(timePoint, signal.getPrice());
       }
     }

@@ -64,7 +64,6 @@ public class ScreenerApplication implements CommandLineRunner {
     evaluateDoubleTiltStrategy();
     //evaluateStrategy();
     //downloadSeries();
-    //aggregate();
     //calcSMA();
     // System.exit(0);
   }
@@ -143,9 +142,9 @@ public class ScreenerApplication implements CommandLineRunner {
     doubleTiltStrategy.init(ticker,timeFrame,startDate, endDate);
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy)doubleTiltStrategy;
     fullDoubleTiltStrategy.setTiltPeriod(5);
-    fullDoubleTiltStrategy.setLongLength(15);
+    fullDoubleTiltStrategy.setTrendLengthSma(45);
 
-    fullDoubleTiltStrategy.setShortLength(3);
+    fullDoubleTiltStrategy.setSmaLength(3);
     fullDoubleTiltStrategy.setTiltLongOpen(.02);
     fullDoubleTiltStrategy.setTiltLongClose(-.02);
     fullDoubleTiltStrategy.setTiltHigherTrendLong(-100);
@@ -187,20 +186,10 @@ public class ScreenerApplication implements CommandLineRunner {
     //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignals());
   }
 
-  private void aggregate() {
-    String ticker = "TLT";
-    priceAggregationService.aggregateData(ticker, TimeFrame.DAY);
-    System.exit(0);
-  }
-
-  private void calcSMA() {
-    String ticker = "TLT";
-    TimeFrame timeFrame = TimeFrame.DAY;
-    int startLength = 1;
-    int endLength = 20;
+  private void calcSMA(String ticker,TimeFrame timeFrame,int startLength,int endLength) {
     int step = 1;
     long start = System.currentTimeMillis();
-    System.out.println("started ");
+    System.out.println("calcSMA started "+ ticker);
     for (int length = startLength; length <= endLength; length += step) {
 
       smaCalculationService.calculateSMA(ticker, length, timeFrame);
@@ -213,12 +202,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void downloadSeries() {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "TLT";
+    final String ticker = "GLD";
     String interval = "5min";
-    String year = "2018-";
+    String year = "2024-";
     String yearMonth;
-    int startMonth = 1;
-    int finalMonth = 12;
+    int startMonth = 10;
+    int finalMonth = 11;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
         yearMonth = year + "0" + month;
@@ -231,6 +220,14 @@ public class ScreenerApplication implements CommandLineRunner {
           .fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
       System.out.println("saved = " + saved);
     }
+    priceAggregationService.aggregateData(ticker, TimeFrame.HOUR);
+    calcSMA(ticker,TimeFrame.HOUR, 1,50);
+    priceAggregationService.aggregateData(ticker, TimeFrame.DAY);
+    calcSMA(ticker,TimeFrame.DAY, 1,50);
+    priceAggregationService.aggregateData(ticker, TimeFrame.WEEK);
+    calcSMA(ticker,TimeFrame.WEEK, 1,50);
+    priceAggregationService.aggregateData(ticker, TimeFrame.MONTH);
+    calcSMA(ticker,TimeFrame.MONTH, 1,50);
     System.exit(0);
   }
 }
