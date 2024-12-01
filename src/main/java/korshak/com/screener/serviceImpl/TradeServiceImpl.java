@@ -73,30 +73,27 @@ public class TradeServiceImpl implements TradeService {
 
     Iterator<? extends Signal> iteratorSignal = signals.iterator();
     Signal prevSignal = iteratorSignal.next();
-    Double prevPnl = null;
+    double prevPnl;
     while (iteratorSignal.hasNext()) {
       Signal currentSignal = iteratorSignal.next();
+      if (currentSignal.getSignalType() == SignalType.LongClose || currentSignal.getSignalType() == SignalType.ShortClose) {
       Trade trade = new Trade(prevSignal, currentSignal);
-      if (currentSignal.getAction() == SignalType.Sell) { // Buy was now sell, this is long trade
-        tradesLong.add(trade);
-        longPnL += trade.getPnl();
-        prevPnl = currentPnL.lastEntry() == null ? 0 : currentPnL.lastEntry().getValue();
-        currentPnL.put(trade.getClose().getDate(), prevPnl + trade.getPnl());
-        if (minLongPnl.isEmpty() || minLongPnl.values().iterator().next() > longPnL) {
-          minLongPnl.put(trade.getClose().getDate(), longPnL);
-        }
-      } else if (currentSignal.getAction() == SignalType.Buy) { // Sell was now buy, this is short trade
-        tradesShort.add(trade);
-        shortPnL += trade.getPnl();
-        if (minShortPnl.isEmpty() || minShortPnl.values().iterator().next() > shortPnL) {
-          minShortPnl.put(trade.getClose().getDate(), shortPnL);
+        if (currentSignal.getSignalType() == SignalType.LongClose){
+          tradesLong.add(trade);
+          longPnL += trade.getPnl();}
+        if (currentSignal.getSignalType() == SignalType.ShortClose){
+          tradesShort.add(trade);
+          shortPnL += trade.getPnl();}
+        totalPnL = longPnL + shortPnL;
+        currentPnL.put(trade.getClose().getDate(), totalPnL);
+        if (minLongPnl.isEmpty() || minLongPnl.values().iterator().next() > totalPnL) {
+          minLongPnl.clear();
+          minLongPnl.put(trade.getClose().getDate(), totalPnL);
         }
       }
-      if (iteratorSignal.hasNext()) {
-        prevSignal = iteratorSignal.next();
-      }
+        prevSignal = currentSignal;
     }
-    totalPnL = longPnL + shortPnL;
+
     double maxPossibleLoss = calcMaxPossibleLoss(prices);
     indicators.put("current PnL", currentPnL);
     return new StrategyResult(prices, longPnL, shortPnL,

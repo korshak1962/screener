@@ -14,7 +14,7 @@ public class OptimizatorDoubleTilt extends Optimizator {
   }
 
   int minShortLength = 1;
-  int maxShortLength = 15;
+  int maxShortLength = 16;
   int numStepsShortStep = 2;
   int minTiltShortBuy = 0;
   int maxTiltShortBuy = 1;
@@ -26,16 +26,16 @@ public class OptimizatorDoubleTilt extends Optimizator {
   @Override
   public Map<String, Double> findOptimumParameters() {
     Map<String, Double> optimumParameters = new HashMap<>();
-    Double maxPnl = Double.MIN_VALUE;
+    double maxPnl = -10E6;
     StrategyResult strategyResultDoubleTilt;
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy) this.strategy;
     fullDoubleTiltStrategy.setTiltPeriod(5);
-    fullDoubleTiltStrategy.setLongLength(45);
+    fullDoubleTiltStrategy.setLongLength(15);
 
-    fullDoubleTiltStrategy.setTiltShortBuy(.02);
-    fullDoubleTiltStrategy.setTiltShortSell(-.02);
-    fullDoubleTiltStrategy.setTiltLongBuy(-100);
-    fullDoubleTiltStrategy.setTiltLongSell(-200);
+    fullDoubleTiltStrategy.setTiltLongOpen(.02);
+    fullDoubleTiltStrategy.setTiltLongClose(-.02);
+    fullDoubleTiltStrategy.setTiltHigherTrendLong(-100);
+    fullDoubleTiltStrategy.setTiltHigherTrendShort(-200);
     for (int currentShortLength = minShortLength; currentShortLength < maxShortLength;
          currentShortLength += numStepsShortStep) {
       fullDoubleTiltStrategy.setShortLength(currentShortLength);

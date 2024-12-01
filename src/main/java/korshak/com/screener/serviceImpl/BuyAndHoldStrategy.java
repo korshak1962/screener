@@ -13,17 +13,17 @@ import org.springframework.stereotype.Service;
 @Service("BuyAndHoldStrategy")
 public class BuyAndHoldStrategy implements Strategy {
   String name;
+  List<Signal> signals = new ArrayList<>();
   @Override
   public List<Signal> getSignals(List<? extends BasePrice> prices) {
-    List<Signal> signals = new ArrayList<>();
-    signals.add(new Signal(prices.get(0).getId().getDate(), prices.get(0).getClose(), SignalType.Buy));
-    signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(), SignalType.Sell));
+    signals.add(new Signal(prices.get(0).getId().getDate(), prices.get(0).getClose(), SignalType.LongOpen));
+    signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(), SignalType.LongClose));
     return signals;
   }
 
   @Override
   public List<Signal> getSignals() {
-    return List.of();
+    return signals;
   }
 
   @Override

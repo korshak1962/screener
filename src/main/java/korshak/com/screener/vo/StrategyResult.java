@@ -5,7 +5,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 
 public class StrategyResult {
@@ -19,14 +18,15 @@ public class StrategyResult {
   private final List<Trade> tradesLong;
   private final List<Trade> tradesShort;
   private final List<? extends Signal> signals;
-  private Map<String, NavigableMap<LocalDateTime,Double>> indicators;
+  private Map<String, NavigableMap<LocalDateTime, Double>> indicators;
 
 
   public StrategyResult(List<? extends BasePrice> prices, double longPnL, double shortPnL,
                         double totalPnL, Map<LocalDateTime, Double> minLongPnl,
                         Map<LocalDateTime, Double> minShortPnl, List<Trade> tradesLong,
-                        List<Trade> tradesShort, List<? extends Signal> signals, double maxPossibleLoss,
-                        Map<String,NavigableMap<LocalDateTime,Double>> indicators) {
+                        List<Trade> tradesShort, List<? extends Signal> signals,
+                        double maxPossibleLoss,
+                        Map<String, NavigableMap<LocalDateTime, Double>> indicators) {
     this.prices = prices;
     this.longPnL = longPnL;
     this.shortPnL = shortPnL;
@@ -49,12 +49,15 @@ public class StrategyResult {
 
         ", minLongPnl=" + minLongPnl +
         ", minShortPnl=" + minShortPnl +
-        ", AnnualPercentageReturnLong =" +getAnnualPercentageReturnLong() +
+        ", AnnualPercentageReturnLong =" + getAnnualPercentageReturnLong() +
         ", maxPossibleLossIfBuyAndHold=" + maxPossibleLoss +
         '}';
   }
 
   public double getAnnualPercentageReturnLong() {
+    if (tradesLong.isEmpty()) {
+      return 0.0;
+    }
     long days = ChronoUnit.DAYS.between(prices.get(0).getId().getDate(),
         prices.getLast().getId().getDate());
     double profitPercent = longPnL / tradesLong.getFirst().getOpen().getPrice();

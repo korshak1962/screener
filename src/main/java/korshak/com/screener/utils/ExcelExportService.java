@@ -76,13 +76,13 @@ public class ExcelExportService {
           SignalTilt signalTiltOpen = (SignalTilt)trade.getOpen();
 
           Cell  tiltOpenCell = row.createCell(7);
-          double tiltOpenValue = signalTiltOpen.getShortTilt();
+          double tiltOpenValue = signalTiltOpen.getTilt();
           tiltOpenCell.setCellValue(tiltOpenValue);
           tiltOpenCell.setCellStyle(numberStyle);
 
           SignalTilt signalTiltClose = (SignalTilt)trade.getClose();
           Cell  tiltCloseCell = row.createCell(8);
-          double tiltCloseValue = signalTiltClose.getShortTilt();
+          double tiltCloseValue = signalTiltClose.getTilt();
           tiltCloseCell.setCellValue(tiltCloseValue);
           tiltCloseCell.setCellStyle(numberStyle);
         }

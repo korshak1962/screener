@@ -27,10 +27,12 @@ public class DoubleTiltStrategy implements Strategy {
   private List<Double> longSmaTilt;
   private String ticker;
   private List<? extends BasePrice> prices;
-  private double tiltShortBuy = 0.02;
-  private double tiltShortSell = -0.02;
-  private double tiltLongBuy = -100;
-  private double tiltLongSell = -200;
+  private double tiltLongOpen = 0.02;
+  private double tiltLongClose = -0.02;
+  private double tiltShortOpen = -0.02;
+  private double tiltShortClose = -0.02;
+  private double tiltHigherTrendLong = -10;
+  private double tiltHigherTrendShort = -20;
   private int tiltPeriod = 5;
   private int longLength;
   private int shortLength;
@@ -57,28 +59,53 @@ public class DoubleTiltStrategy implements Strategy {
     for (int i = 0; i < shortSmaTilt.size(); i++) {
       shortTilt = shortSmaTilt.get(i);
       longTilt = shortSmaTilt.get(i);
-      if ((signals.isEmpty() || signals.getLast().getAction() == SignalType.Sell)
-          && shortTilt > tiltShortBuy && longTilt > tiltLongBuy) { // open long
-        SignalTilt signalTilt = new SignalTilt(
-            prices.get(i).getId().getDate(),
-            prices.get(i).getClose(),
-            SignalType.Buy
-        );
-        signals.add(signalTilt);
-        signalTilt.setShortTilt(shortTilt);
-      } else if (signals.isEmpty() || signals.getLast().getAction() == SignalType.Buy
-          && shortTilt < tiltShortSell) { //  close long
-        SignalTilt signalTilt = new SignalTilt(
-            prices.get(i).getId().getDate(),
-            prices.get(i).getClose(),
-            SignalType.Sell
-        );
-        signals.add(signalTilt);
-        signalTilt.setShortTilt(shortTilt);
+      if (shortTilt > tiltLongOpen && longTilt > tiltHigherTrendLong) {
+
+        //close short if have
+        if (!signals.isEmpty() && signals.getLast().getSignalType()==SignalType.ShortOpen){
+          signals.add(new SignalTilt(
+              prices.get(i).getId().getDate(),
+              prices.get(i).getClose(),
+              SignalType.ShortClose,shortTilt,longTilt));
+        }
+        // then open long
+        if (signals.isEmpty() ||  signals.getLast().getSignalType()!=SignalType.LongOpen) {
+          signals.add(new SignalTilt(
+              prices.get(i).getId().getDate(),
+              prices.get(i).getClose(),
+              SignalType.LongOpen,shortTilt,longTilt));
+        }
+      }
+      if (shortTilt > tiltShortClose ) {
+        //close short
+        if (!signals.isEmpty() &&  signals.getLast().getSignalType()==SignalType.ShortOpen) {
+          signals.add(new SignalTilt(
+              prices.get(i).getId().getDate(),
+              prices.get(i).getClose(),
+              SignalType.ShortClose,shortTilt,longTilt));
+        }
+      }
+       if (shortTilt < tiltLongClose ) {
+        //close long
+        if (!signals.isEmpty() &&  signals.getLast().getSignalType()==SignalType.LongOpen) {
+          signals.add(new SignalTilt(
+              prices.get(i).getId().getDate(),
+              prices.get(i).getClose(),
+              SignalType.LongClose,shortTilt,longTilt));
+        }
+      }
+       if (shortTilt < tiltShortOpen  && longTilt < tiltHigherTrendShort) {
+        // open short
+         if (signals.isEmpty() ||  signals.getLast().getSignalType()!=SignalType.ShortOpen) {
+           signals.add(new SignalTilt(
+               prices.get(i).getId().getDate(),
+               prices.get(i).getClose(),
+               SignalType.ShortOpen,shortTilt,longTilt));
+         }
       }
     }
     SignalTilt last = signals.getLast();
-    if (last.getAction() == SignalType.Buy) {
+    if (last.getSignalType() == SignalType.LongOpen) {
       System.out.println("======== Last Signal " + last);
     }
     System.out.println("======== shortTilt = " + shortTilt);
@@ -132,36 +159,36 @@ public class DoubleTiltStrategy implements Strategy {
     return normalizedSlope;
   }
 
-  public double getTiltShortBuy() {
-    return tiltShortBuy;
+  public double getTiltLongOpen() {
+    return tiltLongOpen;
   }
 
-  public void setTiltShortBuy(double tiltShortBuy) {
-    this.tiltShortBuy = tiltShortBuy;
+  public void setTiltLongOpen(double tiltLongOpen) {
+    this.tiltLongOpen = tiltLongOpen;
   }
 
-  public double getTiltShortSell() {
-    return tiltShortSell;
+  public double getTiltLongClose() {
+    return tiltLongClose;
   }
 
-  public void setTiltShortSell(double tiltShortSell) {
-    this.tiltShortSell = tiltShortSell;
+  public void setTiltLongClose(double tiltLongClose) {
+    this.tiltLongClose = tiltLongClose;
   }
 
-  public double getTiltLongBuy() {
-    return tiltLongBuy;
+  public double getTiltHigherTrendLong() {
+    return tiltHigherTrendLong;
   }
 
-  public void setTiltLongBuy(double tiltLongBuy) {
-    this.tiltLongBuy = tiltLongBuy;
+  public void setTiltHigherTrendLong(double tiltHigherTrendLong) {
+    this.tiltHigherTrendLong = tiltHigherTrendLong;
   }
 
-  public double getTiltLongSell() {
-    return tiltLongSell;
+  public double getTiltHigherTrendShort() {
+    return tiltHigherTrendShort;
   }
 
-  public void setTiltLongSell(double tiltLongSell) {
-    this.tiltLongSell = tiltLongSell;
+  public void setTiltHigherTrendShort(double tiltHigherTrendShort) {
+    this.tiltHigherTrendShort = tiltHigherTrendShort;
   }
 
   public int getTiltPeriod() {

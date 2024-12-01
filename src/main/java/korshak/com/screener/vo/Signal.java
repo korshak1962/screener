@@ -6,13 +6,13 @@ public class Signal {
 
   final LocalDateTime date;
   final double price;
-  final SignalType action;  // -1 sell ;1 buy
+  final SignalType signalType;  // -1 sell ;1 buy
 
 
   public Signal(LocalDateTime date, double price, SignalType action) {
     this.date = date;
     this.price = price;
-    this.action = action;
+    this.signalType = action;
   }
 
   public LocalDateTime getDate() {
@@ -23,7 +23,7 @@ public class Signal {
     return price;
   }
 
-  public SignalType getAction() {
-    return action;
+  public SignalType getSignalType() {
+    return signalType;
   }
 }

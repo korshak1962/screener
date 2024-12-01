@@ -40,9 +40,9 @@ public class DatasetFactory {
           java.sql.Timestamp.valueOf(signal.getDate())
       );
 
-      if (signal.getAction() == SignalType.Buy) {
+      if (signal.getSignalType() == SignalType.LongOpen) {
         buySeries.add(timePoint, signal.getPrice());
-      } else if (signal.getAction() == SignalType.Sell) {
+      } else if (signal.getSignalType() == SignalType.ShortOpen) {
         sellSeries.add(timePoint, signal.getPrice());
       }
     }

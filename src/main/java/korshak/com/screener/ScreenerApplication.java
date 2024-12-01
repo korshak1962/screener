@@ -116,7 +116,7 @@ public class ScreenerApplication implements CommandLineRunner {
   @Autowired
   Optimizator optimizator;
   private void optimazeDoubleTiltStrategy(){
-    String ticker = "SPY";
+    String ticker = "TLT";
     TimeFrame timeFrame = TimeFrame.DAY;
     LocalDateTime startDate = LocalDateTime.of(2021, Month.JANUARY,1,0,0);
     LocalDateTime endDate = LocalDateTime.of(2024, Month.DECEMBER,1,0,0);
@@ -143,13 +143,13 @@ public class ScreenerApplication implements CommandLineRunner {
     doubleTiltStrategy.init(ticker,timeFrame,startDate, endDate);
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy)doubleTiltStrategy;
     fullDoubleTiltStrategy.setTiltPeriod(5);
-    fullDoubleTiltStrategy.setLongLength(45);
+    fullDoubleTiltStrategy.setLongLength(15);
 
     fullDoubleTiltStrategy.setShortLength(3);
-    fullDoubleTiltStrategy.setTiltShortBuy(.02);
-    fullDoubleTiltStrategy.setTiltShortSell(-.02);
-    fullDoubleTiltStrategy.setTiltLongBuy(-100);
-    fullDoubleTiltStrategy.setTiltLongSell(-200);
+    fullDoubleTiltStrategy.setTiltLongOpen(.02);
+    fullDoubleTiltStrategy.setTiltLongClose(-.02);
+    fullDoubleTiltStrategy.setTiltHigherTrendLong(-100);
+    fullDoubleTiltStrategy.setTiltHigherTrendShort(-200);
 
     StrategyResult strategyResultDoubleTilt =
         tradeService.calculateProfitAndDrawdown(doubleTiltStrategy, ticker,
@@ -188,17 +188,17 @@ public class ScreenerApplication implements CommandLineRunner {
   }
 
   private void aggregate() {
-    String ticker = "SPY";
+    String ticker = "TLT";
     priceAggregationService.aggregateData(ticker, TimeFrame.DAY);
     System.exit(0);
   }
 
   private void calcSMA() {
-    String ticker = "SPY";
+    String ticker = "TLT";
     TimeFrame timeFrame = TimeFrame.DAY;
     int startLength = 1;
-    int endLength = 101;
-    int step = 2;
+    int endLength = 20;
+    int step = 1;
     long start = System.currentTimeMillis();
     System.out.println("started ");
     for (int length = startLength; length <= endLength; length += step) {
@@ -213,12 +213,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void downloadSeries() {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "QQQ";
+    final String ticker = "TLT";
     String interval = "5min";
-    String year = "2024-";
+    String year = "2018-";
     String yearMonth;
-    int startMonth = 6;
-    int finalMonth = 11;
+    int startMonth = 1;
+    int finalMonth = 12;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
         yearMonth = year + "0" + month;

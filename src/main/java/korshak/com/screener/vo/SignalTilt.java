@@ -3,36 +3,32 @@ package korshak.com.screener.vo;
 import java.time.LocalDateTime;
 
 public class SignalTilt extends Signal{
-  public SignalTilt(LocalDateTime date, double price, SignalType action) {
+  public SignalTilt(LocalDateTime date, double price, SignalType action, double tilt,
+                    double trendTilt) {
     super(date, price, action);
-  }
-  double shortTilt = 0.0;
-  double longTilt = 0.0;
-
-  public double getShortTilt() {
-    return shortTilt;
+    this.tilt = tilt;
+    this.trendTilt = trendTilt;
   }
 
-  public void setShortTilt(Double shortTilt) {
-    this.shortTilt = shortTilt;
+  private final double tilt;
+  private final double trendTilt;
+
+  public double getTilt() {
+    return tilt;
   }
 
-  public double getLongTilt() {
-    return longTilt;
-  }
-
-  public void setLongTilt(double longTilt) {
-    this.longTilt = longTilt;
+  public double getTrendTilt() {
+    return trendTilt;
   }
 
   @Override
   public String toString() {
     return "SignalTilt{" +
         "date=" + this.date +
-        ", shortTilt=" + shortTilt +
-        ", longTilt=" + longTilt +
+        ", shortTilt=" + tilt +
+        ", longTilt=" + trendTilt +
         ", price=" + price +
-        ", action=" + action +
+        ", action=" + signalType +
         '}';
   }
 }
