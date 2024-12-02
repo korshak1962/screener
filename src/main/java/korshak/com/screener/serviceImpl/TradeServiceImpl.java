@@ -76,14 +76,17 @@ public class TradeServiceImpl implements TradeService {
     double prevPnl;
     while (iteratorSignal.hasNext()) {
       Signal currentSignal = iteratorSignal.next();
-      if (currentSignal.getSignalType() == SignalType.LongClose || currentSignal.getSignalType() == SignalType.ShortClose) {
-      Trade trade = new Trade(prevSignal, currentSignal);
-        if (currentSignal.getSignalType() == SignalType.LongClose){
+      if (currentSignal.getSignalType() == SignalType.LongClose ||
+          currentSignal.getSignalType() == SignalType.ShortClose) {
+        Trade trade = new Trade(prevSignal, currentSignal);
+        if (currentSignal.getSignalType() == SignalType.LongClose) {
           tradesLong.add(trade);
-          longPnL += trade.getPnl();}
-        if (currentSignal.getSignalType() == SignalType.ShortClose){
+          longPnL += trade.getPnl();
+        }
+        if (currentSignal.getSignalType() == SignalType.ShortClose) {
           tradesShort.add(trade);
-          shortPnL += trade.getPnl();}
+          shortPnL += trade.getPnl();
+        }
         totalPnL = longPnL + shortPnL;
         currentPnL.put(trade.getClose().getDate(), totalPnL);
         if (minLongPnl.isEmpty() || minLongPnl.values().iterator().next() > totalPnL) {
@@ -91,7 +94,7 @@ public class TradeServiceImpl implements TradeService {
           minLongPnl.put(trade.getClose().getDate(), totalPnL);
         }
       }
-        prevSignal = currentSignal;
+      prevSignal = currentSignal;
     }
 
     double maxPossibleLoss = calcMaxPossibleLoss(prices);

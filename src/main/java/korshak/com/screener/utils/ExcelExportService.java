@@ -1,19 +1,28 @@
 package korshak.com.screener.utils;
 
-import korshak.com.screener.vo.SignalTilt;
-import korshak.com.screener.vo.Trade;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import korshak.com.screener.vo.SignalTilt;
+import korshak.com.screener.vo.Trade;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelExportService {
-  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+  private static final DateTimeFormatter DATE_FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-  private ExcelExportService() {} // Prevent instantiation
+  private ExcelExportService() {
+  } // Prevent instantiation
 
   public static void exportTradesToExcel(List<Trade> trades, String filePath) throws IOException {
     try (Workbook workbook = new XSSFWorkbook()) {
@@ -22,7 +31,7 @@ public class ExcelExportService {
       Row headerRow = sheet.createRow(0);
       String[] headers = {
           "Open Date", "Open Price", "Close Date", "Close Price",
-          "PnL", "Duration (days)", "Return %"
+          "PnL", "Duration (days)", "Return %", "tilt open", "tilt close"
       };
 
       CellStyle headerStyle = createHeaderStyle(workbook);
@@ -72,16 +81,16 @@ public class ExcelExportService {
         returnCell.setCellValue(returnPercent);
         returnCell.setCellStyle(percentStyle);
 
-        if (trade.getOpen() instanceof SignalTilt){
-          SignalTilt signalTiltOpen = (SignalTilt)trade.getOpen();
+        if (trade.getOpen() instanceof SignalTilt) {
+          SignalTilt signalTiltOpen = (SignalTilt) trade.getOpen();
 
-          Cell  tiltOpenCell = row.createCell(7);
+          Cell tiltOpenCell = row.createCell(7);
           double tiltOpenValue = signalTiltOpen.getTilt();
           tiltOpenCell.setCellValue(tiltOpenValue);
           tiltOpenCell.setCellStyle(numberStyle);
 
-          SignalTilt signalTiltClose = (SignalTilt)trade.getClose();
-          Cell  tiltCloseCell = row.createCell(8);
+          SignalTilt signalTiltClose = (SignalTilt) trade.getClose();
+          Cell tiltCloseCell = row.createCell(8);
           double tiltCloseValue = signalTiltClose.getTilt();
           tiltCloseCell.setCellValue(tiltCloseValue);
           tiltCloseCell.setCellStyle(numberStyle);

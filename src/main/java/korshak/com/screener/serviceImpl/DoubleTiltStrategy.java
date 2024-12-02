@@ -278,4 +278,20 @@ public class DoubleTiltStrategy implements Strategy {
     }
     return dateToTilt;
   }
+
+  public double getTiltShortOpen() {
+    return tiltShortOpen;
+  }
+
+  public void setTiltShortOpen(double tiltShortOpen) {
+    this.tiltShortOpen = tiltShortOpen;
+  }
+
+  public double getTiltShortClose() {
+    return tiltShortClose;
+  }
+
+  public void setTiltShortClose(double tiltShortClose) {
+    this.tiltShortClose = tiltShortClose;
+  }
 }

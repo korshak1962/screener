@@ -61,10 +61,10 @@ public class ScreenerApplication implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
     //optimazeDoubleTiltStrategy();
-    evaluateDoubleTiltStrategy();
+    //evaluateDoubleTiltStrategy();
     //evaluateStrategy();
-    //downloadSeries();
-    //calcSMA();
+    downloadSeries();
+    //calcSMA("SPY",TimeFrame.DAY, 1,50);
     // System.exit(0);
   }
 
@@ -147,8 +147,11 @@ public class ScreenerApplication implements CommandLineRunner {
     fullDoubleTiltStrategy.setSmaLength(3);
     fullDoubleTiltStrategy.setTiltLongOpen(.02);
     fullDoubleTiltStrategy.setTiltLongClose(-.02);
-    fullDoubleTiltStrategy.setTiltHigherTrendLong(-100);
-    fullDoubleTiltStrategy.setTiltHigherTrendShort(-200);
+    // added for TLT
+    fullDoubleTiltStrategy.setTiltShortClose(-.0);
+    fullDoubleTiltStrategy.setTiltShortOpen(-.01);
+    fullDoubleTiltStrategy.setTiltHigherTrendLong(-1);
+    fullDoubleTiltStrategy.setTiltHigherTrendShort(-.1);
 
     StrategyResult strategyResultDoubleTilt =
         tradeService.calculateProfitAndDrawdown(doubleTiltStrategy, ticker,
@@ -168,7 +171,8 @@ public class ScreenerApplication implements CommandLineRunner {
     priceIndicators.put("SMA_" + fullDoubleTiltStrategy.getSmaShortList().getFirst().getId().getLength(),
         Utils.convertBaseSmaListToTreeMap(fullDoubleTiltStrategy.getSmaShortList()));
 
-    ExcelExportService.exportTradesToExcel(strategyResultDoubleTilt.getTradesLong(), "trades_report.xlsx");
+    ExcelExportService.exportTradesToExcel(strategyResultDoubleTilt.getTradesLong(), "trades_long.xlsx");
+    ExcelExportService.exportTradesToExcel(strategyResultDoubleTilt.getTradesShort(), "trades_short.xlsx");
 
 
     // Map<String, NavigableMap<LocalDateTime, Double>> indicators = strategyResultDoubleTilt.getIndicators();
@@ -202,12 +206,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void downloadSeries() {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "GLD";
+    final String ticker = "FXI";
     String interval = "5min";
-    String year = "2024-";
+    String year = "2023-";
     String yearMonth;
-    int startMonth = 10;
-    int finalMonth = 11;
+    int startMonth = 1;
+    int finalMonth = 12;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
         yearMonth = year + "0" + month;
@@ -221,13 +225,13 @@ public class ScreenerApplication implements CommandLineRunner {
       System.out.println("saved = " + saved);
     }
     priceAggregationService.aggregateData(ticker, TimeFrame.HOUR);
-    calcSMA(ticker,TimeFrame.HOUR, 1,50);
+    //calcSMA(ticker,TimeFrame.HOUR, 1,50);
     priceAggregationService.aggregateData(ticker, TimeFrame.DAY);
-    calcSMA(ticker,TimeFrame.DAY, 1,50);
+    //calcSMA(ticker,TimeFrame.DAY, 1,50);
     priceAggregationService.aggregateData(ticker, TimeFrame.WEEK);
-    calcSMA(ticker,TimeFrame.WEEK, 1,50);
+    //calcSMA(ticker,TimeFrame.WEEK, 1,50);
     priceAggregationService.aggregateData(ticker, TimeFrame.MONTH);
-    calcSMA(ticker,TimeFrame.MONTH, 1,50);
+    //calcSMA(ticker,TimeFrame.MONTH, 1,50);
     System.exit(0);
   }
 }
