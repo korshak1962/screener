@@ -11,6 +11,7 @@ import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.PriceDao;
 import korshak.com.screener.service.SmaDao;
 import korshak.com.screener.service.Strategy;
+import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalTilt;
 import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 @Service("DoubleTiltStrategy")
 public class DoubleTiltStrategy implements Strategy {
   private List<SignalTilt> signals;
+  private List<SignalTilt> signalsShort;
+  private List<SignalTilt> signalsLong;
   private TimeFrame timeFrame = TimeFrame.DAY;  // Default value
   private final SmaDao smaDao;
   private final PriceDao priceDao;
@@ -44,33 +47,36 @@ public class DoubleTiltStrategy implements Strategy {
     this.priceDao = priceDao;
   }
 
-
   @Override
-  public List<SignalTilt> getSignals(List<? extends BasePrice> prices) {
-
-    return getSignals();
+  public List<SignalTilt> getSignalsLong() {
+    if (signalsLong == null) {
+      calcSignals();
+    }
+    return signalsLong;
   }
 
-  @Override
-  public List<SignalTilt> getSignals() {
-    signals = new ArrayList<>();
+
+  public void calcSignals() {
+    signalsLong = new ArrayList<>();
+    signalsShort = new ArrayList<>();
     double shortTilt = 0.0;
     double longTilt = 0.0;
     for (int i = 0; i < shortSmaTilt.size(); i++) {
       shortTilt = shortSmaTilt.get(i);
-      longTilt = shortSmaTilt.get(i);
+      longTilt = longSmaTilt.get(i);
       if (shortTilt > tiltLongOpen && longTilt > tiltHigherTrendLong) {
 
         //close short if have
-        if (!signals.isEmpty() && signals.getLast().getSignalType() == SignalType.ShortOpen) {
-          signals.add(new SignalTilt(
+        if (!signalsShort.isEmpty() &&
+            signalsShort.getLast().getSignalType() == SignalType.ShortOpen) {
+          signalsShort.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
               SignalType.ShortClose, shortTilt, longTilt));
         }
         // then open long
-        if (signals.isEmpty() || signals.getLast().getSignalType() != SignalType.LongOpen) {
-          signals.add(new SignalTilt(
+        if (signalsLong.isEmpty() || signalsLong.getLast().getSignalType() != SignalType.LongOpen) {
+          signalsLong.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
               SignalType.LongOpen, shortTilt, longTilt));
@@ -78,8 +84,9 @@ public class DoubleTiltStrategy implements Strategy {
       }
       if (shortTilt > tiltShortClose) {
         //close short
-        if (!signals.isEmpty() && signals.getLast().getSignalType() == SignalType.ShortOpen) {
-          signals.add(new SignalTilt(
+        if (!signalsShort.isEmpty() &&
+            signalsShort.getLast().getSignalType() == SignalType.ShortOpen) {
+          signalsShort.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
               SignalType.ShortClose, shortTilt, longTilt));
@@ -87,8 +94,9 @@ public class DoubleTiltStrategy implements Strategy {
       }
       if (shortTilt < tiltLongClose) {
         //close long
-        if (!signals.isEmpty() && signals.getLast().getSignalType() == SignalType.LongOpen) {
-          signals.add(new SignalTilt(
+        if (!signalsLong.isEmpty() &&
+            signalsLong.getLast().getSignalType() == SignalType.LongOpen) {
+          signalsLong.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
               SignalType.LongClose, shortTilt, longTilt));
@@ -96,22 +104,38 @@ public class DoubleTiltStrategy implements Strategy {
       }
       if (shortTilt < tiltShortOpen && longTilt < tiltHigherTrendShort) {
         // open short
-        if (signals.isEmpty() || signals.getLast().getSignalType() != SignalType.ShortOpen) {
-          signals.add(new SignalTilt(
+        if (signalsShort.isEmpty() ||
+            signalsShort.getLast().getSignalType() != SignalType.ShortOpen) {
+          signalsShort.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
               SignalType.ShortOpen, shortTilt, longTilt));
         }
       }
     }
-    SignalTilt last = signals.getLast();
-    if (last.getSignalType() == SignalType.LongOpen) {
-      System.out.println("======== Last Signal " + last);
+    if (!signalsLong.isEmpty()) {
+      SignalTilt lastLong = signalsLong.getLast();
+      if (lastLong.getSignalType() == SignalType.LongOpen) {
+        System.out.println("======== lastLong Signal " + lastLong);
+      }
+    }
+    if (!signalsShort.isEmpty()) {
+      SignalTilt lastShort = signalsShort.getLast();
+      if (lastShort.getSignalType() == SignalType.ShortOpen) {
+        System.out.println("======== lastShort Signal " + lastShort);
+      }
     }
     System.out.println(
         "======== shortTilt = " + shortTilt + " for date = " + prices.getLast().getId().getDate());
     System.out.println("======== longTilt = " + longTilt);
-    return signals;
+  }
+
+  @Override
+  public List<? extends Signal> getSignalsShort() {
+    if (signalsShort == null) {
+      calcSignals();
+    }
+    return signalsShort;
   }
 
 
@@ -293,5 +317,9 @@ public class DoubleTiltStrategy implements Strategy {
 
   public void setTiltShortClose(double tiltShortClose) {
     this.tiltShortClose = tiltShortClose;
+  }
+
+  public List<? extends BasePrice> getPrices() {
+    return prices;
   }
 }

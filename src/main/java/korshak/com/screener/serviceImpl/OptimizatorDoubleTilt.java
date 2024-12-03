@@ -40,7 +40,7 @@ public class OptimizatorDoubleTilt extends Optimizator {
          currentShortLength += numStepsShortStep) {
       fullDoubleTiltStrategy.setSmaLength(currentShortLength);
       strategyResultDoubleTilt =
-          tradeService.calculateProfitAndDrawdown(strategy,
+          tradeService.calculateProfitAndDrawdownLong(strategy,
               ticker,
               startDate,
               endDate,

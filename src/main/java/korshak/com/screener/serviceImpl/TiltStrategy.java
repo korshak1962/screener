@@ -117,8 +117,7 @@ public class TiltStrategy implements Strategy {
     this.timeFrame = TimeFrame.DAY;
   }
 
-  @Override
-  public List<Signal> getSignals(List<? extends BasePrice> prices) {
+  public List<Signal> getSignalsLong(List<? extends BasePrice> prices) {
     this.prices = prices;
     List<Signal> signals = new ArrayList<>();
     if (prices == null || prices.isEmpty()) {
@@ -202,7 +201,12 @@ public class TiltStrategy implements Strategy {
   }
 
   @Override
-  public List<Signal> getSignals() {
+  public List<Signal> getSignalsLong() {
+    return List.of();
+  }
+
+  @Override
+  public List<? extends Signal> getSignalsShort() {
     return List.of();
   }
 
@@ -251,5 +255,10 @@ public class TiltStrategy implements Strategy {
 
   public TreeMap<LocalDateTime, Double> getDateToTiltValue() {
     return dateToTiltValue;
+  }
+
+  @Override
+  public List<? extends BasePrice> getPrices() {
+    return prices;
   }
 }

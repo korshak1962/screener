@@ -7,9 +7,9 @@ import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.vo.Signal;
 
 public interface Strategy {
-  List<? extends Signal> getSignals(List<? extends BasePrice> prices);
-
-  List<? extends Signal> getSignals();
+  List<? extends Signal> getSignalsLong();
+  List<? extends Signal> getSignalsShort();
 void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate);
   String getName();
+  List<? extends BasePrice> getPrices();
 }

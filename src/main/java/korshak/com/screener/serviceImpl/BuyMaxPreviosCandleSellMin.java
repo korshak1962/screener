@@ -11,15 +11,19 @@ import org.springframework.stereotype.Service;
 
 @Service("BuyMaxPreviosCandleSellMin")
 public class BuyMaxPreviosCandleSellMin implements Strategy {
-  @Override
-  public List<Signal> getSignals(List<? extends BasePrice> prices) {
+  private List<Signal> getSignalsLong(List<? extends BasePrice> prices) {
     List<Signal> signals = new ArrayList<>();
     double prevHigh = prices.getFirst().getHigh();
     return signals;
   }
 
   @Override
-  public List<Signal> getSignals() {
+  public List<Signal> getSignalsLong() {
+    return List.of();
+  }
+
+  @Override
+  public List<? extends Signal> getSignalsShort() {
     return List.of();
   }
 
@@ -32,5 +36,10 @@ public class BuyMaxPreviosCandleSellMin implements Strategy {
   @Override
   public String getName() {
     return "BuyMaxPreviosCandleSellMin";
+  }
+
+  @Override
+  public List<? extends BasePrice> getPrices() {
+    return List.of();
   }
 }
