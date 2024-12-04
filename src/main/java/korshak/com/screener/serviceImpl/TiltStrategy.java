@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.PriceDao;
 import korshak.com.screener.service.SmaDao;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.vo.Signal;
@@ -23,13 +24,15 @@ public class TiltStrategy implements Strategy {
   private int length = 9;             // Default value
   private TimeFrame timeFrame = TimeFrame.DAY;  // Default value
   private final SmaDao smaDao;
+  private final PriceDao priceDao;
   private List<? extends BaseSma> smaList;
   String ticker;
   List<? extends BasePrice> prices;
   TreeMap<LocalDateTime,Double> dateToTiltValue = new TreeMap<>();
 
-  public TiltStrategy(SmaDao smaDao) {
+  public TiltStrategy(SmaDao smaDao,PriceDao priceDao) {
     this.smaDao = smaDao;
+    this.priceDao = priceDao;
   }
 
   // Getters and Setters for all parameters
@@ -117,8 +120,8 @@ public class TiltStrategy implements Strategy {
     this.timeFrame = TimeFrame.DAY;
   }
 
-  public List<Signal> getSignalsLong(List<? extends BasePrice> prices) {
-    this.prices = prices;
+  @Override
+  public List<Signal> getSignalsLong() {
     List<Signal> signals = new ArrayList<>();
     if (prices == null || prices.isEmpty()) {
       return signals;
@@ -177,7 +180,7 @@ public class TiltStrategy implements Strategy {
           signals.add(new Signal(
               currentDate,
               price.getClose(),
-              SignalType.ShortOpen // sell
+              SignalType.LongClose // sell
           ));
           inPosition = false;
         }
@@ -200,10 +203,7 @@ public class TiltStrategy implements Strategy {
     );
   }
 
-  @Override
-  public List<Signal> getSignalsLong() {
-    return List.of();
-  }
+
 
   @Override
   public List<? extends Signal> getSignalsShort() {
@@ -213,7 +213,12 @@ public class TiltStrategy implements Strategy {
   @Override
   public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                    LocalDateTime endDate) {
-
+    this.prices = priceDao.findByDateRange(
+        ticker,
+        startDate,
+        endDate,
+        timeFrame
+    );
   }
 
   @Override

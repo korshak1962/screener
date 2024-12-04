@@ -115,7 +115,7 @@ public class ScreenerApplication implements CommandLineRunner {
   @Autowired
   Optimizator optimizator;
   private void optimazeDoubleTiltStrategy(){
-    String ticker = "TLT";
+    String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
     LocalDateTime startDate = LocalDateTime.of(2021, Month.JANUARY,1,0,0);
     LocalDateTime endDate = LocalDateTime.of(2024, Month.DECEMBER,1,0,0);
@@ -142,9 +142,9 @@ public class ScreenerApplication implements CommandLineRunner {
     doubleTiltStrategy.init(ticker,timeFrame,startDate, endDate);
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy)doubleTiltStrategy;
     fullDoubleTiltStrategy.setTiltPeriod(5);
+    fullDoubleTiltStrategy.setSmaLength(9);
     fullDoubleTiltStrategy.setTrendLengthSma(45);
 
-    fullDoubleTiltStrategy.setSmaLength(3);
     fullDoubleTiltStrategy.setTiltLongOpen(.02);
     fullDoubleTiltStrategy.setTiltLongClose(-.02);
     // added for TLT

@@ -15,7 +15,7 @@ public class OptimizatorDoubleTilt extends Optimizator {
 
   int minShortLength = 1;
   int maxShortLength = 16;
-  int numStepsShortStep = 2;
+  int numStepsShortStep = 1;
   int minTiltShortBuy = 0;
   int maxTiltShortBuy = 1;
   int numStepsTiltShortBuy = 10;
@@ -40,12 +40,8 @@ public class OptimizatorDoubleTilt extends Optimizator {
          currentShortLength += numStepsShortStep) {
       fullDoubleTiltStrategy.setSmaLength(currentShortLength);
       strategyResultDoubleTilt =
-          tradeService.calculateProfitAndDrawdownLong(strategy,
-              ticker,
-              startDate,
-              endDate,
-              timeFrame);
-      System.out.println();
+          tradeService.calculateProfitAndDrawdownLong(strategy);
+
       double longPnL = strategyResultDoubleTilt.getLongPnL();
       System.out.println("maxPnl= " + maxPnl + " longPnL= " + longPnL + " currentShortLength=" +
           currentShortLength);

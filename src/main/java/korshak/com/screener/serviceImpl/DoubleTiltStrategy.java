@@ -146,15 +146,6 @@ public class DoubleTiltStrategy implements Strategy {
     this.timeFrame = timeFrame;
     this.startDate = startDate;
     this.endDate = endDate;
-    this.prices = priceDao.findByDateRange(
-        ticker,
-        startDate,
-        endDate,
-        timeFrame
-    );
-    if (prices == null || prices.isEmpty()) {
-      throw new RuntimeException("prices.isEmpty()");
-    }
   }
 
   public String getName() {
@@ -231,21 +222,34 @@ public class DoubleTiltStrategy implements Strategy {
   public void setTrendLengthSma(int longLength) {
     this.longLength = longLength;
     this.smaLongList = getSma(longLength);
-    if (prices.size() != smaLongList.size()) {
-      throw new RuntimeException("prices.size()!=smaLongList.size()");
+    if (prices == null) {
+      this.prices = priceDao.findByDateRange(
+          ticker,
+          smaLongList.get(tiltPeriod - 1).getId().getDate(),
+          endDate,
+          timeFrame
+      );
     }
     this.longSmaTilt = calculateTiltList(smaLongList);
+
   }
 
   public void setSmaLength(int shortLength) {
     this.shortLength = shortLength;
     this.smaShortList = getSma(shortLength);
-    if (prices.size() != smaShortList.size()) {
-      throw new RuntimeException("prices.size()!=smaShortList.size()");
+    if (prices == null) {
+      this.prices = priceDao.findByDateRange(
+          ticker,
+          smaShortList.get(tiltPeriod - 1).getId().getDate(),
+          endDate,
+          timeFrame
+      );
     }
-    if (!prices.getFirst().getId().getDate().equals(smaShortList.getFirst().getId().getDate())) {
-      throw new RuntimeException(
-          "prices.getFirst().getId().getDate()!=smaShortList.getFirst().getId().getDate()");
+    if (prices == null || prices.isEmpty()) {
+      throw new RuntimeException("prices.isEmpty()");
+    }
+    if (prices.size() != smaShortList.size() - tiltPeriod + 1) {
+      throw new RuntimeException("prices.size() != smaShortList.size()-tiltPeriod");
     }
     this.shortSmaTilt = calculateTiltList(smaShortList);
   }
@@ -262,6 +266,7 @@ public class DoubleTiltStrategy implements Strategy {
 
   private List<Double> calculateTiltList(List<? extends BaseSma> smaList) {
     List<Double> tilts = new ArrayList<>();
+    boolean checkStart = true;
     // Create a sliding window for tilt calculation
     List<BaseSma> slidingWindow = new ArrayList<>();
     for (BaseSma currentSma : smaList) {
@@ -271,7 +276,15 @@ public class DoubleTiltStrategy implements Strategy {
         slidingWindow.remove(0);
       }
       // Only calculate tilt when we have enough data points
+
       if (slidingWindow.size() == tiltPeriod) {
+        if (checkStart) {
+          checkStart = false;
+          if (!prices.getFirst().getId().getDate()
+              .equals(slidingWindow.getLast().getId().getDate())) {
+            throw new RuntimeException("Prices and tilts are NOT synchronized!");
+          }
+        }
         double currentTilt = calculateTilt(slidingWindow);
         tilts.add(currentTilt);
       }
