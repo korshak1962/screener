@@ -31,7 +31,7 @@ public class ExcelExportService {
       Row headerRow = sheet.createRow(0);
       String[] headers = {
           "Open Date", "Open Price", "Close Date", "Close Price",
-          "PnL", "Duration (days)", "Return %", "tilt open", "tilt close"
+          "PnL", "Duration (days)", "Return %", "tilt open", "tilt close", "trend tilt open", "trend tilt close"
       };
 
       CellStyle headerStyle = createHeaderStyle(workbook);
@@ -94,6 +94,17 @@ public class ExcelExportService {
           double tiltCloseValue = signalTiltClose.getTilt();
           tiltCloseCell.setCellValue(tiltCloseValue);
           tiltCloseCell.setCellStyle(numberStyle);
+
+          Cell tiltTrendOpenCell = row.createCell(9);
+          double tiltTrendOpenValue = signalTiltOpen.getTrendTilt();
+          tiltTrendOpenCell.setCellValue(tiltTrendOpenValue);
+          tiltTrendOpenCell.setCellStyle(numberStyle);
+
+
+          Cell tiltTrendCloseCell = row.createCell(10);
+          double tiltTrendCloseValue = signalTiltClose.getTrendTilt();
+          tiltTrendCloseCell.setCellValue(tiltTrendCloseValue);
+          tiltTrendCloseCell.setCellStyle(numberStyle);
         }
       }
 

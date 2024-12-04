@@ -77,7 +77,10 @@ public class TradeServiceImpl implements TradeService {
     Map<LocalDateTime, Double> minShortPnl = new HashMap<>();
     List<Trade> tradesShort = new ArrayList<>();
     Iterator<? extends Signal> iteratorSignal = strategy.getSignalsShort().iterator();
-    Signal prevSignal = iteratorSignal.next();
+    Signal prevSignal = null;
+    if (iteratorSignal.hasNext()) {
+      prevSignal = iteratorSignal.next();
+    }
     double prevPnl;
     while (iteratorSignal.hasNext()) {
       Signal currentSignal = iteratorSignal.next();

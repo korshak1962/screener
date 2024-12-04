@@ -27,27 +27,46 @@ public class OptimizatorDoubleTilt extends Optimizator {
   public Map<String, Double> findOptimumParameters() {
     Map<String, Double> optimumParameters = new HashMap<>();
     double maxPnl = -10E6;
-    StrategyResult strategyResultDoubleTilt;
+    StrategyResult strategyResultDoubleTiltLong;
+    StrategyResult strategyResultDoubleTiltShort;
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy) this.strategy;
     fullDoubleTiltStrategy.setTiltPeriod(5);
     fullDoubleTiltStrategy.setTrendLengthSma(15);
 
     fullDoubleTiltStrategy.setTiltLongOpen(.02);
+    double minTiltLongOpen = 0.0;
+    double maxTiltLongOpen = 0.1;
+    double tiltLongOpenStep = 0.01;
     fullDoubleTiltStrategy.setTiltLongClose(-.02);
-    fullDoubleTiltStrategy.setTiltHigherTrendLong(-100);
-    fullDoubleTiltStrategy.setTiltHigherTrendShort(-200);
-    for (int currentShortLength = minShortLength; currentShortLength < maxShortLength;
-         currentShortLength += numStepsShortStep) {
-      fullDoubleTiltStrategy.setSmaLength(currentShortLength);
-      strategyResultDoubleTilt =
-          tradeService.calculateProfitAndDrawdownLong(strategy);
+    fullDoubleTiltStrategy.setTiltShortOpen(-.01);
+    fullDoubleTiltStrategy.setTiltShortClose(-.0);
 
-      double longPnL = strategyResultDoubleTilt.getLongPnL();
-      System.out.println("maxPnl= " + maxPnl + " longPnL= " + longPnL + " currentShortLength=" +
-          currentShortLength);
-      if (maxPnl < longPnL) {
-        maxPnl = longPnL;
-        optimumParameters.put("ShortLength", (double) currentShortLength);
+
+    fullDoubleTiltStrategy.setTiltHigherTrendLong(-1);
+    fullDoubleTiltStrategy.setTiltHigherTrendShort(-1);
+
+    for (double currentTiltLongOpen = minTiltLongOpen; currentTiltLongOpen < maxTiltLongOpen;
+         currentTiltLongOpen += tiltLongOpenStep) {
+      System.out.println("====currentTiltLongOpen =" + currentTiltLongOpen);
+      for (int currentShortLength = minShortLength; currentShortLength < maxShortLength;
+           currentShortLength += numStepsShortStep) {
+        fullDoubleTiltStrategy.setSmaLength(currentShortLength);
+        strategyResultDoubleTiltLong =
+            tradeService.calculateProfitAndDrawdownLong(strategy);
+
+        double longPnL = strategyResultDoubleTiltLong.getLongPnL();
+        System.out.println("maxPnl= " + maxPnl + " longPnL= " + longPnL + " currentShortLength=" +
+            currentShortLength);
+
+        strategyResultDoubleTiltShort = tradeService.calculateProfitAndDrawdownShort(strategy);
+        double shortPnL = strategyResultDoubleTiltShort.getShortPnL();
+        System.out.println(" shortPnL= " + shortPnL);
+
+        if (maxPnl < longPnL) {
+          maxPnl = longPnL;
+          optimumParameters.put("ShortLength", (double) currentShortLength);
+          optimumParameters.put("optimumTiltLongOpen", currentTiltLongOpen);
+        }
       }
     }
     return optimumParameters;

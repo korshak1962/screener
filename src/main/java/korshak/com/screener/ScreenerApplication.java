@@ -60,8 +60,8 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    //optimazeDoubleTiltStrategy();
-    evaluateDoubleTiltStrategy();
+    optimazeDoubleTiltStrategy();
+    //evaluateDoubleTiltStrategy();
     //evaluateStrategy();
     //downloadSeries();
     //calcSMA("SPY",TimeFrame.DAY, 1,50);
@@ -180,7 +180,8 @@ public class ScreenerApplication implements CommandLineRunner {
 
     // Map<String, NavigableMap<LocalDateTime, Double>> indicators = strategyResultDoubleTilt.getIndicators();
     Map<String, NavigableMap<LocalDateTime, Double>> indicators = new TreeMap<>();
-    indicators.put("shortSmaTilt",((DoubleTiltStrategy) doubleTiltStrategy).getshortSmaTilt());
+    indicators.put("shortSmaTilt",((DoubleTiltStrategy) doubleTiltStrategy).getShortSmaTiltAsMap());
+    indicators.put("trendSmaTilt",((DoubleTiltStrategy) doubleTiltStrategy).getTrendSmaTiltAsMap());
 
     //((DoubleTiltStrategy) doubleTiltStrategy).getShortSmaTilt()
     chartService.drawChart(strategyResultDoubleTiltLong.getPrices(), strategyResultDoubleTiltLong.getSignals()
@@ -209,12 +210,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void downloadSeries() {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "MCHI";
+    final String ticker = "SLV";
     String interval = "5min";
-    String year = "2024-";
+    String year = "2023-";
     String yearMonth;
-    int startMonth = 3;
-    int finalMonth = 11;
+    int startMonth = 7;
+    int finalMonth = 12;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
         yearMonth = year + "0" + month;
