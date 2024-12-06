@@ -34,9 +34,9 @@ public class OptimizatorDoubleTilt extends Optimizator {
     fullDoubleTiltStrategy.setTrendLengthSma(15);
 
     fullDoubleTiltStrategy.setTiltLongOpen(.02);
-    double minTiltLongOpen = 0.0;
-    double maxTiltLongOpen = 0.1;
-    double tiltLongOpenStep = 0.01;
+    double minTiltLongOpen = -0.2;
+    double maxTiltLongOpen = 0.0;
+    double tiltLongOpenStep = 0.1;
     fullDoubleTiltStrategy.setTiltLongClose(-.02);
     fullDoubleTiltStrategy.setTiltShortOpen(-.01);
     fullDoubleTiltStrategy.setTiltShortClose(-.0);

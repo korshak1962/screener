@@ -60,11 +60,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    optimazeDoubleTiltStrategy();
-    //evaluateDoubleTiltStrategy();
+    //optimazeDoubleTiltStrategy();
+    evaluateDoubleTiltStrategy();
     //evaluateStrategy();
     //downloadSeries();
-    //calcSMA("SPY",TimeFrame.DAY, 1,50);
+    //priceAggregationService.aggregateData("SPY", TimeFrame.WEEK);
+    //calcSMA("SPY",TimeFrame.WEEK, 1,50);
     // System.exit(0);
   }
 
@@ -116,7 +117,7 @@ public class ScreenerApplication implements CommandLineRunner {
   Optimizator optimizator;
   private void optimazeDoubleTiltStrategy(){
     String ticker = "SPY";
-    TimeFrame timeFrame = TimeFrame.DAY;
+    TimeFrame timeFrame = TimeFrame.WEEK;
     LocalDateTime startDate = LocalDateTime.of(2021, Month.JANUARY,1,0,0);
     LocalDateTime endDate = LocalDateTime.of(2024, Month.DECEMBER,1,0,0);
 
@@ -143,15 +144,15 @@ public class ScreenerApplication implements CommandLineRunner {
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy)doubleTiltStrategy;
     fullDoubleTiltStrategy.setTiltPeriod(5);
     fullDoubleTiltStrategy.setSmaLength(9);
-    fullDoubleTiltStrategy.setTrendLengthSma(45);
+    fullDoubleTiltStrategy.setTrendLengthSma(36);
 
     fullDoubleTiltStrategy.setTiltLongOpen(.02);
     fullDoubleTiltStrategy.setTiltLongClose(-.02);
     // added for TLT
-    fullDoubleTiltStrategy.setTiltShortClose(-.0);
-    fullDoubleTiltStrategy.setTiltShortOpen(-.01);
-    fullDoubleTiltStrategy.setTiltHigherTrendLong(-1);
-    fullDoubleTiltStrategy.setTiltHigherTrendShort(1);
+    fullDoubleTiltStrategy.setTiltShortClose(-.01);
+    fullDoubleTiltStrategy.setTiltShortOpen(-.022);
+    fullDoubleTiltStrategy.setTiltHigherTrendLong(-0.1);
+    fullDoubleTiltStrategy.setTiltHigherTrendShort(-.1);
 
     StrategyResult strategyResultDoubleTiltLong =
         tradeService.calculateProfitAndDrawdownLong(doubleTiltStrategy, ticker,
@@ -187,11 +188,12 @@ public class ScreenerApplication implements CommandLineRunner {
     chartService.drawChart(strategyResultDoubleTiltLong.getPrices(), strategyResultDoubleTiltLong.getSignals()
         , priceIndicators
         , strategyResultDoubleTiltLong.getTradesLong(), indicators);
-    /*chartService.drawChart(strategyResultDoubleTilt.getPrices(), strategyResultDoubleTilt.getSignalsLong()
-        , ((TiltStrategy) tiltStrategy).getSmaList()
-        , strategyResultDoubleTilt.getTradesLong());
+    /*
+    chartService.drawChart(strategyResultDoubleTiltShort.getPrices(), strategyResultDoubleTiltShort.getSignals()
+        , priceIndicators
+        , strategyResultDoubleTiltShort.getTradesShort(), indicators);
+
      */
-    //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignalsLong());
   }
 
   private void calcSMA(String ticker,TimeFrame timeFrame,int startLength,int endLength) {

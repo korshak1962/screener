@@ -19,8 +19,6 @@ public class BuyAndHoldStrategy implements Strategy {
   List<Signal> signals = new ArrayList<>();
 
   public List<Signal> getSignalsLong(List<? extends BasePrice> prices) {
-    signals.add(new Signal(prices.get(0).getId().getDate(), prices.get(0).getClose(), SignalType.LongOpen));
-    signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(), SignalType.LongClose));
     return signals;
   }
 
@@ -47,6 +45,8 @@ public class BuyAndHoldStrategy implements Strategy {
         endDate,
         timeFrame
     );
+    signals.add(new Signal(prices.getFirst().getId().getDate(), prices.getFirst().getClose(), SignalType.LongOpen));
+    signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(), SignalType.LongClose));
   }
 
   @Override
