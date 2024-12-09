@@ -18,29 +18,29 @@ import org.springframework.stereotype.Service;
 
 @Service("DoubleTiltStrategy")
 public class DoubleTiltStrategy implements Strategy {
-  private List<SignalTilt> signals;
-  private List<SignalTilt> signalsShort;
-  private List<SignalTilt> signalsLong;
-  private TimeFrame timeFrame = TimeFrame.DAY;  // Default value
-  private final SmaDao smaDao;
-  private final PriceDao priceDao;
-  private List<? extends BaseSma> smaShortList;
-  private List<Double> shortSmaTilt;
-  private List<? extends BaseSma> smaLongList;
-  private List<Double> trendSmaTilt;
-  private String ticker;
-  private List<? extends BasePrice> prices;
-  private double tiltLongOpen = 0.02;
-  private double tiltLongClose = -0.02;
-  private double tiltShortOpen = -0.02;
-  private double tiltShortClose = -0.02;
-  private double tiltHigherTrendLong = -10;
-  private double tiltHigherTrendShort = -20;
-  private int tiltPeriod = 5;
-  private int longLength;
-  private int shortLength;
-  private LocalDateTime startDate;
-  private LocalDateTime endDate;
+  protected List<SignalTilt> signals;
+  protected List<SignalTilt> signalsShort;
+  protected List<SignalTilt> signalsLong;
+  protected TimeFrame timeFrame = TimeFrame.DAY;  // Default value
+  protected final SmaDao smaDao;
+  protected final PriceDao priceDao;
+  protected List<? extends BaseSma> smaShortList;
+  protected List<Double> shortSmaTilt;
+  protected List<? extends BaseSma> smaLongList;
+  protected List<Double> trendSmaTilt;
+  protected String ticker;
+  protected List<? extends BasePrice> prices;
+  protected double tiltLongOpen = 0.02;
+  protected double tiltLongClose = -0.02;
+  protected double tiltShortOpen = -0.02;
+  protected double tiltShortClose = -0.02;
+  protected double tiltHigherTrendLong = -10;
+  protected double tiltHigherTrendShort = -20;
+  protected int tiltPeriod = 5;
+  protected int longLength;
+  protected int shortLength;
+  protected LocalDateTime startDate;
+  protected LocalDateTime endDate;
 
   public DoubleTiltStrategy(SmaDao smaDao, PriceDao priceDao) {
     this.smaDao = smaDao;

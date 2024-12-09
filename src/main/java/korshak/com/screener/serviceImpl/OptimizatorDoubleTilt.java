@@ -4,12 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.vo.StrategyResult;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
 public class OptimizatorDoubleTilt extends Optimizator {
 
-  public OptimizatorDoubleTilt(DoubleTiltStrategy strategy, TradeService tradeService) {
+  public OptimizatorDoubleTilt(@Qualifier("DoubleTiltStrategy") DoubleTiltStrategy strategy, TradeService tradeService) {
     super(strategy, tradeService);
   }
 
