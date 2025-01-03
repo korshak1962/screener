@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.PriceDao;
+import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;

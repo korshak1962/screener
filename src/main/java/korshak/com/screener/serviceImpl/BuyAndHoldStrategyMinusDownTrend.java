@@ -1,7 +1,7 @@
 package korshak.com.screener.serviceImpl;
 
 import java.util.ArrayList;
-import korshak.com.screener.service.PriceDao;
+import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.service.SmaDao;
 import korshak.com.screener.vo.SignalTilt;
 import korshak.com.screener.vo.SignalType;

@@ -12,7 +12,7 @@ import korshak.com.screener.dao.SmaKey;
 import korshak.com.screener.dao.SmaMonth;
 import korshak.com.screener.dao.SmaWeek;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.PriceDao;
+import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.SmaDao;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +108,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
 
   private static BaseSma getBaseSma(TimeFrame timeFrame) {
     BaseSma sma = switch (timeFrame) {
+      case MIN5 -> null;
       case HOUR -> new SmaHour();
       case DAY -> new SmaDay();
       case WEEK -> new SmaWeek();

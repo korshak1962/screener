@@ -1,6 +1,5 @@
 package korshak.com.screener;
 
-import korshak.com.screener.service.PriceReaderService;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +15,6 @@ class ScreenerApplicationTests {
 	private RestTemplate restTemplate;
 	@Autowired
 	private SharePriceDownLoaderService sharePriceDownLoaderService;
-	@Autowired
-	private PriceReaderService priceReaderService;
 	@Test
 	void test() {
 System.out.println("test");

@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.PriceMin5;
-import korshak.com.screener.dao.PriceMin5Repository;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,15 +23,15 @@ import org.springframework.web.client.RestTemplate;
 public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderService {
   String apiKey;
   String baseUrl;
+  PriceDao priceDao;
 
-  public SharePriceDownLoaderServiceImpl(@Value("${alpha.apiKey}") String apiKey,
+  public SharePriceDownLoaderServiceImpl(PriceDao priceDao,
+      @Value("${alpha.apiKey}") String apiKey,
                                          @Value("${alpha.baseUrl}") String baseUrl) {
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
+    this.priceDao = priceDao;
   }
-
-  @Autowired
-  private PriceMin5Repository priceMin5Repository;
 
   @Autowired
   private RestTemplate restTemplate;
@@ -84,7 +84,7 @@ public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderServ
       intradayDataList.add(priceMin5);
     }
     System.out.println("to be saved = " + intradayDataList.size() + " for date: " + localDateTime);
-    List<PriceMin5> saved = priceMin5Repository.saveAll(intradayDataList);
+    List<PriceMin5> saved = priceDao.saveAll(intradayDataList);
     return saved.size();
   }
 }

@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PriceHourRepository extends JpaRepository<PriceHour, PriceKey> {
+interface PriceHourRepository extends JpaRepository<PriceHour, PriceKey> {
   List<PriceHour> findByIdTickerAndIdDateBetweenOrderByIdDateAsc(
       String ticker,
       LocalDateTime startDate,

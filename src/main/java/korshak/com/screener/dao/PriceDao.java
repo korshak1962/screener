@@ -1,9 +1,8 @@
-package korshak.com.screener.service;
+package korshak.com.screener.dao;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.TimeFrame;
+import java.util.Set;
 
 public interface PriceDao {
   List<? extends BasePrice> findByDateRange(
@@ -12,5 +11,11 @@ public interface PriceDao {
       LocalDateTime endDate,
       TimeFrame timeFrame
   );
+
   List<? extends BasePrice> findAllByTicker(String ticker, TimeFrame timeFrame);
+
+  // Generic save method
+  <T extends BasePrice> List<T> saveAll(List<T> prices);
+
+  Set<String> findUniqueTickers();
 }

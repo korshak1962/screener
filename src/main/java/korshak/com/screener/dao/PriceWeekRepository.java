@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PriceWeekRepository extends  JpaRepository<PriceWeek, PriceKey> {
+interface PriceWeekRepository extends  JpaRepository<PriceWeek, PriceKey> {
   List<PriceWeek> findByIdTickerAndIdDateBetweenOrderByIdDateAsc(
       String ticker,
       LocalDateTime startDate,

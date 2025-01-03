@@ -4,4 +4,6 @@ import korshak.com.screener.dao.TimeFrame;
 
 public interface PriceAggregationService {
    void aggregateData(String ticker, TimeFrame timeFrame);
+   void aggregateAllTimeFrames(String ticker);
+   void aggregateAllTickers();
 }

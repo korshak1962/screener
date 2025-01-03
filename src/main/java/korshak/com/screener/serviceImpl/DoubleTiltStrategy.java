@@ -8,7 +8,7 @@ import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.PriceDao;
+import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.service.SmaDao;
 import korshak.com.screener.service.Strategy;
 import korshak.com.screener.vo.Signal;

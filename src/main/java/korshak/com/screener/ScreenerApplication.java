@@ -66,12 +66,13 @@ public class ScreenerApplication implements CommandLineRunner {
   public void run(String... args) throws Exception {
     //optimazeDoubleTiltStrategy();
    // evaluateDoubleTiltStrategy();
-    evaluateDoubleTiltStrategyMinusDownTrend();
+    //evaluateDoubleTiltStrategyMinusDownTrend();
     //evaluateStrategy();
     //downloadSeries();
-    //priceAggregationService.aggregateData("SPY", TimeFrame.WEEK);
+    priceAggregationService.aggregateAllTickers();
+    //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
     //calcSMA("SPY",TimeFrame.WEEK, 1,50);
-    // System.exit(0);
+     System.exit(0);
   }
 
   private void evaluateStrategy() throws IOException {
@@ -286,11 +287,11 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void downloadSeries() {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "SLV";
+    final String ticker = "CVS";
     String interval = "5min";
-    String year = "2023-";
+    String year = "2024-";
     String yearMonth;
-    int startMonth = 7;
+    int startMonth = 6;
     int finalMonth = 12;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
@@ -304,13 +305,8 @@ public class ScreenerApplication implements CommandLineRunner {
           .fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
       System.out.println("saved = " + saved);
     }
-    priceAggregationService.aggregateData(ticker, TimeFrame.HOUR);
-    //calcSMA(ticker,TimeFrame.HOUR, 1,50);
-    priceAggregationService.aggregateData(ticker, TimeFrame.DAY);
-    //calcSMA(ticker,TimeFrame.DAY, 1,50);
-    priceAggregationService.aggregateData(ticker, TimeFrame.WEEK);
-    //calcSMA(ticker,TimeFrame.WEEK, 1,50);
-    priceAggregationService.aggregateData(ticker, TimeFrame.MONTH);
+
+    priceAggregationService.aggregateAllTimeFrames(ticker);
     //calcSMA(ticker,TimeFrame.MONTH, 1,50);
     System.exit(0);
   }
