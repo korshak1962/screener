@@ -1,12 +1,14 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.PriceDao;
-import korshak.com.screener.service.Strategy;
+import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
@@ -57,5 +59,15 @@ public class BuyAndHoldStrategy implements Strategy {
   @Override
   public List<? extends BasePrice> getPrices() {
     return prices;
+  }
+
+  @Override
+  public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
+    return Map.of();
+  }
+
+  @Override
+  public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
+    return Map.of();
   }
 }

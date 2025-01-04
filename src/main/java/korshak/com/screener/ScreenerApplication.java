@@ -14,12 +14,12 @@ import korshak.com.screener.service.ChartService;
 import korshak.com.screener.service.PriceAggregationService;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import korshak.com.screener.service.SmaCalculationService;
-import korshak.com.screener.service.Strategy;
+import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.service.TradeService;
-import korshak.com.screener.serviceImpl.DoubleTiltStrategy;
-import korshak.com.screener.serviceImpl.BuyAndHoldStrategyMinusDownTrend;
+import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
+import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
 import korshak.com.screener.serviceImpl.Optimizator;
-import korshak.com.screener.serviceImpl.TiltStrategy;
+import korshak.com.screener.serviceImpl.strategy.TiltStrategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.utils.ExcelExportService;
 import korshak.com.screener.utils.Utils;
@@ -65,21 +65,21 @@ public class ScreenerApplication implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
     //optimazeDoubleTiltStrategy();
-   // evaluateDoubleTiltStrategy();
-    //evaluateDoubleTiltStrategyMinusDownTrend();
+    evaluateDoubleTiltStrategy();
+    //   evaluateDoubleTiltStrategyMinusDownTrend();
     //evaluateStrategy();
     //downloadSeries();
-    priceAggregationService.aggregateAllTickers();
+    //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
-    //calcSMA("SPY",TimeFrame.WEEK, 1,50);
+    //calcSMA(1,100);
      System.exit(0);
   }
 
   private void evaluateStrategy() throws IOException {
-    String ticker = "QQQ";
+    String ticker = "SPY";
     TimeFrame timeFrame = TimeFrame.DAY;
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.APRIL,1,0,0);
-    LocalDateTime endDate = LocalDateTime.of(2024, Month.DECEMBER,1,0,0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY,1,0,0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY,1,0,0);
 
     StrategyResult buyAndHoldstrategyResult =
         tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, ticker,
@@ -95,30 +95,29 @@ public class ScreenerApplication implements CommandLineRunner {
              endDate,
             timeFrame);
     System.out.println(tiltStrategy.getName() + " result: " + strategyResultTilt);
-    System.out.println(buyAndHoldStrategy.getName() + " result: " + buyAndHoldstrategyResult);
+    System.out.println(tiltStrategy.getName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
     ChartService chartService = new ChartServiceImpl(tiltStrategy.getName());
-    TiltStrategy tiltStrategyFull = (TiltStrategy) tiltStrategy;
-    List<? extends BaseSma> smaList = tiltStrategyFull.getSmaList();
-    Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();
-    List<? extends BaseSma> trendSmaList = tiltStrategyFull.getSma(TimeFrame.DAY,45);
-    priceIndicators.put("SMA_" + trendSmaList.getFirst().getId().getLength(),
-        Utils.convertBaseSmaListToTreeMap(trendSmaList));
-    priceIndicators.put("SMA_" + smaList.getFirst().getId().getLength(),
-        Utils.convertBaseSmaListToTreeMap(smaList));
-    Map<String, NavigableMap<LocalDateTime, Double>> indicators = new HashMap<>();
-    indicators.put("Tilt",tiltStrategyFull.getDateToTiltValue());
-
-      // strategyResultTilt.getIndicators();
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
-        , priceIndicators
-        , strategyResultTilt.getTradesLong(), indicators);
+        , tiltStrategy.getPriceIndicators()
+        , strategyResultTilt.getTradesLong(), tiltStrategy.getIndicators());
+    pause();
     /*chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignalsLong()
         , ((TiltStrategy) tiltStrategy).getSmaList()
         , strategyResultTilt.getTradesLong());
      */
     //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignalsLong());
   }
+
+  private static void pause() {
+    try {
+      System.out.println("Press any key to continue...");
+      System.in.read();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   @Autowired
   Optimizator optimizator;
   private void optimazeDoubleTiltStrategy(){
@@ -148,7 +147,7 @@ public class ScreenerApplication implements CommandLineRunner {
     //    tradeService.calculateProfitAndDrawdownLong(tiltStrategy, ticker, timeFrame);
     buyAndHoldStrategyMinusDownTrend.init(ticker,timeFrame,startDate, endDate);
 
-    buyAndHoldStrategyMinusDownTrend.setTiltPeriod(5);
+    //buyAndHoldStrategyMinusDownTrend.setTiltPeriod(5);
     buyAndHoldStrategyMinusDownTrend.setSmaLength(9);
     buyAndHoldStrategyMinusDownTrend.setTrendLengthSma(36);
 
@@ -217,7 +216,8 @@ public class ScreenerApplication implements CommandLineRunner {
     //    tradeService.calculateProfitAndDrawdownLong(tiltStrategy, ticker, timeFrame);
     doubleTiltStrategy.init(ticker,timeFrame,startDate, endDate);
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy)doubleTiltStrategy;
-    fullDoubleTiltStrategy.setTiltPeriod(5);
+    //===========================================
+   // fullDoubleTiltStrategy.setTiltPeriod(5);
     fullDoubleTiltStrategy.setSmaLength(9);
     fullDoubleTiltStrategy.setTrendLengthSma(36);
 
@@ -225,9 +225,11 @@ public class ScreenerApplication implements CommandLineRunner {
     fullDoubleTiltStrategy.setTiltLongClose(-.02);
     // added for TLT
     fullDoubleTiltStrategy.setTiltShortClose(-.01);
-    fullDoubleTiltStrategy.setTiltShortOpen(-.25);
+    fullDoubleTiltStrategy.setTiltShortOpen(-.22);
     fullDoubleTiltStrategy.setTiltHigherTrendLong(-.1);
     fullDoubleTiltStrategy.setTiltHigherTrendShort(-.2);
+
+    //==================================
 
     StrategyResult strategyResultDoubleTiltLong =
         tradeService.calculateProfitAndDrawdownLong(doubleTiltStrategy, ticker,
@@ -269,18 +271,16 @@ public class ScreenerApplication implements CommandLineRunner {
         , strategyResultDoubleTiltShort.getTradesShort(), indicators);
 
      */
+    pause();
   }
 
-  private void calcSMA(String ticker,TimeFrame timeFrame,int startLength,int endLength) {
+  private void calcSMA(int startLength,int endLength) {
     int step = 1;
     long start = System.currentTimeMillis();
-    System.out.println("calcSMA started "+ ticker);
     for (int length = startLength; length <= endLength; length += step) {
-
-      smaCalculationService.calculateSMA(ticker, length, timeFrame);
-      System.out.println("length = " + length);
+      smaCalculationService.calculateSMAForAllTimeFrameAndTickers(length);
     }
-    System.out.println("total = " + (System.currentTimeMillis() - start));
+    System.out.println("total in minutes= " + (System.currentTimeMillis() - start)/60000);
     System.exit(0);
   }
 

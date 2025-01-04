@@ -3,6 +3,7 @@ package korshak.com.screener.serviceImpl;
 import java.util.HashMap;
 import java.util.Map;
 import korshak.com.screener.service.TradeService;
+import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class OptimizatorDoubleTilt extends Optimizator {
     StrategyResult strategyResultDoubleTiltLong;
     StrategyResult strategyResultDoubleTiltShort;
     DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy) this.strategy;
-    fullDoubleTiltStrategy.setTiltPeriod(5);
+    //fullDoubleTiltStrategy.setTiltPeriod(5);
     fullDoubleTiltStrategy.setTrendLengthSma(15);
 
     fullDoubleTiltStrategy.setTiltLongOpen(.02);

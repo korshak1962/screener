@@ -1,8 +1,8 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.strategy;
 
 import java.util.ArrayList;
 import korshak.com.screener.dao.PriceDao;
-import korshak.com.screener.service.SmaDao;
+import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.vo.SignalTilt;
 import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
@@ -27,9 +27,9 @@ public class BuyAndHoldStrategyMinusDownTrend extends DoubleTiltStrategy {
     signalsShort = new ArrayList<>();
     double shortTilt = 0.0;
     double longTilt = 0.0;
-    for (int i = 0; i < trendSmaTilt.size(); i++) {
-      shortTilt = shortSmaTilt.get(i);
-      longTilt = trendSmaTilt.get(i);
+    for (int i = 0; i < smaLongList.size(); i++) {
+      shortTilt = smaShortList.get(i).getTilt();
+      longTilt = smaLongList.get(i).getTilt();
       if (longTilt > tiltHigherTrendLong) {
         //close short if have
         if (!signalsShort.isEmpty() &&

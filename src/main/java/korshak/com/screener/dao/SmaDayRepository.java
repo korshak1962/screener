@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SmaDayRepository extends JpaRepository<SmaDay, SmaKey>,SmaRepository  {
+interface SmaDayRepository extends JpaRepository<SmaDay, SmaKey>,SmaRepository  {
   void deleteByIdTickerAndIdLength(String ticker, int length);
   // Find all SMAs for a specific ticker and length, ordered by date
   List<SmaDay> findByIdTickerAndIdLengthOrderByIdDateAsc(String ticker, int length);

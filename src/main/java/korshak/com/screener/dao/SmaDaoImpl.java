@@ -1,19 +1,7 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.dao;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import korshak.com.screener.dao.BaseSma;
-import korshak.com.screener.dao.SmaDay;
-import korshak.com.screener.dao.SmaDayRepository;
-import korshak.com.screener.dao.SmaHour;
-import korshak.com.screener.dao.SmaHourRepository;
-import korshak.com.screener.dao.SmaMonth;
-import korshak.com.screener.dao.SmaMonthRepository;
-import korshak.com.screener.dao.SmaRepository;
-import korshak.com.screener.dao.SmaWeek;
-import korshak.com.screener.dao.SmaWeekRepository;
-import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.SmaDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

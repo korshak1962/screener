@@ -2,6 +2,7 @@ package korshak.com.screener.service;
 
 import java.time.LocalDateTime;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.StrategyResult;
 
 public interface TradeService {

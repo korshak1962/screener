@@ -11,7 +11,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.Strategy;
+import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalTilt;

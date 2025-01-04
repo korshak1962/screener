@@ -1,9 +1,7 @@
-package korshak.com.screener.service;
+package korshak.com.screener.dao;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import korshak.com.screener.dao.BaseSma;
-import korshak.com.screener.dao.TimeFrame;
 
 public interface SmaDao {
   void deleteByTickerAndLength(String ticker, int length, TimeFrame timeFrame);

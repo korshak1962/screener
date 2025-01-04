@@ -3,7 +3,7 @@ package korshak.com.screener.serviceImpl;
 import java.time.LocalDateTime;
 import java.util.Map;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.Strategy;
+import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.service.TradeService;
 
 

@@ -3,24 +3,20 @@ package korshak.com.screener.serviceImpl;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.BaseSma;
-import korshak.com.screener.dao.SmaDay;
-import korshak.com.screener.dao.SmaHour;
-import korshak.com.screener.dao.SmaKey;
-import korshak.com.screener.dao.SmaMonth;
-import korshak.com.screener.dao.SmaWeek;
-import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.dao.PriceDao;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import korshak.com.screener.dao.*;
 import korshak.com.screener.service.SmaCalculationService;
-import korshak.com.screener.service.SmaDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-// Updated service using the factory
 @Service
 public class SmaCalculationServiceImpl implements SmaCalculationService {
+  private static final int TILT_PERIOD = 5;  // Default tilt period
+
   private final PriceDao priceDao;
   private final SmaDao smaDao;
 
@@ -28,6 +24,156 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
   public SmaCalculationServiceImpl(PriceDao priceDao, SmaDao smaDao) {
     this.priceDao = priceDao;
     this.smaDao = smaDao;
+  }
+
+
+  /**
+   * Calculates incremental SMAs for all timeframes for a given ticker and length
+   * @param ticker Stock ticker
+   * @param length SMA length
+   */
+  @Transactional
+  public void calculateIncrementalSMAForAllTimeFrames(String ticker, int length) {
+    for (TimeFrame timeFrame : TimeFrame.values()) {
+      if (timeFrame != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
+        try {
+          System.out.println("Calculating incremental SMAs for " + ticker +
+              " on timeframe " + timeFrame + " with length " + length);
+          calculateIncrementalSMA(ticker, length, timeFrame);
+        } catch (Exception e) {
+          System.err.println("Error calculating SMAs for ticker " + ticker +
+              " on timeframe " + timeFrame + ": " + e.getMessage());
+          // Continue with other timeframes despite error
+        }
+      }
+    }
+  }
+
+  /**
+   * Calculates incremental SMAs for all tickers and timeframes for a given length
+   * @param length SMA length
+   */
+  @Transactional
+  public void calculateIncrementalSMAForAllTickersAndTimeFrames(int length) {
+    Set<String> tickers = priceDao.findUniqueTickers();
+    int totalTickers = tickers.size();
+    int currentTicker = 0;
+
+    System.out.println("Starting incremental SMA calculation for " + totalTickers +
+        " tickers with length " + length);
+
+    for (String ticker : tickers) {
+      currentTicker++;
+      try {
+        System.out.println("Processing ticker " + ticker + " (" +
+            currentTicker + "/" + totalTickers + ")");
+        calculateIncrementalSMAForAllTimeFrames(ticker, length);
+      } catch (Exception e) {
+        System.err.println("Error processing ticker " + ticker + ": " + e.getMessage());
+        e.printStackTrace();
+        // Continue with next ticker despite error
+      }
+    }
+
+    System.out.println("Completed incremental SMA calculation for all tickers");
+  }
+
+  /**
+   * Calculates SMA and tilt only for new prices, utilizing existing SMA values
+   * @param ticker Stock ticker
+   * @param length SMA length
+   * @param timeFrame Time frame for calculation
+   * @return List of newly calculated SMAs
+   */
+  @Transactional
+  public List<? extends BaseSma> calculateIncrementalSMA(String ticker, int length, TimeFrame timeFrame) {
+    // Get all prices and existing SMAs
+    List<? extends BasePrice> allPrices = priceDao.findAllByTicker(ticker, timeFrame);
+    List<? extends BaseSma> existingSmas = smaDao.findAllByTicker(ticker, timeFrame, length);
+
+    if (allPrices.isEmpty()) {
+      return List.of();
+    }
+
+    if (existingSmas.isEmpty()) {
+      // If no existing SMAs, calculate everything from scratch
+      return calculateAndSaveSMA(allPrices, ticker, length, timeFrame);
+    }
+
+    // Find the last date we have SMA for
+    LocalDateTime lastSmaDate = existingSmas.get(existingSmas.size() - 1).getId().getDate();
+
+    // Get only new prices after the last SMA date
+    List<? extends BasePrice> newPrices = allPrices.stream()
+        .filter(price -> price.getId().getDate().isAfter(lastSmaDate))
+        .collect(Collectors.toList());
+
+    if (newPrices.isEmpty()) {
+      return List.of();
+    }
+
+    // Get the prices needed for the initial window (length-1 prices before the new ones)
+    int requiredPreviousPrices = length - 1;
+    List<? extends BasePrice> windowPrices = allPrices.stream()
+        .filter(price -> !price.getId().getDate().isAfter(lastSmaDate))
+        .sorted(Comparator.comparing(p -> p.getId().getDate()))
+        .skip(Math.max(0, allPrices.size() - newPrices.size() - requiredPreviousPrices))
+        .collect(Collectors.toList());
+
+    List<BaseSma> newSmas = new ArrayList<>();
+    double sum;
+
+    // If we have an existing SMA, use it to calculate the initial sum
+    if (!existingSmas.isEmpty()) {
+      BaseSma lastSma = existingSmas.get(existingSmas.size() - 1);
+      sum = lastSma.getValue() * length; // Convert average back to sum
+      // Remove oldest price and add newest to maintain the window
+      sum = sum - windowPrices.get(0).getClose() + newPrices.get(0).getClose();
+    } else {
+      // Calculate initial sum from scratch if needed
+      sum = windowPrices.stream()
+          .mapToDouble(BasePrice::getClose)
+          .sum() + newPrices.get(0).getClose();
+    }
+
+    // Get last few SMAs for tilt calculation
+    List<BaseSma> tiltWindow = new ArrayList<>(existingSmas.subList(
+        Math.max(0, existingSmas.size() - TILT_PERIOD + 1),
+        existingSmas.size()
+    ));
+
+    // Calculate new SMAs
+    for (int i = 0; i < newPrices.size(); i++) {
+      BasePrice currentPrice = newPrices.get(i);
+      BaseSma sma = getBaseSma(timeFrame);
+      SmaKey smaKey = new SmaKey(ticker, currentPrice.getId().getDate(), length);
+      sma.setId(smaKey);
+      sma.setValue(sum / length);
+
+      // Update tilt window and calculate tilt
+      tiltWindow.add(sma);
+      if (tiltWindow.size() > TILT_PERIOD) {
+        tiltWindow.remove(0);
+      }
+      if (tiltWindow.size() == TILT_PERIOD) {
+        double tilt = calculateTilt(tiltWindow);
+        sma.setTilt(tilt);
+      }
+
+      newSmas.add(sma);
+
+      // Update sum for next iteration
+      if (i < newPrices.size() - 1) {
+        sum = sum - windowPrices.get(i).getClose() + newPrices.get(i + 1).getClose();
+      }
+    }
+
+    // Save new SMAs
+    if (!newSmas.isEmpty()) {
+      smaDao.saveAll(newSmas, timeFrame);
+    }
+
+    return newSmas;
   }
 
   @Transactional
@@ -38,34 +184,61 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       LocalDateTime endDate,
       TimeFrame timeFrame) {
 
-    smaDao.deleteByTickerAndLength(ticker, length, timeFrame);
+    // Get existing SMA data
+    List<? extends BaseSma> existingSmas = smaDao.findByDateRange(
+        ticker, startDate, endDate, timeFrame, length);
 
+    // Get price data
     List<? extends BasePrice> prices = priceDao.findByDateRange(
         ticker, startDate, endDate, timeFrame);
 
-    calculateAndSaveSMA(prices, ticker, length, timeFrame);
-  }
-
-  @Override
-  @Transactional
-  public void calculateSMA(String ticker, int length, TimeFrame timeFrame) {
-    smaDao.deleteByTickerAndLength(ticker, length, timeFrame);
-
-    List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);
     if (prices.isEmpty()) {
-      throw new RuntimeException("prices for timeframe." + timeFrame + " not found");
+      return;
     }
-    calculateAndSaveSMA(prices, ticker, length, timeFrame);
+
+    // Get date ranges that need calculation
+    LocalDateTime firstDate = prices.get(0).getId().getDate();
+    LocalDateTime lastDate = prices.get(prices.size() - 1).getId().getDate();
+
+    // Filter price data for missing periods
+    List<? extends BasePrice> pricesToProcess = filterDataForMissingPeriods(
+        prices, existingSmas, firstDate, lastDate);
+
+    if (pricesToProcess.isEmpty()) {
+      System.out.println("No new SMAs to calculate for " + ticker + " at " + timeFrame + " level");
+      return;
+    }
+
+    calculateAndSaveSMA(pricesToProcess, ticker, length, timeFrame);
   }
 
-  private void calculateAndSaveSMA(
+  private List<? extends BasePrice> filterDataForMissingPeriods(
+      List<? extends BasePrice> prices,
+      List<? extends BaseSma> existingSmas,
+      LocalDateTime firstDate,
+      LocalDateTime lastDate) {
+
+    // Create a map of existing SMAs by date
+    Map<LocalDateTime, BaseSma> existingSmaDates = existingSmas.stream()
+        .collect(Collectors.toMap(
+            sma -> sma.getId().getDate(),
+            sma -> sma
+        ));
+
+    // Filter prices to only include those without SMAs
+    return prices.stream()
+        .filter(price -> !existingSmaDates.containsKey(price.getId().getDate()))
+        .collect(Collectors.toList());
+  }
+
+  private List<BaseSma> calculateAndSaveSMA(
       List<? extends BasePrice> prices,
       String ticker,
       int length,
       TimeFrame timeFrame) {
 
     if (prices.size() < length) {
-      return;
+      return null;
     }
 
     List<BaseSma> smaResults = new ArrayList<>();
@@ -76,11 +249,10 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       sum += prices.get(i).getClose();
     }
 
-    // Calculate SMAs
+    // Calculate SMAs and maintain a window for tilt calculation
+    List<BaseSma> tiltWindow = new ArrayList<>();
     for (int i = length - 1; i < prices.size(); i++) {
-
       BaseSma sma = getBaseSma(timeFrame);
-
       SmaKey smaKey = new SmaKey(
           ticker,
           prices.get(i).getId().getDate(),
@@ -89,31 +261,91 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       sma.setId(smaKey);
       sma.setValue(sum / length);
       smaResults.add(sma);
+      tiltWindow.add(sma);
+
+      // Keep tilt window size = TILT_PERIOD
+      if (tiltWindow.size() > TILT_PERIOD) {
+        tiltWindow.remove(0);
+      }
+
+      // Calculate tilt when we have enough data points
+      if (tiltWindow.size() == TILT_PERIOD) {
+        double tilt = calculateTilt(tiltWindow);
+        sma.setTilt(tilt);
+      }
 
       if (i < prices.size() - 1) {
         sum = sum - prices.get(i - length + 1).getClose()
             + prices.get(i + 1).getClose();
-      }
-
-      if (smaResults.size() >= 1000) {
-        smaDao.saveAll(smaResults, timeFrame);
-        smaResults.clear();
       }
     }
 
     if (!smaResults.isEmpty()) {
       smaDao.saveAll(smaResults, timeFrame);
     }
+    return smaResults;
+  }
+
+  private static double calculateTilt(List<BaseSma> smaWindow) {
+    // Calculate linear regression slope as tilt
+    int n = smaWindow.size();
+    double sumX = 0;
+    double sumY = 0;
+    double sumXY = 0;
+    double sumXX = 0;
+
+    for (int i = 0; i < n; i++) {
+      double x = i;
+      double y = smaWindow.get(i).getValue();
+      sumX += x;
+      sumY += y;
+      sumXY += x * y;
+      sumXX += x * x;
+    }
+
+    // Calculate slope using least squares method
+    double slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+
+    // Normalize the slope by the average SMA value to get a percentage
+    double avgSma = sumY / n;
+    double normalizedSlope = (slope / avgSma) * 100;
+    return normalizedSlope;
   }
 
   private static BaseSma getBaseSma(TimeFrame timeFrame) {
-    BaseSma sma = switch (timeFrame) {
-      case MIN5 -> null;
+    return switch (timeFrame) {
       case HOUR -> new SmaHour();
       case DAY -> new SmaDay();
       case WEEK -> new SmaWeek();
       case MONTH -> new SmaMonth();
+      default -> throw new IllegalArgumentException("Unsupported timeframe: " + timeFrame);
     };
-    return sma;
+  }
+
+  @Override
+  public void calculateSMA(String ticker, int length, TimeFrame timeFrame) {
+    List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);
+    if (prices.isEmpty()) {
+      throw new RuntimeException("prices for timeframe." + timeFrame + " not found");
+    }
+    calculateAndSaveSMA(prices, ticker, length, timeFrame);
+  }
+
+  @Override
+  public void calculateSMAForAllTimeFrame(String ticker, int length) {
+    for (TimeFrame timeFrame : TimeFrame.values()) {
+      if (timeFrame != TimeFrame.MIN5) {
+        calculateSMA(ticker, length, timeFrame);
+      }
+    }
+  }
+
+  @Override
+  public void calculateSMAForAllTimeFrameAndTickers(int length) {
+    Set<String> tickers = priceDao.findUniqueTickers();
+    for (String ticker : tickers) {
+      System.out.println("Calculating SMAs for " + ticker +" length = " + length);
+      calculateSMAForAllTimeFrame(ticker, length);
+    }
   }
 }

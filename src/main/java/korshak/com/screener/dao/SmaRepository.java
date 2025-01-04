@@ -3,7 +3,7 @@ package korshak.com.screener.dao;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface SmaRepository {
+interface SmaRepository {
   void deleteByIdTickerAndIdLength(String ticker, int length);
   // Find all SMAs for a specific ticker and length, ordered by date
   List<? extends BaseSma> findByIdTickerAndIdLengthOrderByIdDateAsc(String ticker, int length);
