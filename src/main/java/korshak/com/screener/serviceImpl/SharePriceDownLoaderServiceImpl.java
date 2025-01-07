@@ -26,7 +26,7 @@ public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderServ
   PriceDao priceDao;
 
   public SharePriceDownLoaderServiceImpl(PriceDao priceDao,
-      @Value("${alpha.apiKey}") String apiKey,
+                                         @Value("${alpha.apiKey}") String apiKey,
                                          @Value("${alpha.baseUrl}") String baseUrl) {
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
@@ -50,10 +50,10 @@ public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderServ
   */
   //json
   public int fetchAndSaveData(String timeSeriesLabel, String ticker, String interval,
-                              String month) {
+                              String yearMonth) {
     String url =
         baseUrl + timeSeriesLabel + "&symbol=" + ticker + "&interval=" + interval + "&month=" +
-            month
+            yearMonth
             + "&outputsize=full&apikey=" + apiKey;
     ResponseEntity<String> response = restTemplate.getForEntity(
         url, String.class);
@@ -80,11 +80,18 @@ public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderServ
       double close = Double.parseDouble(dataNode.getValue().path("4. close").asText());
       long volume = Long.parseLong(dataNode.getValue().path("5. volume").asText());
       PriceMin5 priceMin5 = new PriceMin5(
-          new PriceKey(ticker,localDateTime), open, high, low, close, volume);
+          new PriceKey(ticker, localDateTime), open, high, low, close, volume);
       intradayDataList.add(priceMin5);
     }
     System.out.println("to be saved = " + intradayDataList.size() + " for date: " + localDateTime);
     List<PriceMin5> saved = priceDao.saveAll(intradayDataList);
     return saved.size();
+  }
+
+  @Override
+  public int fetchAndSaveData(String ticker, String yearMonth) {
+    String interval = "5min";
+    final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
+    return fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
   }
 }

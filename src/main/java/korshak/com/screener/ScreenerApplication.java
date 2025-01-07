@@ -65,12 +65,12 @@ public class ScreenerApplication implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
     //optimazeDoubleTiltStrategy();
-    evaluateDoubleTiltStrategy();
+    //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
     //evaluateStrategy();
-    //downloadSeries();
+    downloadSeries();
     //priceAggregationService.aggregateAllTickers();
-    //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
+    //priceAggregationService.aggregateAllTimeFrames("VALE");
     //calcSMA(1,100);
      System.exit(0);
   }
@@ -286,12 +286,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
 
   private void downloadSeries() {
-    final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    final String ticker = "CVS";
-    String interval = "5min";
+   // final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
+   // String interval = "5min";
+    final String ticker = "T";
     String year = "2024-";
     String yearMonth;
-    int startMonth = 6;
+    int startMonth = 1;
     int finalMonth = 12;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
@@ -302,7 +302,7 @@ public class ScreenerApplication implements CommandLineRunner {
 
       System.out.println("yearMonth = " + yearMonth);
       int saved = sharePriceDownLoaderService
-          .fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
+          .fetchAndSaveData( ticker, yearMonth);
       System.out.println("saved = " + saved);
     }
 

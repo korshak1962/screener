@@ -87,9 +87,9 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
   public void aggregateData(String ticker, TimeFrame timeFrame) {
     // Get the source data based on the timeframe
     TimeFrame sourceTimeFrame = getSourceTimeFrame(timeFrame);
-    List<? extends BasePrice> sourceData = priceDao.findAllByTicker(ticker, sourceTimeFrame);
+    List<? extends BasePrice> pricesOfLowTimeframe = priceDao.findAllByTicker(ticker, sourceTimeFrame);
 
-    if (sourceData.isEmpty()) {
+    if (pricesOfLowTimeframe.isEmpty()) {
       System.out.println("No source data found for " + ticker + " at " + sourceTimeFrame + " level");
       return;
     }
@@ -98,12 +98,12 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
     List<? extends BasePrice> existingData = priceDao.findAllByTicker(ticker, timeFrame);
 
     // Get date ranges that need aggregation
-    LocalDateTime firstDate = sourceData.get(0).getId().getDate();
-    LocalDateTime lastDate = sourceData.get(sourceData.size() - 1).getId().getDate();
+    LocalDateTime firstDate = pricesOfLowTimeframe.get(0).getId().getDate();
+    LocalDateTime lastDate = pricesOfLowTimeframe.get(pricesOfLowTimeframe.size() - 1).getId().getDate();
 
     // Filter source data to only include periods not already aggregated
     List<? extends BasePrice> dataToAggregate = filterDataForMissingPeriods(
-        sourceData, existingData, timeFrame, firstDate, lastDate);
+        pricesOfLowTimeframe, existingData, timeFrame, firstDate, lastDate);
 
     if (dataToAggregate.isEmpty()) {
       System.out.println("No new data to aggregate for " + ticker + " at " + timeFrame + " level");
