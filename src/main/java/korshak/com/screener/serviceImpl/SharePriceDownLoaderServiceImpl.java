@@ -9,9 +9,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.PriceMin5;
+import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,8 +92,36 @@ public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderServ
 
   @Override
   public int fetchAndSaveData(String ticker, String yearMonth) {
-    String interval = "5min";
-    final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-    return fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
+    try {
+      // Parse year and month from yearMonth string (format: "2024-01")
+      String[] parts = yearMonth.split("-");
+      int year = Integer.parseInt(parts[0]);
+      int month = Integer.parseInt(parts[1]);
+
+      // Create date range for first 10 days of the month
+      LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
+      LocalDateTime endDate = startDate.plusDays(10);
+
+      // Check if data exists by looking for any records in first 10 days
+      List<? extends BasePrice> existingData = priceDao.findByDateRange(
+          ticker,
+          startDate,
+          endDate,
+          TimeFrame.DAY
+      );
+
+      if (!existingData.isEmpty()) {
+        System.out.println("Data for ticker " + ticker + " and month " + yearMonth + " already exists in DB");
+        return 0;
+      }
+
+      // If data doesn't exist, proceed with fetching and saving
+      String interval = "5min";
+      final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
+      return fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
+
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
+    }
   }
 }
