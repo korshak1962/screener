@@ -64,19 +64,19 @@ public class ScreenerApplication implements CommandLineRunner {
     //optimazeDoubleTiltStrategy();
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
-    //evaluateStrategy();
-    downloadSeries();
+    evaluateStrategy(tiltStrategy, "SPY", TimeFrame.DAY,
+        LocalDateTime.of(2018, Month.JANUARY, 1, 0, 0),
+        LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0));
+    //downloadSeries("YY", "2024-", 1, 12);
+    //downloadSeriesUnsafe("SPY", "2025-", 1, 1);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("VALE");
     //calcSMA(1,100);
     System.exit(0);
   }
 
-  private void evaluateStrategy() throws IOException {
-    String ticker = "SPY";
-    TimeFrame timeFrame = TimeFrame.DAY;
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+  private void evaluateStrategy(Strategy strategy, String ticker, TimeFrame timeFrame,
+                                LocalDateTime startDate, LocalDateTime endDate) throws IOException {
 
     StrategyResult buyAndHoldstrategyResult =
         tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, ticker,
@@ -87,17 +87,17 @@ public class ScreenerApplication implements CommandLineRunner {
     //    tradeService.calculateProfitAndDrawdownLong(tiltStrategy, ticker, timeFrame);
 
     StrategyResult strategyResultTilt =
-        tradeService.calculateProfitAndDrawdownLong(tiltStrategy, ticker,
+        tradeService.calculateProfitAndDrawdownLong(strategy, ticker,
             startDate,
             endDate,
             timeFrame);
-    System.out.println(tiltStrategy.getName() + " result: " + strategyResultTilt);
-    System.out.println(tiltStrategy.getName() + " result: " + buyAndHoldstrategyResult);
+    System.out.println(strategy.getName() + " result: " + strategyResultTilt);
+    System.out.println(buyAndHoldStrategy.getName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
-    ChartService chartService = new ChartServiceImpl(tiltStrategy.getName());
+    ChartService chartService = new ChartServiceImpl(strategy.getName());
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
-        , tiltStrategy.getPriceIndicators()
-        , strategyResultTilt.getTradesLong(), tiltStrategy.getIndicators());
+        , strategy.getPriceIndicators()
+        , strategyResultTilt.getTradesLong(), strategy.getIndicators());
     pause();
     /*chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignalsLong()
         , ((TiltStrategy) tiltStrategy).getSmaList()
@@ -300,15 +300,11 @@ public class ScreenerApplication implements CommandLineRunner {
   }
 
 
-  private void downloadSeries() {
+  private void downloadSeries(final String ticker, String year, int startMonth, int finalMonth) {
     // final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
     // String interval = "5min";
-    final String ticker = "SLV";
-    String year = "2023-";
+    int saved = 0;
     String yearMonth;
-    int startMonth = 12;
-    int finalMonth = 12;
-    int saved =0;
     for (int month = startMonth; month < finalMonth + 1; month++) {
       if (month < 10) {
         yearMonth = year + "0" + month;
@@ -317,7 +313,7 @@ public class ScreenerApplication implements CommandLineRunner {
       }
 
       System.out.println("yearMonth = " + yearMonth);
-       saved += sharePriceDownLoaderService
+      saved += sharePriceDownLoaderService
           .fetchAndSaveData(ticker, yearMonth);
       System.out.println("saved = " + saved);
     }
@@ -326,4 +322,29 @@ public class ScreenerApplication implements CommandLineRunner {
     }
     System.exit(0);
   }
+
+  private void downloadSeriesUnsafe(final String ticker, String year, int startMonth,
+                                    int finalMonth) {
+    final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
+    final String interval = "5min";
+    int saved = 0;
+    String yearMonth;
+    for (int month = startMonth; month < finalMonth + 1; month++) {
+      if (month < 10) {
+        yearMonth = year + "0" + month;
+      } else {
+        yearMonth = year + month;
+      }
+
+      System.out.println("yearMonth = " + yearMonth);
+      saved += sharePriceDownLoaderService
+          .fetchAndSaveData(ticker, yearMonth, interval, timeSeriesLabel);
+      System.out.println("saved = " + saved);
+    }
+    if (saved > 0) {
+      priceAggregationService.aggregateAllTimeFrames(ticker);
+    }
+    System.exit(0);
+  }
+
 }

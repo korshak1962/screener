@@ -1,9 +1,18 @@
 package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
-import korshak.com.screener.dao.*;
+import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.BaseSma;
+import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.SmaDao;
+import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
@@ -12,10 +21,10 @@ import org.springframework.stereotype.Service;
 
 @Service("TiltStrategy")
 public class TiltStrategy implements Strategy {
-  private double tiltBuy = 0.02;
-  private double tiltSell = -0.02;
-  private int length = 9;
-  private TimeFrame timeFrame = TimeFrame.DAY;
+  private double tiltBuy;
+  private double tiltSell;
+  private int length;
+  private TimeFrame timeFrame;
   private final SmaDao smaDao;
   private final PriceDao priceDao;
   private List<? extends BaseSma> smaList;
@@ -36,7 +45,6 @@ public class TiltStrategy implements Strategy {
     }
 
     ticker = prices.get(0).getId().getTicker();
-    smaList = getSma(this.timeFrame, this.length);
 
     if (smaList.isEmpty() || prices.size() - smaList.size() > length) {
       throw new RuntimeException("No SMAs found");
@@ -92,23 +100,26 @@ public class TiltStrategy implements Strategy {
   }
 
   @Override
-  public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate) {
+  public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+                   LocalDateTime endDate) {
+    this.timeFrame = timeFrame;
+    length = 9;
+    tiltBuy = 0.02;
+    tiltSell = -0.02;
     this.prices = priceDao.findByDateRange(
         ticker,
         startDate,
         endDate,
         timeFrame
     );
-  }
-
-  public List<? extends BaseSma> getSma(TimeFrame timeFrame, int length) {
-    return smaDao.findByDateRange(
+    this.smaList = smaDao.findByDateRangeOrderByIdDateAsc(
         ticker,
-        prices.get(0).getId().getDate(),
-        prices.get(prices.size() - 1).getId().getDate(),
+        startDate,
+        endDate,
         timeFrame,
         length
     );
+    ;
   }
 
   @Override
@@ -124,7 +135,7 @@ public class TiltStrategy implements Strategy {
   @Override
   public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
     Map<String, NavigableMap<LocalDateTime, Double>> indicators = new HashMap<>();
-    indicators.put("Tilt",getDateToTiltValue());
+    indicators.put("Tilt", getDateToTiltValue());
     return indicators;
   }
 
@@ -143,7 +154,8 @@ public class TiltStrategy implements Strategy {
 
   public void setTiltBuy(double tiltBuy) {
     if (tiltBuy <= tiltSell) {
-      throw new IllegalArgumentException("Tilt buy threshold must be greater than tilt sell threshold");
+      throw new IllegalArgumentException(
+          "Tilt buy threshold must be greater than tilt sell threshold");
     }
     this.tiltBuy = tiltBuy;
   }
@@ -154,7 +166,8 @@ public class TiltStrategy implements Strategy {
 
   public void setTiltSell(double tiltSell) {
     if (tiltSell >= tiltBuy) {
-      throw new IllegalArgumentException("Tilt sell threshold must be less than tilt buy threshold");
+      throw new IllegalArgumentException(
+          "Tilt sell threshold must be less than tilt buy threshold");
     }
     this.tiltSell = tiltSell;
   }
@@ -183,7 +196,8 @@ public class TiltStrategy implements Strategy {
 
   public void setTiltThresholds(double tiltBuy, double tiltSell) {
     if (tiltBuy <= tiltSell) {
-      throw new IllegalArgumentException("Tilt buy threshold must be greater than tilt sell threshold");
+      throw new IllegalArgumentException(
+          "Tilt buy threshold must be greater than tilt sell threshold");
     }
     this.tiltBuy = tiltBuy;
     this.tiltSell = tiltSell;

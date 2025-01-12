@@ -82,76 +82,88 @@ public class DoubleTiltStrategy implements Strategy {
       double shortTilt = shortSma.getTilt();
       double longTilt = longSma.getTilt();
 
-      // Long position logic
-      if (shortTilt > tiltLongOpen && longTilt > tiltHigherTrendLong) {
-        // Close short if open
-        if (!signalsShort.isEmpty() &&
-            signalsShort.getLast().getSignalType() == SignalType.ShortOpen) {
-          signalsShort.add(new SignalTilt(
-              currentDate,
-              price.getClose(),
-              SignalType.ShortClose,
-              shortTilt,
-              longTilt
-          ));
-        }
-        // Open long if not already open
-        if (signalsLong.isEmpty() ||
-            signalsLong.getLast().getSignalType() != SignalType.LongOpen) {
-          signalsLong.add(new SignalTilt(
-              currentDate,
-              price.getClose(),
-              SignalType.LongOpen,
-              shortTilt,
-              longTilt
-          ));
-        }
-      }
-
-      // Short position closure on positive short tilt
-      if (shortTilt > tiltShortClose) {
-        if (!signalsShort.isEmpty() &&
-            signalsShort.getLast().getSignalType() == SignalType.ShortOpen) {
-          signalsShort.add(new SignalTilt(
-              currentDate,
-              price.getClose(),
-              SignalType.ShortClose,
-              shortTilt,
-              longTilt
-          ));
-        }
-      }
-
-      // Long position closure on negative short tilt
-      if (shortTilt < tiltLongClose) {
-        if (!signalsLong.isEmpty() &&
-            signalsLong.getLast().getSignalType() == SignalType.LongOpen) {
-          signalsLong.add(new SignalTilt(
-              currentDate,
-              price.getClose(),
-              SignalType.LongClose,
-              shortTilt,
-              longTilt
-          ));
-        }
-      }
-
-      // Short position opening
-      if (shortTilt < tiltShortOpen && longTilt < tiltHigherTrendShort) {
-        if (signalsShort.isEmpty() ||
-            signalsShort.getLast().getSignalType() != SignalType.ShortOpen) {
-          signalsShort.add(new SignalTilt(
-              currentDate,
-              price.getClose(),
-              SignalType.ShortOpen,
-              shortTilt,
-              longTilt
-          ));
-        }
-      }
+      makeDecision(price, shortTilt, longTilt, currentDate);
     }
-
     logLastPositions();
+  }
+
+  private void makeDecision(BasePrice price, double shortTilt, double longTilt,
+                         LocalDateTime currentDate) {
+    // Long position logic
+    if (shortTilt > tiltLongOpen && longTilt > tiltHigherTrendLong) {
+      closeShortOpenLong(price, currentDate, shortTilt, longTilt);
+    }
+    // Short position closure on positive short tilt
+    if (shortTilt > tiltShortClose) {
+      closeShort(price, currentDate, shortTilt, longTilt);
+    }
+    // Long position closure on negative short tilt
+    if (shortTilt < tiltLongClose) {
+      closeLong(price, currentDate, shortTilt, longTilt);
+    }
+    // Short position opening
+    if (shortTilt < tiltShortOpen && longTilt < tiltHigherTrendShort) {
+      openShort(price, currentDate, shortTilt, longTilt);
+    }
+  }
+
+  private void openShort(BasePrice price, LocalDateTime currentDate, double shortTilt,
+                         double longTilt) {
+    if (signalsShort.isEmpty() ||
+        signalsShort.getLast().getSignalType() != SignalType.ShortOpen) {
+      signalsShort.add(new SignalTilt(
+          currentDate,
+          price.getClose(),
+          SignalType.ShortOpen,
+          shortTilt,
+          longTilt
+      ));
+    }
+  }
+
+  private void closeLong(BasePrice price, LocalDateTime currentDate, double shortTilt,
+                         double longTilt) {
+    if (!signalsLong.isEmpty() &&
+        signalsLong.getLast().getSignalType() == SignalType.LongOpen) {
+      signalsLong.add(new SignalTilt(
+          currentDate,
+          price.getClose(),
+          SignalType.LongClose,
+          shortTilt,
+          longTilt
+      ));
+    }
+  }
+
+  private void closeShort(BasePrice price, LocalDateTime currentDate, double shortTilt,
+                         double longTilt) {
+    if (!signalsShort.isEmpty() &&
+        signalsShort.getLast().getSignalType() == SignalType.ShortOpen) {
+      signalsShort.add(new SignalTilt(
+          currentDate,
+          price.getClose(),
+          SignalType.ShortClose,
+          shortTilt,
+          longTilt
+      ));
+    }
+  }
+
+  private void closeShortOpenLong(BasePrice price, LocalDateTime currentDate, double shortTilt,
+                                  double longTilt) {
+    // Close short if open
+    closeShort(price, currentDate, shortTilt, longTilt);
+    // Open long if not already open
+    if (signalsLong.isEmpty() ||
+        signalsLong.getLast().getSignalType() != SignalType.LongOpen) {
+      signalsLong.add(new SignalTilt(
+          currentDate,
+          price.getClose(),
+          SignalType.LongOpen,
+          shortTilt,
+          longTilt
+      ));
+    }
   }
 
   private void logLastPositions() {
@@ -189,8 +201,8 @@ public class DoubleTiltStrategy implements Strategy {
     return "DoubleTiltStrategy";
   }
 
-  public List<? extends BaseSma> getSma(int length) {
-    return smaDao.findByDateRange(
+  public List<? extends BaseSma> getSmaOrderByIdDateAsc(int length) {
+    return smaDao.findByDateRangeOrderByIdDateAsc(
         ticker,
         startDate,
         endDate,
@@ -203,7 +215,7 @@ public class DoubleTiltStrategy implements Strategy {
     signalsShort = null;
     signalsLong = null;
     this.shortLength = shortLength;
-    this.smaShortList = getSma(shortLength);
+    this.smaShortList = getSmaOrderByIdDateAsc(shortLength);
     if (prices == null) {
       this.prices = priceDao.findByDateRange(
           ticker,
@@ -218,7 +230,7 @@ public class DoubleTiltStrategy implements Strategy {
     signalsShort = null;
     signalsLong = null;
     this.longLength = longLength;
-    this.smaLongList = getSma(longLength);
+    this.smaLongList = getSmaOrderByIdDateAsc(longLength);
     if (prices == null) {
       this.prices = priceDao.findByDateRange(
           ticker,

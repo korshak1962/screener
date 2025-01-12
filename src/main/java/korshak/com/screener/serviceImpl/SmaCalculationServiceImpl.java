@@ -185,7 +185,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       TimeFrame timeFrame) {
 
     // Get existing SMA data
-    List<? extends BaseSma> existingSmas = smaDao.findByDateRange(
+    List<? extends BaseSma> existingSmas = smaDao.findByDateRangeOrderByIdDateAsc(
         ticker, startDate, endDate, timeFrame, length);
 
     // Get price data

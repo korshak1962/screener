@@ -59,7 +59,7 @@ public class SmaDaoImpl implements SmaDao {
   }
 
   @Override
-  public List<? extends BaseSma> findByDateRange(
+  public List<? extends BaseSma> findByDateRangeOrderByIdDateAsc(
       String ticker,
       LocalDateTime startDate,
       LocalDateTime endDate,
