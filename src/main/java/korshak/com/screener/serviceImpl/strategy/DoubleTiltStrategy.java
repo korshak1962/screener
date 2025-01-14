@@ -330,4 +330,21 @@ public class DoubleTiltStrategy implements Strategy {
   public void setTiltHigherTrendShort(double tiltHigherTrendShort) {
     this.tiltHigherTrendShort = tiltHigherTrendShort;
   }
+
+  @Override
+  public TimeFrame getTimeFrame() {
+    return timeFrame;
+  }
+
+  public String getTicker() {
+    return ticker;
+  }
+
+  public LocalDateTime getStartDate() {
+    return startDate;
+  }
+
+  public LocalDateTime getEndDate() {
+    return endDate;
+  }
 }

@@ -14,10 +14,13 @@ import korshak.com.screener.service.SharePriceDownLoaderService;
 import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
-import korshak.com.screener.serviceImpl.Optimizator;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
 import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
+import korshak.com.screener.serviceImpl.strategy.Optimizator;
+import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
+import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
+import korshak.com.screener.serviceImpl.strategy.TiltStrategy;
 import korshak.com.screener.utils.ExcelExportService;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.StrategyResult;
@@ -48,7 +51,7 @@ public class ScreenerApplication implements CommandLineRunner {
   private TradeService tradeService;
   @Autowired
   @Qualifier("TiltStrategy")
-  private Strategy tiltStrategy;
+  private TiltStrategy tiltStrategy;
   @Autowired
   @Qualifier("DoubleTiltStrategy")
   private DoubleTiltStrategy doubleTiltStrategy;
@@ -59,15 +62,32 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("BuyAndHoldStrategy")
   private Strategy buyAndHoldStrategy;
 
+  @Autowired
+  @Qualifier("OptimizatorDoubleTilt")
+  private OptimizatorDoubleTilt optimizatorDoubleTilt;
+
+  @Autowired
+  @Qualifier("OptimizatorTilt")
+  private OptimizatorTilt optimizatorTilt;
+
   @Override
   public void run(String... args) throws Exception {
-    //optimazeDoubleTiltStrategy();
+
+    optimazeStrategy(optimizatorTilt,
+        "SPY", TimeFrame.DAY,
+        LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0),
+        LocalDateTime.of(2024, Month.DECEMBER, 1, 0, 0));
+
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
-    evaluateStrategy(tiltStrategy, "SPY", TimeFrame.DAY,
+/*
+    evaluateStrategy(initStrategy(tiltStrategy, TimeFrame.DAY, "SPY",
         LocalDateTime.of(2018, Month.JANUARY, 1, 0, 0),
-        LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0));
-    //downloadSeries("YY", "2024-", 1, 12);
+        LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0)));
+
+ */
+
+    downloadSeries("SLV", "2022-", 1, 12);
     //downloadSeriesUnsafe("SPY", "2025-", 1, 1);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("VALE");
@@ -75,22 +95,37 @@ public class ScreenerApplication implements CommandLineRunner {
     System.exit(0);
   }
 
-  private void evaluateStrategy(Strategy strategy, String ticker, TimeFrame timeFrame,
-                                LocalDateTime startDate, LocalDateTime endDate) throws IOException {
+  private TiltStrategy initStrategy(TiltStrategy tiltStrategy, TimeFrame timeFrame, String ticker,
+                                    LocalDateTime startDate,
+                                    LocalDateTime endDate) {
+    tiltStrategy.init(ticker, timeFrame, startDate, endDate);
+    tiltStrategy.setLength(9);
+    tiltStrategy.setTiltBuy(0.02);
+    tiltStrategy.setTiltSell(-0.02);
+    return tiltStrategy;
+  }
 
+  private DoubleTiltStrategy initStrategy(DoubleTiltStrategy doubleTiltStrategy) {
+    return doubleTiltStrategy;
+  }
+
+
+  private void evaluateStrategy(Strategy strategy) throws IOException {
+    buyAndHoldStrategy.init(strategy.getTicker(), strategy.getTimeFrame(), strategy.getStartDate(),
+        strategy.getEndDate());
     StrategyResult buyAndHoldstrategyResult =
-        tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, ticker,
-            startDate,
-            endDate,
-            timeFrame);
+        tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, strategy.getTicker(),
+            strategy.getStartDate(),
+            strategy.getEndDate(),
+            strategy.getTimeFrame());
     //StrategyResult strategyResultTilt =
     //    tradeService.calculateProfitAndDrawdownLong(tiltStrategy, ticker, timeFrame);
 
     StrategyResult strategyResultTilt =
-        tradeService.calculateProfitAndDrawdownLong(strategy, ticker,
-            startDate,
-            endDate,
-            timeFrame);
+        tradeService.calculateProfitAndDrawdownLong(strategy, strategy.getTicker(),
+            strategy.getStartDate(),
+            strategy.getEndDate(),
+            strategy.getTimeFrame());
     System.out.println(strategy.getName() + " result: " + strategyResultTilt);
     System.out.println(buyAndHoldStrategy.getName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
@@ -115,18 +150,17 @@ public class ScreenerApplication implements CommandLineRunner {
     }
   }
 
-  @Autowired
-  Optimizator optimizator;
-
-  private void optimazeDoubleTiltStrategy() {
-    String ticker = "SPY";
-    TimeFrame timeFrame = TimeFrame.WEEK;
-    LocalDateTime startDate = LocalDateTime.of(2021, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2024, Month.DECEMBER, 1, 0, 0);
-
+  private void optimazeStrategy(Optimizator optimizator, String ticker, TimeFrame timeFrame,
+                                LocalDateTime startDate, LocalDateTime endDate) {
     optimizator.init(ticker, timeFrame, startDate, endDate);
     Map<String, Double> params = optimizator.findOptimumParameters();
     System.out.println(params);
+    StrategyResult buyAndHoldstrategyResult =
+        tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, ticker,
+            startDate,
+            endDate,
+            timeFrame);
+    System.out.println("Buy and hold pnl = " + buyAndHoldstrategyResult.getLongPnL());
     System.exit(0);
   }
 

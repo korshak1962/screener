@@ -16,5 +16,11 @@ void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDate
   List<? extends BasePrice> getPrices();
   Map<String, NavigableMap<LocalDateTime, Double>> getIndicators();
   Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators();
+  TimeFrame getTimeFrame();
+  String getTicker();
+  LocalDateTime getStartDate();
+  LocalDateTime getEndDate();
+
+
 
 }

@@ -35,8 +35,7 @@ public class TradeServiceImpl implements TradeService {
                                                        LocalDateTime startDate,
                                                        LocalDateTime endDate,
                                                        TimeFrame timeFrame) {
-
-    strategy.init(ticker, timeFrame, startDate, endDate);
+    strategy.init(ticker,timeFrame,startDate,endDate);
     return calculateProfitAndDrawdownLong(strategy);
   }
 

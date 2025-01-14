@@ -54,4 +54,24 @@ public class BuyMaxPreviosCandleSellMin implements Strategy {
   public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
     return Map.of();
   }
+
+  @Override
+  public TimeFrame getTimeFrame() {
+    return null;
+  }
+
+  @Override
+  public String getTicker() {
+    return "";
+  }
+
+  @Override
+  public LocalDateTime getStartDate() {
+    return null;
+  }
+
+  @Override
+  public LocalDateTime getEndDate() {
+    return null;
+  }
 }

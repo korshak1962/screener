@@ -21,10 +21,12 @@ import org.springframework.stereotype.Service;
 
 @Service("TiltStrategy")
 public class TiltStrategy implements Strategy {
-  private double tiltBuy;
-  private double tiltSell;
+  private double tiltBuy = 1;
+  private double tiltSell = -1;
   private int length;
   private TimeFrame timeFrame;
+  private LocalDateTime startDate;
+  private LocalDateTime endDate;
   private final SmaDao smaDao;
   private final PriceDao priceDao;
   private List<? extends BaseSma> smaList;
@@ -42,12 +44,6 @@ public class TiltStrategy implements Strategy {
     List<Signal> signals = new ArrayList<>();
     if (prices == null || prices.isEmpty()) {
       return signals;
-    }
-
-    ticker = prices.get(0).getId().getTicker();
-
-    if (smaList.isEmpty() || prices.size() - smaList.size() > length) {
-      throw new RuntimeException("No SMAs found");
     }
 
     Map<LocalDateTime, BaseSma> smaMap = smaList.stream()
@@ -103,23 +99,15 @@ public class TiltStrategy implements Strategy {
   public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                    LocalDateTime endDate) {
     this.timeFrame = timeFrame;
-    length = 9;
-    tiltBuy = 0.02;
-    tiltSell = -0.02;
+    this.ticker = ticker;
+    this.startDate = startDate;
+    this.endDate = endDate;
     this.prices = priceDao.findByDateRange(
         ticker,
         startDate,
         endDate,
         timeFrame
     );
-    this.smaList = smaDao.findByDateRangeOrderByIdDateAsc(
-        ticker,
-        startDate,
-        endDate,
-        timeFrame,
-        length
-    );
-    ;
   }
 
   @Override
@@ -181,26 +169,35 @@ public class TiltStrategy implements Strategy {
       throw new IllegalArgumentException("SMA length must be positive");
     }
     this.length = length;
+    this.smaList = smaDao.findByDateRangeOrderByIdDateAsc(
+        ticker,
+        startDate,
+        endDate,
+        timeFrame,
+        length
+    );
+    if (smaList.isEmpty() || prices.size() - smaList.size() > length) {
+      throw new RuntimeException("No SMAs found");
+    }
   }
 
   public TimeFrame getTimeFrame() {
     return timeFrame;
   }
 
-  public void setTimeFrame(TimeFrame timeFrame) {
-    if (timeFrame == null) {
-      throw new IllegalArgumentException("TimeFrame cannot be null");
-    }
-    this.timeFrame = timeFrame;
+  @Override
+  public String getTicker() {
+    return ticker;
   }
 
-  public void setTiltThresholds(double tiltBuy, double tiltSell) {
-    if (tiltBuy <= tiltSell) {
-      throw new IllegalArgumentException(
-          "Tilt buy threshold must be greater than tilt sell threshold");
-    }
-    this.tiltBuy = tiltBuy;
-    this.tiltSell = tiltSell;
+  @Override
+  public LocalDateTime getStartDate() {
+    return startDate;
+  }
+
+  @Override
+  public LocalDateTime getEndDate() {
+    return endDate;
   }
 
   public List<? extends BaseSma> getSmaList() {
@@ -211,10 +208,4 @@ public class TiltStrategy implements Strategy {
     return dateToTiltValue;
   }
 
-  public void resetToDefaults() {
-    this.tiltBuy = 0.5;
-    this.tiltSell = -0.3;
-    this.length = 20;
-    this.timeFrame = TimeFrame.DAY;
-  }
 }

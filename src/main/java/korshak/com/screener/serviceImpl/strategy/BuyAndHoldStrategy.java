@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
@@ -19,14 +19,15 @@ public class BuyAndHoldStrategy implements Strategy {
   private List<? extends BasePrice> prices;
   String name;
   List<Signal> signals = new ArrayList<>();
+  TimeFrame timeFrame;
 
   public List<Signal> getSignalsLong(List<? extends BasePrice> prices) {
     return signals;
   }
 
   @Override
-  public List<Signal> getSignalsLong(){
-     return  getSignalsLong(prices);
+  public List<Signal> getSignalsLong() {
+    return getSignalsLong(prices);
   }
 
   public BuyAndHoldStrategy(PriceDao priceDao) {
@@ -47,8 +48,10 @@ public class BuyAndHoldStrategy implements Strategy {
         endDate,
         timeFrame
     );
-    signals.add(new Signal(prices.getFirst().getId().getDate(), prices.getFirst().getClose(), SignalType.LongOpen));
-    signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(), SignalType.LongClose));
+    signals.add(new Signal(prices.getFirst().getId().getDate(), prices.getFirst().getClose(),
+        SignalType.LongOpen));
+    signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(),
+        SignalType.LongClose));
   }
 
   @Override
@@ -69,5 +72,25 @@ public class BuyAndHoldStrategy implements Strategy {
   @Override
   public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
     return Map.of();
+  }
+
+  @Override
+  public TimeFrame getTimeFrame() {
+    return this.timeFrame;
+  }
+
+  @Override
+  public String getTicker() {
+    return "";
+  }
+
+  @Override
+  public LocalDateTime getStartDate() {
+    return null;
+  }
+
+  @Override
+  public LocalDateTime getEndDate() {
+    return null;
   }
 }
