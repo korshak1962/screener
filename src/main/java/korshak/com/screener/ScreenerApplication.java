@@ -72,12 +72,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-
+/*
     optimazeStrategy(optimizatorTilt,
         "SPY", TimeFrame.DAY,
         LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0),
         LocalDateTime.of(2024, Month.DECEMBER, 1, 0, 0));
-
+*/
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
 /*
@@ -87,8 +87,8 @@ public class ScreenerApplication implements CommandLineRunner {
 
  */
 
-    downloadSeries("SLV", "2022-", 1, 12);
-    //downloadSeriesUnsafe("SPY", "2025-", 1, 1);
+    //downloadSeries("YY", "2023-", 1, 12);
+    downloadSeriesUnsafe("SPY", "2025-", 1, 1);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("VALE");
     //calcSMA(1,100);
@@ -372,7 +372,7 @@ public class ScreenerApplication implements CommandLineRunner {
 
       System.out.println("yearMonth = " + yearMonth);
       saved += sharePriceDownLoaderService
-          .fetchAndSaveData(ticker, yearMonth, interval, timeSeriesLabel);
+          .fetchAndSaveData(timeSeriesLabel,ticker, interval,yearMonth);
       System.out.println("saved = " + saved);
     }
     if (saved > 0) {
