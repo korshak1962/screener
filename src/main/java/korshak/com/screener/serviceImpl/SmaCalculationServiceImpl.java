@@ -3,7 +3,7 @@ package korshak.com.screener.serviceImpl;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,85 +86,87 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
    * @return List of newly calculated SMAs
    */
   @Transactional
-  public List<? extends BaseSma> calculateIncrementalSMA(String ticker, int length, TimeFrame timeFrame) {
-    // Get all prices and existing SMAs
-    List<? extends BasePrice> allPrices = priceDao.findAllByTicker(ticker, timeFrame);
+  public List<? extends BaseSma> calculateIncrementalSMA(
+      String ticker, int length, TimeFrame timeFrame) {
+    // Get all prices and existing SMAs - assuming they're ordered by date
+    List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);
     List<? extends BaseSma> existingSmas = smaDao.findAllByTicker(ticker, timeFrame, length);
 
-    if (allPrices.isEmpty()) {
+    if (prices.isEmpty()) {
       return List.of();
     }
 
-    if (existingSmas.isEmpty()) {
-      // If no existing SMAs, calculate everything from scratch
-      return calculateAndSaveSMA(allPrices, ticker, length, timeFrame);
+    // Find starting point for new calculations
+    LocalDateTime startDate = existingSmas.isEmpty() ?
+        prices.get(0).getId().getDate() :
+        existingSmas.get(existingSmas.size() - 1).getId().getDate();
+
+    // Find index of first price after startDate using binary search
+    int newPricesStartIndex = Collections.binarySearch(prices,
+        new PriceMin5(new PriceKey(ticker, startDate), 0, 0, 0, 0, 0),
+        (p1, p2) -> p1.getId().getDate().compareTo(p2.getId().getDate()));
+
+    // If exact match not found, get insertion point
+    if (newPricesStartIndex < 0) {
+      newPricesStartIndex = -(newPricesStartIndex + 1);
     }
 
-    // Find the last date we have SMA for
-    LocalDateTime lastSmaDate = existingSmas.get(existingSmas.size() - 1).getId().getDate();
-
-    // Get only new prices after the last SMA date
-    List<? extends BasePrice> newPrices = allPrices.stream()
-        .filter(price -> price.getId().getDate().isAfter(lastSmaDate))
-        .collect(Collectors.toList());
-
-    if (newPrices.isEmpty()) {
+    // No new prices to process
+    if (newPricesStartIndex >= prices.size()) {
       return List.of();
     }
 
-    // Get the prices needed for the initial window (length-1 prices before the new ones)
-    int requiredPreviousPrices = length - 1;
-    List<? extends BasePrice> windowPrices = allPrices.stream()
-        .filter(price -> !price.getId().getDate().isAfter(lastSmaDate))
-        .sorted(Comparator.comparing(p -> p.getId().getDate()))
-        .skip(Math.max(0, allPrices.size() - newPrices.size() - requiredPreviousPrices))
-        .collect(Collectors.toList());
+    // Calculate start index for previous prices needed for SMA window
+    int previousPricesStartIndex = Math.max(0, newPricesStartIndex - (length - 1));
+    List<? extends BasePrice> previousPrices = prices.subList(previousPricesStartIndex, newPricesStartIndex);
+    List<? extends BasePrice> pricesToProcess = prices.subList(newPricesStartIndex, prices.size());
+
+    // Get previous SMAs for tilt calculation using binary search if we have existing SMAs
+    List<? extends BaseSma> previousSmas = List.of();
+    if (!existingSmas.isEmpty()) {
+      int tiltStartIndex = Math.max(0, existingSmas.size() - (TILT_PERIOD - 1));
+      previousSmas = existingSmas.subList(tiltStartIndex, existingSmas.size());
+    }
 
     List<BaseSma> newSmas = new ArrayList<>();
-    double sum;
+    double sum = 0;
 
-    // If we have an existing SMA, use it to calculate the initial sum
-    if (!existingSmas.isEmpty()) {
-      BaseSma lastSma = existingSmas.get(existingSmas.size() - 1);
-      sum = lastSma.getValue() * length; // Convert average back to sum
-      // Remove oldest price and add newest to maintain the window
-      sum = sum - windowPrices.get(0).getClose() + newPrices.get(0).getClose();
-    } else {
-      // Calculate initial sum from scratch if needed
-      sum = windowPrices.stream()
-          .mapToDouble(BasePrice::getClose)
-          .sum() + newPrices.get(0).getClose();
+    // Calculate initial sum using previous prices
+    for (BasePrice price : previousPrices) {
+      sum += price.getClose();
     }
 
-    // Get last few SMAs for tilt calculation
-    List<BaseSma> tiltWindow = new ArrayList<>(existingSmas.subList(
-        Math.max(0, existingSmas.size() - TILT_PERIOD + 1),
-        existingSmas.size()
-    ));
+    // Maintain running window for SMA calculation
+    List<BasePrice> window = new ArrayList<>(previousPrices);
+    List<BaseSma> tiltWindow = new ArrayList<>(previousSmas);
 
     // Calculate new SMAs
-    for (int i = 0; i < newPrices.size(); i++) {
-      BasePrice currentPrice = newPrices.get(i);
-      BaseSma sma = getBaseSma(timeFrame);
-      SmaKey smaKey = new SmaKey(ticker, currentPrice.getId().getDate(), length);
-      sma.setId(smaKey);
-      sma.setValue(sum / length);
+    for (BasePrice currentPrice : pricesToProcess) {
+      window.add(currentPrice);
+      sum += currentPrice.getClose();
 
-      // Update tilt window and calculate tilt
-      tiltWindow.add(sma);
-      if (tiltWindow.size() > TILT_PERIOD) {
-        tiltWindow.remove(0);
-      }
-      if (tiltWindow.size() == TILT_PERIOD) {
-        double tilt = calculateTilt(tiltWindow);
-        sma.setTilt(tilt);
+      if (window.size() > length) {
+        sum -= window.get(0).getClose();
+        window.remove(0);
       }
 
-      newSmas.add(sma);
+      if (window.size() == length) {
+        BaseSma sma = getBaseSma(timeFrame);
+        sma.setId(new SmaKey(ticker, currentPrice.getId().getDate(), length));
+        sma.setValue(sum / length);
 
-      // Update sum for next iteration
-      if (i < newPrices.size() - 1) {
-        sum = sum - windowPrices.get(i).getClose() + newPrices.get(i + 1).getClose();
+        // Update tilt window and calculate tilt
+        tiltWindow.add(sma);
+        if (tiltWindow.size() > TILT_PERIOD) {
+          tiltWindow.remove(0);
+        }
+        if (tiltWindow.size() == TILT_PERIOD) {
+          double tilt = calculateTilt(tiltWindow);
+          sma.setTilt(tilt);
+          sma.setYield(calculateYield(timeFrame,tilt));
+        }
+
+        newSmas.add(sma);
       }
     }
 
@@ -272,6 +274,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       if (tiltWindow.size() == TILT_PERIOD) {
         double tilt = calculateTilt(tiltWindow);
         sma.setTilt(tilt);
+        sma.setYield(calculateYield(timeFrame,tilt));
       }
 
       if (i < prices.size() - 1) {
@@ -284,6 +287,20 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       smaDao.saveAll(smaResults, timeFrame);
     }
     return smaResults;
+  }
+
+  private static double calculateYield(TimeFrame timeFrame, double baseTilt) {
+    // Convert to annual percentage based on timeframe
+    double periodsPerYear = switch(timeFrame) {
+      case MIN5 -> 365.0 * 24 * 12;  // 5-minute periods in a year
+      case HOUR -> 365.0 * 24;       // hours in a year
+      case DAY -> 365.0;             // days in a year
+      case WEEK -> 52.0;             // weeks in a year
+      case MONTH -> 12.0;            // months in a year
+    };
+
+    // Adjust the base tilt by the timeframe factor
+    return baseTilt * (periodsPerYear / 365.0);
   }
 
   private static double calculateTilt(List<BaseSma> smaWindow) {
@@ -348,4 +365,6 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       calculateSMAForAllTimeFrame(ticker, length);
     }
   }
+
+
 }

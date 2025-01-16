@@ -8,6 +8,7 @@ public abstract class BaseSma {
   private SmaKey id;
   private double value;
   private double tilt;
+  private double yield;
 
   public SmaKey getId() {
     return id;
@@ -31,5 +32,13 @@ public abstract class BaseSma {
 
   public void setTilt(double tilt) {
     this.tilt = tilt;
+  }
+
+  public double getYield() {
+    return yield;
+  }
+
+  public void setYield(double yield) {
+    this.yield = yield;
   }
 }

@@ -74,24 +74,28 @@ public class ScreenerApplication implements CommandLineRunner {
   public void run(String... args) throws Exception {
 /*
     optimazeStrategy(optimizatorTilt,
-        "SPY", TimeFrame.DAY,
-        LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0),
+        "YY", TimeFrame.DAY,
+        LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0),
         LocalDateTime.of(2024, Month.DECEMBER, 1, 0, 0));
-*/
+
+
+ */
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
 /*
-    evaluateStrategy(initStrategy(tiltStrategy, TimeFrame.DAY, "SPY",
-        LocalDateTime.of(2018, Month.JANUARY, 1, 0, 0),
-        LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0)));
+    evaluateStrategy(initStrategy(tiltStrategy, TimeFrame.DAY, "YY",
+        LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0),
+        LocalDateTime.of(2025, Month.JANUARY, 15, 0, 0)));
 
  */
 
-    //downloadSeries("YY", "2023-", 1, 12);
-    downloadSeriesUnsafe("SPY", "2025-", 1, 1);
+
+    //downloadSeries("YMM", "2025-", 1, 1);
+    //downloadSeriesUnsafe("SPY", "2025-", 1, 1);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("VALE");
-    //calcSMA(1,100);
+    // calcSMA_incremental("YY",2,100);
+    calcSMA("YMM", 2, 50);
     System.exit(0);
   }
 
@@ -99,9 +103,9 @@ public class ScreenerApplication implements CommandLineRunner {
                                     LocalDateTime startDate,
                                     LocalDateTime endDate) {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
-    tiltStrategy.setLength(9);
-    tiltStrategy.setTiltBuy(0.02);
-    tiltStrategy.setTiltSell(-0.02);
+    tiltStrategy.setLength(3);
+    tiltStrategy.setTiltBuy(0.0);
+    tiltStrategy.setTiltSell(-0.03);
     return tiltStrategy;
   }
 
@@ -323,6 +327,27 @@ public class ScreenerApplication implements CommandLineRunner {
     pause();
   }
 
+  private void calcSMA_incremental(String ticker, int startLength, int endLength) {
+    int step = 1;
+    long start = System.currentTimeMillis();
+    for (int length = startLength; length <= endLength; length += step) {
+      smaCalculationService.calculateIncrementalSMAForAllTimeFrames(ticker, length);
+    }
+    System.out.println("total in minutes= " + (System.currentTimeMillis() - start) / 60000);
+    System.exit(0);
+  }
+
+  private void calcSMA(String ticker, int startLength, int endLength) {
+    int step = 1;
+    long start = System.currentTimeMillis();
+    for (int length = startLength; length <= endLength; length += step) {
+      smaCalculationService.calculateSMAForAllTimeFrame(ticker, length);
+      System.out.println("length = " + length);
+    }
+    System.out.println("total in minutes= " + (System.currentTimeMillis() - start) / 60000);
+    System.exit(0);
+  }
+
   private void calcSMA(int startLength, int endLength) {
     int step = 1;
     long start = System.currentTimeMillis();
@@ -372,7 +397,7 @@ public class ScreenerApplication implements CommandLineRunner {
 
       System.out.println("yearMonth = " + yearMonth);
       saved += sharePriceDownLoaderService
-          .fetchAndSaveData(timeSeriesLabel,ticker, interval,yearMonth);
+          .fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
       System.out.println("saved = " + saved);
     }
     if (saved > 0) {
