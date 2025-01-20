@@ -291,16 +291,13 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
 
   private static double calculateYield(TimeFrame timeFrame, double baseTilt) {
     // Convert to annual percentage based on timeframe
-    double periodsPerYear = switch(timeFrame) {
-      case MIN5 -> 365.0 * 24 * 12;  // 5-minute periods in a year
-      case HOUR -> 365.0 * 24;       // hours in a year
-      case DAY -> 365.0;             // days in a year
-      case WEEK -> 52.0;             // weeks in a year
-      case MONTH -> 12.0;            // months in a year
+    return baseTilt * switch(timeFrame) {
+      case MIN5 -> 365.0 * 24 * 12;  // minutes per year
+      case HOUR -> 365.0 * 24;       // hours per year
+      case DAY -> 365.0;             // days per year
+      case WEEK -> 52.0;             // weeks per year
+      case MONTH -> 12.0;            // months per year
     };
-
-    // Adjust the base tilt by the timeframe factor
-    return baseTilt * (periodsPerYear / 365.0);
   }
 
   private static double calculateTilt(List<BaseSma> smaWindow) {

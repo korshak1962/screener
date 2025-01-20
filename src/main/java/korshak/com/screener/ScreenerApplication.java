@@ -13,6 +13,7 @@ import korshak.com.screener.service.PriceAggregationService;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.TradeService;
+import korshak.com.screener.service.TrendService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
@@ -70,6 +71,9 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("OptimizatorTilt")
   private OptimizatorTilt optimizatorTilt;
 
+  @Autowired
+  private TrendService trendService;
+
   @Override
   public void run(String... args) throws Exception {
 /*
@@ -95,7 +99,9 @@ public class ScreenerApplication implements CommandLineRunner {
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("VALE");
     // calcSMA_incremental("YY",2,100);
-    calcSMA("YMM", 2, 50);
+    //calcSMA("YMM", 2, 50);
+    //calcSMA( 2, 50);
+    trendService.calculateAndStorePriceTrend("CVS",TimeFrame.WEEK);
     System.exit(0);
   }
 
