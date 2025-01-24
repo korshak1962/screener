@@ -20,6 +20,7 @@ public class BuyAndHoldStrategy implements Strategy {
   String name;
   List<Signal> signals = new ArrayList<>();
   TimeFrame timeFrame;
+  String ticker;
 
   public List<Signal> getSignalsLong(List<? extends BasePrice> prices) {
     return signals;
@@ -42,6 +43,7 @@ public class BuyAndHoldStrategy implements Strategy {
   @Override
   public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                    LocalDateTime endDate) {
+    this.ticker=ticker;
     this.prices = priceDao.findByDateRange(
         ticker,
         startDate,
@@ -81,16 +83,16 @@ public class BuyAndHoldStrategy implements Strategy {
 
   @Override
   public String getTicker() {
-    return "";
+    return ticker;
   }
 
   @Override
   public LocalDateTime getStartDate() {
-    return null;
+    return prices.getFirst().getId().getDate();
   }
 
   @Override
   public LocalDateTime getEndDate() {
-    return null;
+    return prices.getLast().getId().getDate();
   }
 }

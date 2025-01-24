@@ -10,12 +10,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.*;
 import korshak.com.screener.service.SmaCalculationService;
+import korshak.com.screener.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SmaCalculationServiceImpl implements SmaCalculationService {
-  private static final int TILT_PERIOD = 5;  // Default tilt period
+  private final int TILT_PERIOD = 5;  // Default tilt period
 
   private final PriceDao priceDao;
   private final SmaDao smaDao;
@@ -151,7 +152,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       }
 
       if (window.size() == length) {
-        BaseSma sma = getBaseSma(timeFrame);
+        BaseSma sma = Utils.getBaseSma(timeFrame);
         sma.setId(new SmaKey(ticker, currentPrice.getId().getDate(), length));
         sma.setValue(sum / length);
 
@@ -161,9 +162,9 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
           tiltWindow.remove(0);
         }
         if (tiltWindow.size() == TILT_PERIOD) {
-          double tilt = calculateTilt(tiltWindow);
+          double tilt = Utils.calculateTilt(tiltWindow);
           sma.setTilt(tilt);
-          sma.setYield(calculateYield(timeFrame,tilt));
+          sma.setYield(Utils.calculateYield(timeFrame,tilt));
         }
 
         newSmas.add(sma);
@@ -254,7 +255,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
     // Calculate SMAs and maintain a window for tilt calculation
     List<BaseSma> tiltWindow = new ArrayList<>();
     for (int i = length - 1; i < prices.size(); i++) {
-      BaseSma sma = getBaseSma(timeFrame);
+      BaseSma sma = Utils.getBaseSma(timeFrame);
       SmaKey smaKey = new SmaKey(
           ticker,
           prices.get(i).getId().getDate(),
@@ -272,9 +273,9 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
 
       // Calculate tilt when we have enough data points
       if (tiltWindow.size() == TILT_PERIOD) {
-        double tilt = calculateTilt(tiltWindow);
+        double tilt = Utils.calculateTilt(tiltWindow);
         sma.setTilt(tilt);
-        sma.setYield(calculateYield(timeFrame,tilt));
+        sma.setYield(Utils.calculateYield(timeFrame,tilt));
       }
 
       if (i < prices.size() - 1) {
@@ -287,53 +288,6 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       smaDao.saveAll(smaResults, timeFrame);
     }
     return smaResults;
-  }
-
-  private static double calculateYield(TimeFrame timeFrame, double baseTilt) {
-    // Convert to annual percentage based on timeframe
-    return baseTilt * switch(timeFrame) {
-      case MIN5 -> 365.0 * 24 * 12;  // minutes per year
-      case HOUR -> 365.0 * 24;       // hours per year
-      case DAY -> 365.0;             // days per year
-      case WEEK -> 52.0;             // weeks per year
-      case MONTH -> 12.0;            // months per year
-    };
-  }
-
-  private static double calculateTilt(List<BaseSma> smaWindow) {
-    // Calculate linear regression slope as tilt
-    int n = smaWindow.size();
-    double sumX = 0;
-    double sumY = 0;
-    double sumXY = 0;
-    double sumXX = 0;
-
-    for (int i = 0; i < n; i++) {
-      double x = i;
-      double y = smaWindow.get(i).getValue();
-      sumX += x;
-      sumY += y;
-      sumXY += x * y;
-      sumXX += x * x;
-    }
-
-    // Calculate slope using least squares method
-    double slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-
-    // Normalize the slope by the average SMA value to get a percentage
-    double avgSma = sumY / n;
-    double normalizedSlope = (slope / avgSma) * 100;
-    return normalizedSlope;
-  }
-
-  private static BaseSma getBaseSma(TimeFrame timeFrame) {
-    return switch (timeFrame) {
-      case HOUR -> new SmaHour();
-      case DAY -> new SmaDay();
-      case WEEK -> new SmaWeek();
-      case MONTH -> new SmaMonth();
-      default -> throw new IllegalArgumentException("Unsupported timeframe: " + timeFrame);
-    };
   }
 
   @Override

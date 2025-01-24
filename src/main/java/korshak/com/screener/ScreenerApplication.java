@@ -81,27 +81,25 @@ public class ScreenerApplication implements CommandLineRunner {
         "YY", TimeFrame.DAY,
         LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0),
         LocalDateTime.of(2024, Month.DECEMBER, 1, 0, 0));
-
-
  */
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
-/*
-    evaluateStrategy(initStrategy(tiltStrategy, TimeFrame.DAY, "YY",
+
+    evaluateStrategy(initStrategy(tiltStrategy, TimeFrame.DAY, "VALE",
         LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0),
-        LocalDateTime.of(2025, Month.JANUARY, 15, 0, 0)));
-
- */
+        LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0)));
 
 
-    //downloadSeries("YMM", "2025-", 1, 1);
-    //downloadSeriesUnsafe("SPY", "2025-", 1, 1);
+
+
+   //downloadSeries("VALE", "2023-", 1, 12);
+   // downloadSeriesUnsafe("", "2025-", 1, 1);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("VALE");
     // calcSMA_incremental("YY",2,100);
-    //calcSMA("YMM", 2, 50);
+    //calcSMA("VALE", 2, 50);
     //calcSMA( 2, 50);
-    trendService.calculateAndStorePriceTrend("CVS",TimeFrame.WEEK);
+    // trendService.calculateAndStorePriceTrend("SPY",TimeFrame.WEEK);
     System.exit(0);
   }
 
@@ -109,9 +107,9 @@ public class ScreenerApplication implements CommandLineRunner {
                                     LocalDateTime startDate,
                                     LocalDateTime endDate) {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
-    tiltStrategy.setLength(3);
-    tiltStrategy.setTiltBuy(0.0);
-    tiltStrategy.setTiltSell(-0.03);
+    tiltStrategy.setLength(9);
+    tiltStrategy.setTiltBuy(0.02);
+    tiltStrategy.setTiltSell(-0.02);
     return tiltStrategy;
   }
 
@@ -121,8 +119,6 @@ public class ScreenerApplication implements CommandLineRunner {
 
 
   private void evaluateStrategy(Strategy strategy) throws IOException {
-    buyAndHoldStrategy.init(strategy.getTicker(), strategy.getTimeFrame(), strategy.getStartDate(),
-        strategy.getEndDate());
     StrategyResult buyAndHoldstrategyResult =
         tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, strategy.getTicker(),
             strategy.getStartDate(),
@@ -368,6 +364,8 @@ public class ScreenerApplication implements CommandLineRunner {
   private void downloadSeries(final String ticker, String year, int startMonth, int finalMonth) {
     // final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
     // String interval = "5min";
+    int lengthMin = 2;
+    int lengthMax = 50;
     int saved = 0;
     String yearMonth;
     for (int month = startMonth; month < finalMonth + 1; month++) {
@@ -384,6 +382,9 @@ public class ScreenerApplication implements CommandLineRunner {
     }
     if (saved > 0) {
       priceAggregationService.aggregateAllTimeFrames(ticker);
+      for (int i = lengthMin; i <= lengthMax; i++) {
+        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(ticker, i);
+      }
     }
     System.exit(0);
   }
@@ -392,6 +393,8 @@ public class ScreenerApplication implements CommandLineRunner {
                                     int finalMonth) {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
     final String interval = "5min";
+    int lengthMin = 2;
+    int lengthMax = 50;
     int saved = 0;
     String yearMonth;
     for (int month = startMonth; month < finalMonth + 1; month++) {
@@ -408,6 +411,9 @@ public class ScreenerApplication implements CommandLineRunner {
     }
     if (saved > 0) {
       priceAggregationService.aggregateAllTimeFrames(ticker);
+      for (int i = lengthMin; i <= lengthMax; i++) {
+        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(ticker, i);
+      }
     }
     System.exit(0);
   }
