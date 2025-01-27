@@ -2,6 +2,8 @@ package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,72 +21,127 @@ import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
 
-@Service("TiltStrategy")
-public class TiltStrategy implements Strategy {
-   double tiltBuy = 1;
-   double tiltSell = -1;
-   int length;
-   TimeFrame timeFrame;
-   LocalDateTime startDate;
-   LocalDateTime endDate;
-   final SmaDao smaDao;
-   final PriceDao priceDao;
-   List<? extends BaseSma> smaList;
-   String ticker;
-   List<? extends BasePrice> prices;
-   TreeMap<LocalDateTime, Double> dateToTiltValue = new TreeMap<>();
+@Service("CombinedStrategy")
+public class CombinedStrategy implements Strategy {
+  double tiltBuy = 1;
+  double tiltSell = -1;
+  int length;
+  TimeFrame timeFrame;
+  LocalDateTime startDate;
+  LocalDateTime endDate;
+  final SmaDao smaDao;
+  final PriceDao priceDao;
+  List<? extends BaseSma> smaList;
+  String ticker;
+  List<? extends BasePrice> prices;
+  TreeMap<LocalDateTime, Double> dateToTiltValue = new TreeMap<>();
+  List<Signal> signalsLong = new ArrayList<>();
+  List<Signal> signalsShort = new ArrayList<>();
 
-  public TiltStrategy(SmaDao smaDao, PriceDao priceDao) {
+  public CombinedStrategy(SmaDao smaDao, PriceDao priceDao) {
     this.smaDao = smaDao;
     this.priceDao = priceDao;
   }
 
-  @Override
-  public List<? extends Signal> getSignalsLong() {
-    List<Signal> signals = new ArrayList<>();
+  public void calcSignals() {
     if (prices == null || prices.isEmpty()) {
-      return signals;
+      throw new RuntimeException("Prices are not initialized");
     }
     Map<LocalDateTime, BaseSma> smaMap = smaList.stream()
         .collect(Collectors.toMap(
             sma -> sma.getId().getDate(),
             sma -> sma
         ));
-    boolean inPosition = false;
-    double previousTilt = 0;
     // Iterate through prices and check stored tilt values
+    Signal lastSignal = null;
     for (BasePrice price : prices) {
-      LocalDateTime currentDate = price.getId().getDate();
-      BaseSma currentSma = smaMap.get(currentDate);
-      if (currentSma == null) {
+      // cycle for SignalProducers
+      List<Signal> signalsForPrice = new ArrayList<>();
+      BaseSma currentSma = smaMap.get(price.getId().getDate());
+      Signal signalToAdd = getSignal(price, currentSma);
+      if (signalToAdd != null) {
+        signalsForPrice.add(signalToAdd);
+      }
+      // end of cycle for SignalProducers
+      //  decision make
+      if (signalsForPrice.isEmpty()) {
         continue;
       }
-      double currentTilt = currentSma.getTilt();
-      dateToTiltValue.put(currentDate, currentTilt);
-      // Generate signals based on tilt thresholds
-      if (!inPosition && currentTilt > tiltBuy && previousTilt <= tiltBuy) {
-        signals.add(new Signal(
-            currentDate,
-            price.getClose(),
-            SignalType.LongOpen
-        ));
-        inPosition = true;
-      } else if (inPosition && currentTilt < tiltSell && previousTilt >= tiltSell) {
-        signals.add(new Signal(
-            currentDate,
-            price.getClose(),
-            SignalType.LongClose
-        ));
-        inPosition = false;
+      Signal signalMin = Collections.min(signalsForPrice,
+          Comparator.comparingInt(sgnal -> sgnal.getSignalType().value));
+      switch (signalMin.getSignalType()) {
+        case SignalType.LongOpen:
+          if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen) {
+            continue;
+          }
+          if (lastSignal != null && lastSignal.getSignalType() == SignalType.ShortOpen) {
+            signalsShort.add(createSignal(price, SignalType.ShortClose));
+          }
+          lastSignal = createSignal(price, SignalType.LongOpen);
+          signalsLong.add(lastSignal);
+          break;
+        case SignalType.ShortClose:
+          if (lastSignal == null) {
+            continue;
+          }
+          if (lastSignal.getSignalType() == SignalType.ShortOpen) {
+            lastSignal = createSignal(price, SignalType.ShortClose);
+            signalsShort.add(lastSignal);
+          }
+          break;
+        case SignalType.LongClose:
+          if (lastSignal == null) {
+            continue;
+          }
+          if (lastSignal.getSignalType() == SignalType.LongOpen) {
+            lastSignal = createSignal(price, SignalType.LongClose);
+            signalsLong.add(lastSignal);
+          }
+          break;
+        case SignalType.ShortOpen:
+          if (lastSignal != null && lastSignal.getSignalType() == SignalType.ShortOpen) {
+            continue;
+          }
+          if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen) {
+            signalsLong.add(createSignal(price, SignalType.LongClose));
+          }
+          lastSignal = createSignal(price, SignalType.ShortOpen);
+          signalsShort.add(lastSignal);
+          break;
+        default:
+          break;
       }
-      previousTilt = currentTilt;
     }
-    return signals;
+  }
+
+  private Signal getSignal(BasePrice price, BaseSma currentSma) {
+    Signal signalToAdd = null;
+    if (currentSma == null) {
+      return signalToAdd;
+    }
+    if (currentSma.getTilt() > tiltBuy) {
+      signalToAdd = createSignal(price, SignalType.LongOpen);
+    } else if (currentSma.getTilt() < tiltSell) {
+      signalToAdd = createSignal(price, SignalType.LongClose);
+    }
+    return signalToAdd;
+  }
+
+  private static Signal createSignal(BasePrice price, SignalType longOpen) {
+    return new Signal(
+        price.getId().getDate(),
+        price.getClose(),
+        longOpen);
+  }
+
+  @Override
+  public List<? extends Signal> getSignalsLong() {
+    return signalsLong;
   }
 
   @Override
   public List<? extends Signal> getSignalsShort() {
-    return List.of();
+    return signalsShort;
   }
 
   @Override

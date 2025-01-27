@@ -17,6 +17,7 @@ import korshak.com.screener.service.TrendService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
+import korshak.com.screener.serviceImpl.strategy.CombinedStrategy;
 import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
 import korshak.com.screener.serviceImpl.strategy.Optimizator;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
@@ -57,6 +58,9 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("DoubleTiltStrategy")
   private DoubleTiltStrategy doubleTiltStrategy;
   @Autowired
+  @Qualifier("CombinedStrategy")
+  private CombinedStrategy combinedStrategy;
+  @Autowired
   @Qualifier("BuyAndHoldStrategyMinusDownTrend")
   private BuyAndHoldStrategyMinusDownTrend buyAndHoldStrategyMinusDownTrend;
   @Autowired
@@ -84,8 +88,8 @@ public class ScreenerApplication implements CommandLineRunner {
  */
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
-
-    evaluateStrategy(initStrategy(tiltStrategy, TimeFrame.DAY, "VALE",
+//conditionsStrategy
+    evaluateStrategy(initStrategy(combinedStrategy, TimeFrame.DAY, "SPY",
         LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0),
         LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0)));
 
@@ -110,6 +114,17 @@ public class ScreenerApplication implements CommandLineRunner {
     tiltStrategy.setLength(9);
     tiltStrategy.setTiltBuy(0.02);
     tiltStrategy.setTiltSell(-0.02);
+    return tiltStrategy;
+  }
+
+  private CombinedStrategy initStrategy(CombinedStrategy tiltStrategy, TimeFrame timeFrame, String ticker,
+                                    LocalDateTime startDate,
+                                    LocalDateTime endDate) {
+    tiltStrategy.init(ticker, timeFrame, startDate, endDate);
+    tiltStrategy.setLength(9);
+    tiltStrategy.setTiltBuy(0.02);
+    tiltStrategy.setTiltSell(-0.02);
+    tiltStrategy.calcSignals();
     return tiltStrategy;
   }
 

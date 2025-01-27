@@ -1,10 +1,12 @@
 package korshak.com.screener.serviceImpl;
 
 import korshak.com.screener.dao.*;
+import korshak.com.screener.utils.Utils;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class PriceTiltCalculator {
@@ -72,7 +74,7 @@ public class PriceTiltCalculator {
       currentTilt = calculateTiltWithPrice(prices, previousSmas, smaLength, calcPrice);
 
       // Reduce step if we're oscillating
-      if (iterations % 10 == 0) {
+      if (iterations % 6 == 0) {
         step *= 0.5;
       }
 
@@ -105,30 +107,17 @@ public class PriceTiltCalculator {
     double sum = prices.stream().mapToDouble(BasePrice::getClose).sum() + calcPrice;
     double newSma = sum / smaLength;
 
-    // Calculate tilt with the new SMA
-    double[] allSmas = new double[TILT_PERIOD];
-    for (int i = 0; i < previousSmas.size(); i++) {
-      allSmas[i] = previousSmas.get(i).getValue();
-    }
-    allSmas[TILT_PERIOD - 1] = newSma;
-
-    return calculateTilt(allSmas);
-  }
-
-  public double calculateTilt(double[] smaValues) {
-    double sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-    int n = smaValues.length;
-
-    for (int i = 0; i < n; i++) {
-      sumX += i;
-      sumY += smaValues[i];
-      sumXY += i * smaValues[i];
-      sumXX += i * i;
+    // Prepare the list of SMAs for tilt calculation
+    List<BaseSma> allSmas = new ArrayList<>();
+    for (BaseSma sma : previousSmas) {
+      allSmas.add(sma);
     }
 
-    double avgY = sumY / n;
-    double slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    // Add new SMA value
+    BaseSma newSmaPeriod = Utils.getBaseSma(previousSmas.get(0).getId().getDate().toLocalTime().getHour() == 0 ? TimeFrame.DAY : TimeFrame.HOUR);
+    newSmaPeriod.setValue(newSma);
+    allSmas.add(newSmaPeriod);
 
-    return (slope / avgY) * 100;
+    return Utils.calculateTilt(allSmas);
   }
 }
