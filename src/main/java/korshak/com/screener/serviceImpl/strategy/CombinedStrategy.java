@@ -55,62 +55,20 @@ public class CombinedStrategy implements Strategy {
     // Iterate through prices and check stored tilt values
     Signal lastSignal = null;
     for (BasePrice price : prices) {
-      // cycle for SignalProducers
       List<Signal> signalsForPrice = new ArrayList<>();
       BaseSma currentSma = smaMap.get(price.getId().getDate());
       Signal signalToAdd = getSignal(price, currentSma);
       if (signalToAdd != null) {
         signalsForPrice.add(signalToAdd);
       }
-      // end of cycle for SignalProducers
       //  decision make
       if (signalsForPrice.isEmpty()) {
         continue;
       }
       Signal signalMin = Collections.min(signalsForPrice,
           Comparator.comparingInt(sgnal -> sgnal.getSignalType().value));
-      switch (signalMin.getSignalType()) {
-        case SignalType.LongOpen:
-          if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen) {
-            continue;
-          }
-          if (lastSignal != null && lastSignal.getSignalType() == SignalType.ShortOpen) {
-            signalsShort.add(createSignal(price, SignalType.ShortClose));
-          }
-          lastSignal = createSignal(price, SignalType.LongOpen);
-          signalsLong.add(lastSignal);
-          break;
-        case SignalType.ShortClose:
-          if (lastSignal == null) {
-            continue;
-          }
-          if (lastSignal.getSignalType() == SignalType.ShortOpen) {
-            lastSignal = createSignal(price, SignalType.ShortClose);
-            signalsShort.add(lastSignal);
-          }
-          break;
-        case SignalType.LongClose:
-          if (lastSignal == null) {
-            continue;
-          }
-          if (lastSignal.getSignalType() == SignalType.LongOpen) {
-            lastSignal = createSignal(price, SignalType.LongClose);
-            signalsLong.add(lastSignal);
-          }
-          break;
-        case SignalType.ShortOpen:
-          if (lastSignal != null && lastSignal.getSignalType() == SignalType.ShortOpen) {
-            continue;
-          }
-          if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen) {
-            signalsLong.add(createSignal(price, SignalType.LongClose));
-          }
-          lastSignal = createSignal(price, SignalType.ShortOpen);
-          signalsShort.add(lastSignal);
-          break;
-        default:
-          break;
-      }
+
+      lastSignal = Utils.fillLongShortLists(signalMin, lastSignal, signalsShort, signalsLong);
     }
   }
 
@@ -120,18 +78,11 @@ public class CombinedStrategy implements Strategy {
       return signalToAdd;
     }
     if (currentSma.getTilt() > tiltBuy) {
-      signalToAdd = createSignal(price, SignalType.LongOpen);
+      signalToAdd = Utils.createSignal(price, SignalType.LongOpen);
     } else if (currentSma.getTilt() < tiltSell) {
-      signalToAdd = createSignal(price, SignalType.LongClose);
+      signalToAdd = Utils.createSignal(price, SignalType.LongClose);
     }
     return signalToAdd;
-  }
-
-  private static Signal createSignal(BasePrice price, SignalType longOpen) {
-    return new Signal(
-        price.getId().getDate(),
-        price.getClose(),
-        longOpen);
   }
 
   @Override
@@ -161,7 +112,7 @@ public class CombinedStrategy implements Strategy {
 
   @Override
   public String getName() {
-    return "TiltSmaStrategy";
+    return "TiltCombinedStrategy";
   }
 
   @Override

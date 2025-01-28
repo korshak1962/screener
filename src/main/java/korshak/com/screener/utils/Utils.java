@@ -4,12 +4,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.dao.SmaDay;
 import korshak.com.screener.dao.SmaHour;
 import korshak.com.screener.dao.SmaMonth;
 import korshak.com.screener.dao.SmaWeek;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.vo.Signal;
+import korshak.com.screener.vo.SignalType;
 
 public class Utils {
   public static NavigableMap<LocalDateTime, Double> convertBaseSmaListToTreeMap(List<? extends BaseSma> sortedSmaList){
@@ -65,5 +68,66 @@ public class Utils {
       case MONTH -> new SmaMonth();
       default -> throw new IllegalArgumentException("Unsupported timeframe: " + timeFrame);
     };
+  }
+
+  public static Signal fillLongShortLists(Signal signal, Signal lastSignal, List<Signal> signalsShort,
+                                          List<Signal> signalsLong) {
+    switch (signal.getSignalType()) {
+      case SignalType.LongOpen:
+        if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen) {
+          return lastSignal;
+        }
+        if (lastSignal != null && lastSignal.getSignalType() == SignalType.ShortOpen) {
+          signalsShort.add(createSignal(signal, SignalType.ShortClose));
+        }
+        lastSignal = createSignal(signal, SignalType.LongOpen);
+        signalsLong.add(lastSignal);
+        break;
+      case SignalType.ShortClose:
+        if (lastSignal == null) {
+          return lastSignal;
+        }
+        if (lastSignal.getSignalType() == SignalType.ShortOpen) {
+          lastSignal = createSignal(signal, SignalType.ShortClose);
+          signalsShort.add(lastSignal);
+        }
+        break;
+      case SignalType.LongClose:
+        if (lastSignal == null) {
+          return lastSignal;
+        }
+        if (lastSignal.getSignalType() == SignalType.LongOpen) {
+          lastSignal = createSignal(signal, SignalType.LongClose);
+          signalsLong.add(lastSignal);
+        }
+        break;
+      case SignalType.ShortOpen:
+        if (lastSignal != null && lastSignal.getSignalType() == SignalType.ShortOpen) {
+          return lastSignal;
+        }
+        if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen) {
+          signalsLong.add(createSignal(signal, SignalType.LongClose));
+        }
+        lastSignal = createSignal(signal, SignalType.ShortOpen);
+        signalsShort.add(lastSignal);
+        break;
+      default:
+        break;
+    }
+    return lastSignal;
+  }
+
+  public static Signal createSignal(Signal signal, SignalType longOpen) {
+    return new Signal(
+        signal.getDate(),
+        signal.getPrice(),
+        longOpen);
+  }
+
+  public static Signal createSignal(BasePrice price, SignalType longOpen) {
+    return new Signal(
+        price.getId().getDate(),
+        price.getClose(),
+        longOpen);
   }
 }

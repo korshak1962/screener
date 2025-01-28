@@ -22,6 +22,7 @@ import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
 import korshak.com.screener.serviceImpl.strategy.Optimizator;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
+import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
 import korshak.com.screener.serviceImpl.strategy.TiltStrategy;
 import korshak.com.screener.utils.ExcelExportService;
 import korshak.com.screener.utils.Utils;
@@ -61,6 +62,9 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("CombinedStrategy")
   private CombinedStrategy combinedStrategy;
   @Autowired
+  @Qualifier("StrategyMerger")
+  private StrategyMerger strategyMerger;
+  @Autowired
   @Qualifier("BuyAndHoldStrategyMinusDownTrend")
   private BuyAndHoldStrategyMinusDownTrend buyAndHoldStrategyMinusDownTrend;
   @Autowired
@@ -88,16 +92,21 @@ public class ScreenerApplication implements CommandLineRunner {
  */
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
-//conditionsStrategy
-    evaluateStrategy(initStrategy(combinedStrategy, TimeFrame.DAY, "SPY",
-        LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0),
-        LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0)));
+//combinedStrategy
 
+    String ticker = "SPY";
+    LocalDateTime startDate = LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0);
+    TimeFrame timeFrame = TimeFrame.DAY;
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0);
+    CombinedStrategy combinedStrategyInitiated = initStrategy(combinedStrategy, timeFrame, ticker,
+        startDate,
+        endDate);
+    strategyMerger.init(ticker,timeFrame,startDate,endDate);
+    strategyMerger.addStrategy(combinedStrategyInitiated);
+    evaluateStrategy(strategyMerger);
 
-
-
-   //downloadSeries("VALE", "2023-", 1, 12);
-   // downloadSeriesUnsafe("", "2025-", 1, 1);
+   //downloadSeries("YMM", "2022-", 1, 12);
+    //downloadSeriesUnsafe("SPY", "2025-", 1, 1);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("VALE");
     // calcSMA_incremental("YY",2,100);
@@ -132,7 +141,6 @@ public class ScreenerApplication implements CommandLineRunner {
     return doubleTiltStrategy;
   }
 
-
   private void evaluateStrategy(Strategy strategy) throws IOException {
     StrategyResult buyAndHoldstrategyResult =
         tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, strategy.getTicker(),
@@ -149,6 +157,13 @@ public class ScreenerApplication implements CommandLineRunner {
             strategy.getTimeFrame());
     System.out.println(strategy.getName() + " result: " + strategyResultTilt);
     System.out.println(buyAndHoldStrategy.getName() + " result: " + buyAndHoldstrategyResult);
+  /*
+    ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesLong(),
+        "trades_long.xlsx");
+    ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesShort(),
+        "trades_short.xlsx");
+
+   */
     System.setProperty("java.awt.headless", "false");
     ChartService chartService = new ChartServiceImpl(strategy.getName());
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
