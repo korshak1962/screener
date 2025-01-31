@@ -197,7 +197,7 @@ public class DoubleTiltStrategy implements Strategy {
     this.endDate = endDate;
   }
 
-  public String getName() {
+  public String StrategyName() {
     return "DoubleTiltStrategy";
   }
 
@@ -346,5 +346,10 @@ public class DoubleTiltStrategy implements Strategy {
 
   public LocalDateTime getEndDate() {
     return endDate;
+  }
+
+  @Override
+  public List<Signal> getAllSignals() {
+    return List.of();
   }
 }

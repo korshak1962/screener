@@ -65,7 +65,7 @@ public class StrategyMerger implements Strategy {
   }
 
   @Override
-  public String getName() {
+  public String StrategyName() {
     return "StrategyMerger " +
         nameToStrategy.keySet().stream().reduce("", (s1, s2) -> s1 + " " + s2);
   }
@@ -105,20 +105,23 @@ public class StrategyMerger implements Strategy {
     return endDate;
   }
 
-  public void addStrategy(Strategy strategy) {
-    nameToStrategy.put(strategy.getName(), strategy);
-    List<? extends Signal> signalsLongStrategy = strategy.getSignalsLong();
-    if (signalsLongStrategy.isEmpty()) {
-      throw new RuntimeException("Strategy " + strategy.getName() + " has no signals");
+  @Override
+  public List<Signal> getAllSignals() {
+    if (signalsLong.isEmpty()) {
+      mergeSignals();
     }
-    signalsLongStrategy.forEach(signal -> {
-      if (!dateToSignals.containsKey(signal.getDate())) {
-        dateToSignals.put(signal.getDate(), new ArrayList<>());
-      }
-      dateToSignals.get(signal.getDate()).add(signal);
-    });
-    List<? extends Signal> signalsShortStrategy = strategy.getSignalsShort();
-    signalsShortStrategy.forEach(signal -> {
+    return dateToSignals.values().stream()
+        .flatMap(List::stream)
+        .toList();
+  }
+
+  public void addStrategy(Strategy strategy) {
+    nameToStrategy.put(strategy.StrategyName(), strategy);
+    List<? extends Signal> signalsOfStrategy = strategy.getAllSignals();
+    if (signalsOfStrategy.isEmpty()) {
+      throw new RuntimeException("Strategy " + strategy.StrategyName() + " has no signals");
+    }
+    signalsOfStrategy.forEach(signal -> {
       if (!dateToSignals.containsKey(signal.getDate())) {
         dateToSignals.put(signal.getDate(), new ArrayList<>());
       }

@@ -22,7 +22,7 @@ import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
 
 @Service("CombinedStrategy")
-public class CombinedStrategy implements Strategy {
+public class TiltCombinedStrategy implements Strategy {
   double tiltBuy = 1;
   double tiltSell = -1;
   int length;
@@ -32,13 +32,15 @@ public class CombinedStrategy implements Strategy {
   final SmaDao smaDao;
   final PriceDao priceDao;
   List<? extends BaseSma> smaList;
+  Map<LocalDateTime, BaseSma> smaMap;
   String ticker;
   List<? extends BasePrice> prices;
   TreeMap<LocalDateTime, Double> dateToTiltValue = new TreeMap<>();
   List<Signal> signalsLong = new ArrayList<>();
   List<Signal> signalsShort = new ArrayList<>();
+  List<Signal> allSignals = new ArrayList<>();
 
-  public CombinedStrategy(SmaDao smaDao, PriceDao priceDao) {
+  public TiltCombinedStrategy(SmaDao smaDao, PriceDao priceDao) {
     this.smaDao = smaDao;
     this.priceDao = priceDao;
   }
@@ -47,18 +49,13 @@ public class CombinedStrategy implements Strategy {
     if (prices == null || prices.isEmpty()) {
       throw new RuntimeException("Prices are not initialized");
     }
-    Map<LocalDateTime, BaseSma> smaMap = smaList.stream()
-        .collect(Collectors.toMap(
-            sma -> sma.getId().getDate(),
-            sma -> sma
-        ));
     // Iterate through prices and check stored tilt values
     Signal lastSignal = null;
     for (BasePrice price : prices) {
       List<Signal> signalsForPrice = new ArrayList<>();
-      BaseSma currentSma = smaMap.get(price.getId().getDate());
-      Signal signalToAdd = getSignal(price, currentSma);
+      Signal signalToAdd = getSignal(price);
       if (signalToAdd != null) {
+        allSignals.add(signalToAdd);
         signalsForPrice.add(signalToAdd);
       }
       //  decision make
@@ -72,8 +69,9 @@ public class CombinedStrategy implements Strategy {
     }
   }
 
-  private Signal getSignal(BasePrice price, BaseSma currentSma) {
+  public Signal getSignal(BasePrice price) {
     Signal signalToAdd = null;
+    BaseSma currentSma = smaMap.get(price.getId().getDate());
     if (currentSma == null) {
       return signalToAdd;
     }
@@ -111,7 +109,7 @@ public class CombinedStrategy implements Strategy {
   }
 
   @Override
-  public String getName() {
+  public String StrategyName() {
     return "TiltCombinedStrategy";
   }
 
@@ -179,6 +177,11 @@ public class CombinedStrategy implements Strategy {
     if (smaList.isEmpty() || prices.size() - smaList.size() > length) {
       throw new RuntimeException("No SMAs found");
     }
+     smaMap = smaList.stream()
+        .collect(Collectors.toMap(
+            sma -> sma.getId().getDate(),
+            sma -> sma
+        ));
   }
 
   public TimeFrame getTimeFrame() {
@@ -198,6 +201,11 @@ public class CombinedStrategy implements Strategy {
   @Override
   public LocalDateTime getEndDate() {
     return endDate;
+  }
+
+  @Override
+  public List<Signal> getAllSignals() {
+    return allSignals;
   }
 
   public List<? extends BaseSma> getSmaList() {

@@ -12,7 +12,7 @@ public interface Strategy {
   List<? extends Signal> getSignalsLong();
   List<? extends Signal> getSignalsShort();
 void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate);
-  String getName();
+  String StrategyName();
   List<? extends BasePrice> getPrices();
   Map<String, NavigableMap<LocalDateTime, Double>> getIndicators();
   Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators();
@@ -20,7 +20,7 @@ void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDate
   String getTicker();
   LocalDateTime getStartDate();
   LocalDateTime getEndDate();
-
+  List<Signal> getAllSignals();
 
 
 }

@@ -40,7 +40,7 @@ public class TiltStrategy implements Strategy {
   }
 
   @Override
-  public List<? extends Signal> getSignalsLong() {
+  public List<Signal> getSignalsLong() {
     List<Signal> signals = new ArrayList<>();
     if (prices == null || prices.isEmpty()) {
       return signals;
@@ -103,7 +103,7 @@ public class TiltStrategy implements Strategy {
   }
 
   @Override
-  public String getName() {
+  public String StrategyName() {
     return "TiltSmaStrategy";
   }
 
@@ -190,6 +190,11 @@ public class TiltStrategy implements Strategy {
   @Override
   public LocalDateTime getEndDate() {
     return endDate;
+  }
+
+  @Override
+  public List<Signal> getAllSignals() {
+    return getSignalsLong();
   }
 
   public List<? extends BaseSma> getSmaList() {
