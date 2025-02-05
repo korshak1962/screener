@@ -112,9 +112,8 @@ public class PriceDaoImpl implements PriceDao {
       case WEEK -> weekRepository.findByIdTickerOrderByIdDateAsc(ticker);
       case MONTH -> monthRepository.findByIdTickerOrderByIdDateAsc(ticker);
     };
-
-    // For hour timeframe, apply trading hours filter if needed
-    if ((timeFrame == TimeFrame.HOUR || timeFrame == TimeFrame.MIN5) && !includeExtendedHours) {
+    // For MIN5 timeframe apply trading hours filter if needed
+    if (timeFrame == TimeFrame.MIN5 && !includeExtendedHours) {
       return filterMainSessionPrices(prices);
     }
 

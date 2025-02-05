@@ -121,7 +121,7 @@ public class ScreenerApplication implements CommandLineRunner {
     //downloadSeriesUnsafe("SPY", "2025-", 1, 2);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("SPY");
-    priceAggregationService.aggregateData("SPY", TimeFrame.HOUR);
+    priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
     // calcSMA_incremental("YY",2,100);
     //calcSMA("VALE", 2, 50);
     //calcSMA( 2, 50);
