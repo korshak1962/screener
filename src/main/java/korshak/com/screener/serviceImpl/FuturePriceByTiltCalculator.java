@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 @Service
-public class PriceTiltCalculator {
+public class FuturePriceByTiltCalculator {
   private static final int TILT_PERIOD = 5;
   private static final double INITIAL_STEP = 0.01; // 1%
   private static final double PRECISION = 0.001;
@@ -18,7 +18,7 @@ public class PriceTiltCalculator {
   private final PriceDao priceDao;
   private final SmaDao smaDao;
 
-  public PriceTiltCalculator(PriceDao priceDao, SmaDao smaDao) {
+  public FuturePriceByTiltCalculator(PriceDao priceDao, SmaDao smaDao) {
     this.priceDao = priceDao;
     this.smaDao = smaDao;
   }

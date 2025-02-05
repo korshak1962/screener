@@ -100,4 +100,9 @@ public class BuyAndHoldStrategy implements Strategy {
   public List<Signal> getAllSignals() {
     return signals;
   }
+
+  @Override
+  public List<Signal> getAllSignals(TimeFrame timeFrame) {
+    return List.of();
+  }
 }

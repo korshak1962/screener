@@ -17,6 +17,7 @@ import korshak.com.screener.service.TrendService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
+import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevClose;
 import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevMax;
 import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
 import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
@@ -66,6 +67,9 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("BuyCloseHigherPrevMax")
   private BuyCloseHigherPrevMax buyCloseHigherPrevMax;
   @Autowired
+  @Qualifier("BuyCloseHigherPrevClose")
+  private BuyCloseHigherPrevClose buyCloseHigherPrevClose;
+  @Autowired
   @Qualifier("StrategyMerger")
   private StrategyMerger strategyMerger;
   @Autowired
@@ -96,28 +100,28 @@ public class ScreenerApplication implements CommandLineRunner {
  */
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
-//combinedStrategy
 
-    String ticker = "SPY";
-    LocalDateTime startDate = LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0);
-    TimeFrame timeFrame = TimeFrame.WEEK;
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0);
 /*
-    TiltCombinedStrategy
-        tiltCombinedStrategyInitiated = initStrategy(tiltCombinedStrategy, timeFrame, ticker,
-        startDate,
-        endDate);
+    String ticker = "SPY";
 
- */
-    buyCloseHigherPrevMax.init(ticker, timeFrame, startDate, endDate);
-    strategyMerger.init(ticker,timeFrame,startDate,endDate);
-    strategyMerger.addStrategy(buyCloseHigherPrevMax);
+    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0);
+
+    //initStrategy(tiltCombinedStrategy, timeFrame, ticker, startDate, endDate);
+
+    buyCloseHigherPrevClose.init(ticker, TimeFrame.WEEK, startDate, endDate);
+    strategyMerger.init(ticker,TimeFrame.DAY,startDate,endDate);
+    strategyMerger.addStrategy(buyCloseHigherPrevClose);
     evaluateStrategy(strategyMerger);
 
-   //downloadSeries("YMM", "2022-", 1, 12);
-    //downloadSeriesUnsafe("SPY", "2025-", 1, 1);
+ */
+
+   // downloadSeries("SPXL", "2020-", 1, 12);
+   //downloadSeries("TQQQ", "2021-", 1, 12);
+    //downloadSeriesUnsafe("SPY", "2025-", 1, 2);
     //priceAggregationService.aggregateAllTickers();
-    //priceAggregationService.aggregateAllTimeFrames("VALE");
+    //priceAggregationService.aggregateAllTimeFrames("SPY");
+    priceAggregationService.aggregateData("SPY", TimeFrame.HOUR);
     // calcSMA_incremental("YY",2,100);
     //calcSMA("VALE", 2, 50);
     //calcSMA( 2, 50);

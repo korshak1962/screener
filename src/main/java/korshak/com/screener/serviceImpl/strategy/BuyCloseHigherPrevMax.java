@@ -1,8 +1,5 @@
 package korshak.com.screener.serviceImpl.strategy;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.utils.Utils;
@@ -36,12 +33,7 @@ public class BuyCloseHigherPrevMax extends BaseStrategy {
   }
 
   @Override
-  public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
-    return Map.of();
-  }
-
-  @Override
-  public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
-    return Map.of();
+  public Signal getSignal(BasePrice prevPrice, BasePrice price) {
+    return null;
   }
 }

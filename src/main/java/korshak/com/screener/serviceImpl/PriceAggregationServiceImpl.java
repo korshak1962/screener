@@ -3,9 +3,9 @@ package korshak.com.screener.serviceImpl;
 import jakarta.transaction.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -103,7 +103,7 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
 
     // Filter source data to only include periods not already aggregated
     List<? extends BasePrice> dataToAggregate = filterDataForMissingPeriods(
-        pricesOfLowTimeframe, existingData, timeFrame, firstDate, lastDate);
+        pricesOfLowTimeframe, existingData, timeFrame);
 
     if (dataToAggregate.isEmpty()) {
       System.out.println("No new data to aggregate for " + ticker + " at " + timeFrame + " level");
@@ -160,25 +160,27 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
     };
   }
 
+  private static final LocalTime MARKET_OPEN = LocalTime.of(9, 30);  // ET
+  private static final LocalTime MARKET_CLOSE = LocalTime.of(16, 0); // ET
+
   private List<? extends BasePrice> filterDataForMissingPeriods(
       List<? extends BasePrice> sourceData,
       List<? extends BasePrice> existingData,
-      TimeFrame timeFrame,
-      LocalDateTime firstDate,
-      LocalDateTime lastDate) {
+      TimeFrame timeFrame) {
 
-    // Create a map of existing aggregated periods
     Map<LocalDateTime, BasePrice> existingPeriods = existingData.stream()
         .collect(Collectors.toMap(
             price -> truncateToTimeFrame(price.getId().getDate(), timeFrame),
             price -> price
         ));
 
-    // Filter source data to only include periods that don't have aggregation
     return sourceData.stream()
         .filter(price -> {
           LocalDateTime periodStart = truncateToTimeFrame(price.getId().getDate(), timeFrame);
-          return !existingPeriods.containsKey(periodStart);
+          LocalTime time = price.getId().getDate().toLocalTime();
+          return !existingPeriods.containsKey(periodStart) &&
+              time.isAfter(MARKET_OPEN.minusMinutes(1)) &&  // Include 9:30
+              time.isBefore(MARKET_CLOSE);                  // Include up to 16:00
         })
         .collect(Collectors.toList());
   }
@@ -187,7 +189,7 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
     return switch (timeFrame) {
       case HOUR -> dateTime.truncatedTo(ChronoUnit.HOURS);
       case DAY -> dateTime.truncatedTo(ChronoUnit.DAYS);
-      case WEEK -> dateTime.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+      case WEEK -> dateTime.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
           .truncatedTo(ChronoUnit.DAYS);
       case MONTH -> dateTime.withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
       default -> throw new IllegalArgumentException("Unsupported time frame: " + timeFrame);
@@ -202,11 +204,9 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
 
     PriceKey key = new PriceKey();
     key.setTicker(ticker);
-    key.setDate(dateTime);
+    // For hour aggregation, use the time of the first price in the group
+    key.setDate(prices.get(0).getId().getDate().truncatedTo(ChronoUnit.HOURS));
     aggregatedPrice.setId(key);
-
-    // Sort prices by time to ensure correct open/close
-    prices.sort(Comparator.comparing(p -> p.getId().getDate()));
 
     aggregatedPrice.setOpen(prices.get(0).getOpen());
     aggregatedPrice.setClose(prices.get(prices.size() - 1).getClose());

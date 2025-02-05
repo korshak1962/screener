@@ -352,4 +352,9 @@ public class DoubleTiltStrategy implements Strategy {
   public List<Signal> getAllSignals() {
     return List.of();
   }
+
+  @Override
+  public List<Signal> getAllSignals(TimeFrame timeFrame) {
+    return List.of();
+  }
 }

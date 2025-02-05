@@ -2,9 +2,13 @@ package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.PriceMin5;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.Signal;
@@ -20,7 +24,7 @@ public abstract class BaseStrategy implements Strategy {
   List<Signal> signalsShort = new ArrayList<>();
   List<Signal> allSignals = new ArrayList<>();
 
-  public BaseStrategy( PriceDao priceDao) {
+  public BaseStrategy(PriceDao priceDao) {
     this.priceDao = priceDao;
   }
 
@@ -38,6 +42,7 @@ public abstract class BaseStrategy implements Strategy {
         timeFrame
     );
   }
+
   @Override
   public String StrategyName() {
     return this.getClass().getName();
@@ -54,10 +59,12 @@ public abstract class BaseStrategy implements Strategy {
         allSignals.add(signalToAdd);
       }
     }
-    return  allSignals;
+    return allSignals;
   }
 
   public abstract Signal getSignal(BasePrice price);
+
+  public abstract Signal getSignal(BasePrice prevPrice, BasePrice price);
 
   @Override
   public TimeFrame getTimeFrame() {
@@ -100,5 +107,93 @@ public abstract class BaseStrategy implements Strategy {
       calcSignals();
     }
     return allSignals;
+  }
+
+  @Override
+  public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
+    return Map.of();
+  }
+
+  @Override
+  public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
+    return Map.of();
+  }
+
+  @Override
+  public List<Signal> getAllSignals(TimeFrame signalTimeFrame) {
+    if (signalTimeFrame.ordinal() == this.timeFrame.ordinal()) {
+      return getAllSignals();
+    }
+    if (signalTimeFrame.ordinal() > this.timeFrame.ordinal()) {
+      throw new RuntimeException("Special timeframe " + signalTimeFrame +
+          " must be smaller than strategy timeframe " + this.timeFrame);
+    }
+    List<Signal> specialTimeframeSignals = new ArrayList<>();
+    List<BasePrice> signalPrices = getPricesForTimeframe(signalTimeFrame);
+    if (signalPrices.isEmpty()) {
+      return specialTimeframeSignals;
+    }
+    Iterator<? extends BasePrice> priceIterator = signalPrices.iterator();
+    BasePrice currentPrice = priceIterator.hasNext() ? priceIterator.next() : null;
+    BasePrice priceOfBackupTimeframe = priceIterator.hasNext() ? priceIterator.next() : null;
+    BasePrice nextPriceOfBackupTimeframe = priceIterator.hasNext() ? priceIterator.next() : null;
+    BasePrice aggregatedPrice = currentPrice;
+
+    while (currentPrice != null &&
+        currentPrice.getId().getDate().isBefore(priceOfBackupTimeframe.getId().getDate())) {
+      currentPrice = priceIterator.hasNext() ? priceIterator.next() : null;
+    }
+    while (currentPrice != null) {
+      if (nextPriceOfBackupTimeframe != null
+          &&
+          !currentPrice.getId().getDate().isBefore(nextPriceOfBackupTimeframe.getId().getDate())) {
+        aggregatedPrice = currentPrice;
+        priceOfBackupTimeframe = nextPriceOfBackupTimeframe;
+        nextPriceOfBackupTimeframe = priceIterator.hasNext() ? priceIterator.next() : null;
+      } else {
+        aggregatedPrice = aggregatePrices(aggregatedPrice, currentPrice);
+      }
+      Signal specialSignal = getSignal(priceOfBackupTimeframe, currentPrice);
+      if (specialSignal != null) {
+        specialTimeframeSignals.add(specialSignal);
+      }
+      currentPrice = priceIterator.hasNext() ? priceIterator.next() : null;
+    }
+    return specialTimeframeSignals;
+  }
+
+  List<BasePrice> getPricesForTimeframe(TimeFrame specialTimeFrame) {
+    // Get prices for the special timeframe
+    List<? extends BasePrice> specialPrices = priceDao.findByDateRange(
+        ticker,
+        prices.getFirst().getId().getDate(),
+        endDate,
+        specialTimeFrame
+    );
+    return (List<BasePrice>) specialPrices;
+  }
+
+  static BasePrice getPriceOfSignalDate(Iterator<? extends BasePrice> priceIterator,
+                                        Signal currentSignal) {
+    // Get to the first price that's not before current signal
+    BasePrice currentPrice = null;
+    while (priceIterator.hasNext()) {
+      currentPrice = priceIterator.next();
+      if (!currentPrice.getId().getDate().isBefore(currentSignal.getDate())) {
+        break;
+      }
+    }
+    return currentPrice;
+  }
+
+  private BasePrice aggregatePrices(BasePrice existing, BasePrice newPrice) {
+    PriceMin5 aggregated = new PriceMin5();
+    aggregated.setId(newPrice.getId());
+    aggregated.setOpen(existing.getOpen());
+    aggregated.setHigh(Math.max(existing.getHigh(), newPrice.getHigh()));
+    aggregated.setLow(Math.min(existing.getLow(), newPrice.getLow()));
+    aggregated.setClose(newPrice.getClose());
+    aggregated.setVolume(existing.getVolume() + newPrice.getVolume());
+    return aggregated;
   }
 }

@@ -115,9 +115,14 @@ public class StrategyMerger implements Strategy {
         .toList();
   }
 
+  @Override
+  public List<Signal> getAllSignals(TimeFrame timeFrame) {
+    return List.of();
+  }
+
   public void addStrategy(Strategy strategy) {
     nameToStrategy.put(strategy.StrategyName(), strategy);
-    List<? extends Signal> signalsOfStrategy = strategy.getAllSignals();
+    List<? extends Signal> signalsOfStrategy = strategy.getAllSignals(timeFrame);
     if (signalsOfStrategy.isEmpty()) {
       throw new RuntimeException("Strategy " + strategy.StrategyName() + " has no signals");
     }

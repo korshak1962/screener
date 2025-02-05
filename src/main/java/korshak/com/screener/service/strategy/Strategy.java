@@ -21,6 +21,7 @@ void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDate
   LocalDateTime getStartDate();
   LocalDateTime getEndDate();
   List<Signal> getAllSignals();
+  List<Signal> getAllSignals(TimeFrame timeFrame);
 
 
 }

@@ -14,20 +14,20 @@ import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.SmaDay;
 import korshak.com.screener.dao.SmaKey;
-import korshak.com.screener.serviceImpl.PriceTiltCalculator;
+import korshak.com.screener.serviceImpl.FuturePriceByTiltCalculator;
 import korshak.com.screener.utils.Utils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-class PriceTiltCalculatorTest {
+class FuturePriceByTiltCalculatorTest {
   @Mock
   private PriceDao priceDao;
   @Mock
   private SmaDao smaDao;
 
-  private PriceTiltCalculator calculator;
+  private FuturePriceByTiltCalculator calculator;
   private List<BasePrice> prices;
   private List<BaseSma> smas;
   private final int SMA_LENGTH = 3;
@@ -36,7 +36,7 @@ class PriceTiltCalculatorTest {
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
-    calculator = new PriceTiltCalculator(priceDao, smaDao);
+    calculator = new FuturePriceByTiltCalculator(priceDao, smaDao);
     setupTestData();
   }
 

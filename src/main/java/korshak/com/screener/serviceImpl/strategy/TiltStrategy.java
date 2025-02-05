@@ -197,6 +197,11 @@ public class TiltStrategy implements Strategy {
     return getSignalsLong();
   }
 
+  @Override
+  public List<Signal> getAllSignals(TimeFrame timeFrame) {
+    return List.of();
+  }
+
   public List<? extends BaseSma> getSmaList() {
     return smaList;
   }

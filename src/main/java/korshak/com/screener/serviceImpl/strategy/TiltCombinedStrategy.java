@@ -208,6 +208,11 @@ public class TiltCombinedStrategy implements Strategy {
     return allSignals;
   }
 
+  @Override
+  public List<Signal> getAllSignals(TimeFrame timeFrame) {
+    return List.of();
+  }
+
   public List<? extends BaseSma> getSmaList() {
     return smaList;
   }
