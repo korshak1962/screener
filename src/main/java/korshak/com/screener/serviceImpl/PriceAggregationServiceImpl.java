@@ -164,7 +164,7 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
       case HOUR -> TimeFrame.MIN5;
       case DAY -> TimeFrame.HOUR;
       case WEEK -> TimeFrame.DAY;
-      case MONTH -> TimeFrame.WEEK;
+      case MONTH -> TimeFrame.DAY;  // Changed from WEEK to DAY
       default ->
           throw new IllegalArgumentException("Unsupported target time frame: " + targetTimeFrame);
     };

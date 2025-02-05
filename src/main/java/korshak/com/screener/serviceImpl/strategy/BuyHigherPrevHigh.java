@@ -7,13 +7,14 @@ import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
 
-@Service("BuyCloseHigherPrevClose")
-public class BuyCloseHigherPrevClose extends BaseStrategy {
-  BasePrice pricePrev;
+@Service("BuyHigherPrevHigh")
+public class BuyHigherPrevHigh extends BaseStrategy {
 
-  public BuyCloseHigherPrevClose(PriceDao priceDao) {
+  public BuyHigherPrevHigh(PriceDao priceDao) {
     super(priceDao);
   }
+
+  BasePrice pricePrev;
 
   @Override
   public Signal getSignal(BasePrice price) {
@@ -27,12 +28,12 @@ public class BuyCloseHigherPrevClose extends BaseStrategy {
   }
 
   @Override
-   public Signal getSignal(BasePrice prevPrice,BasePrice price) {
+  public Signal getSignal(BasePrice prevPrice,BasePrice price) {
     Signal signal = null;
-    if (price.getClose() > prevPrice.getClose()) {
+    if (price.getHigh() > prevPrice.getHigh()) {
       signal = Utils.createSignal(price, SignalType.LongOpen);
     }
-    if (price.getClose() < prevPrice.getClose()) {
+    if (price.getLow() < prevPrice.getLow()) {
       signal = Utils.createSignal(price, SignalType.LongClose);
     }
     return signal;

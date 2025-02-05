@@ -18,7 +18,7 @@ import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
 import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevClose;
-import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevMax;
+import korshak.com.screener.serviceImpl.strategy.BuyHigherPrevHigh;
 import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
 import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
 import korshak.com.screener.serviceImpl.strategy.Optimizator;
@@ -64,8 +64,8 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("CombinedStrategy")
   private TiltCombinedStrategy tiltCombinedStrategy;
   @Autowired
-  @Qualifier("BuyCloseHigherPrevMax")
-  private BuyCloseHigherPrevMax buyCloseHigherPrevMax;
+  @Qualifier("BuyHigherPrevHigh")
+  private BuyHigherPrevHigh buyHigherPrevHigh;
   @Autowired
   @Qualifier("BuyCloseHigherPrevClose")
   private BuyCloseHigherPrevClose buyCloseHigherPrevClose;
@@ -101,7 +101,7 @@ public class ScreenerApplication implements CommandLineRunner {
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
 
-/*
+
     String ticker = "SPY";
 
     LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
@@ -109,19 +109,21 @@ public class ScreenerApplication implements CommandLineRunner {
 
     //initStrategy(tiltCombinedStrategy, timeFrame, ticker, startDate, endDate);
 
-    buyCloseHigherPrevClose.init(ticker, TimeFrame.WEEK, startDate, endDate);
+    buyHigherPrevHigh.init(ticker, TimeFrame.WEEK, startDate, endDate);
     strategyMerger.init(ticker,TimeFrame.DAY,startDate,endDate);
-    strategyMerger.addStrategy(buyCloseHigherPrevClose);
+    strategyMerger.addStrategy(buyHigherPrevHigh);
     evaluateStrategy(strategyMerger);
 
- */
+
+
+
 
    // downloadSeries("SPXL", "2020-", 1, 12);
    //downloadSeries("TQQQ", "2021-", 1, 12);
     //downloadSeriesUnsafe("SPY", "2025-", 1, 2);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("SPY");
-    priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
+    //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
     // calcSMA_incremental("YY",2,100);
     //calcSMA("VALE", 2, 50);
     //calcSMA( 2, 50);

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.PriceDao;
-import korshak.com.screener.dao.PriceMin5;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.Signal;
@@ -133,31 +132,33 @@ public abstract class BaseStrategy implements Strategy {
     if (signalPrices.isEmpty()) {
       return specialTimeframeSignals;
     }
-    Iterator<? extends BasePrice> priceIterator = signalPrices.iterator();
-    BasePrice currentPrice = priceIterator.hasNext() ? priceIterator.next() : null;
-    BasePrice priceOfBackupTimeframe = priceIterator.hasNext() ? priceIterator.next() : null;
-    BasePrice nextPriceOfBackupTimeframe = priceIterator.hasNext() ? priceIterator.next() : null;
-    BasePrice aggregatedPrice = currentPrice;
+    Iterator<? extends BasePrice> signalPriceIterator = signalPrices.iterator();
+    BasePrice currentPrice = signalPriceIterator.hasNext() ? signalPriceIterator.next() : null;
+    Iterator<? extends BasePrice> backupPriceIterator = prices.iterator();
+    BasePrice priceOfBackupTimeframe =
+        backupPriceIterator.hasNext() ? backupPriceIterator.next() : null;
+    BasePrice nextPriceOfBackupTimeframe =
+        backupPriceIterator.hasNext() ? backupPriceIterator.next() : null;
+    BasePrice nextNextPriceOfBackupTimeframe =
+        backupPriceIterator.hasNext() ? backupPriceIterator.next() : null;
 
     while (currentPrice != null &&
-        currentPrice.getId().getDate().isBefore(priceOfBackupTimeframe.getId().getDate())) {
-      currentPrice = priceIterator.hasNext() ? priceIterator.next() : null;
+        currentPrice.getId().getDate().isBefore(nextPriceOfBackupTimeframe.getId().getDate())) {
+      currentPrice = signalPriceIterator.hasNext() ? signalPriceIterator.next() : null;
     }
     while (currentPrice != null) {
-      if (nextPriceOfBackupTimeframe != null
+      if (nextNextPriceOfBackupTimeframe != null
           &&
-          !currentPrice.getId().getDate().isBefore(nextPriceOfBackupTimeframe.getId().getDate())) {
-        aggregatedPrice = currentPrice;
+          !currentPrice.getId().getDate().isBefore(nextNextPriceOfBackupTimeframe.getId().getDate())) {
         priceOfBackupTimeframe = nextPriceOfBackupTimeframe;
-        nextPriceOfBackupTimeframe = priceIterator.hasNext() ? priceIterator.next() : null;
-      } else {
-        aggregatedPrice = aggregatePrices(aggregatedPrice, currentPrice);
+        nextPriceOfBackupTimeframe = nextNextPriceOfBackupTimeframe;
+        nextNextPriceOfBackupTimeframe=  backupPriceIterator.hasNext() ? backupPriceIterator.next() : null;
       }
       Signal specialSignal = getSignal(priceOfBackupTimeframe, currentPrice);
       if (specialSignal != null) {
         specialTimeframeSignals.add(specialSignal);
       }
-      currentPrice = priceIterator.hasNext() ? priceIterator.next() : null;
+      currentPrice = signalPriceIterator.hasNext() ? signalPriceIterator.next() : null;
     }
     return specialTimeframeSignals;
   }
@@ -184,16 +185,5 @@ public abstract class BaseStrategy implements Strategy {
       }
     }
     return currentPrice;
-  }
-
-  private BasePrice aggregatePrices(BasePrice existing, BasePrice newPrice) {
-    PriceMin5 aggregated = new PriceMin5();
-    aggregated.setId(newPrice.getId());
-    aggregated.setOpen(existing.getOpen());
-    aggregated.setHigh(Math.max(existing.getHigh(), newPrice.getHigh()));
-    aggregated.setLow(Math.min(existing.getLow(), newPrice.getLow()));
-    aggregated.setClose(newPrice.getClose());
-    aggregated.setVolume(existing.getVolume() + newPrice.getVolume());
-    return aggregated;
   }
 }
