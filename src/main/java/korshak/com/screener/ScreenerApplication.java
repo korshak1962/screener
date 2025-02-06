@@ -107,19 +107,19 @@ public class ScreenerApplication implements CommandLineRunner {
     LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0);
 
-    //initStrategy(tiltCombinedStrategy, timeFrame, ticker, startDate, endDate);
+    initStrategy(tiltCombinedStrategy, TimeFrame.DAY, ticker, startDate, endDate);
 
-    buyHigherPrevHigh.init(ticker, TimeFrame.WEEK, startDate, endDate);
+   // buyHigherPrevHigh.init(ticker, TimeFrame.WEEK, startDate, endDate);
     strategyMerger.init(ticker,TimeFrame.DAY,startDate,endDate);
-    strategyMerger.addStrategy(buyHigherPrevHigh);
+    strategyMerger.addStrategy(tiltCombinedStrategy);
     evaluateStrategy(strategyMerger);
 
 
 
 
 
-   // downloadSeries("SPXL", "2020-", 1, 12);
-   //downloadSeries("TQQQ", "2021-", 1, 12);
+    //downloadSeries("SPXL", "2019-", 1, 12);
+   //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("SPY", "2025-", 1, 2);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("SPY");
@@ -172,9 +172,10 @@ public class ScreenerApplication implements CommandLineRunner {
             strategy.getTimeFrame());
     System.out.println(strategy.StrategyName() + " result: " + strategyResultTilt);
     System.out.println(buyAndHoldStrategy.StrategyName() + " result: " + buyAndHoldstrategyResult);
-  /*
+
     ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesLong(),
         "trades_long.xlsx");
+        /*
     ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesShort(),
         "trades_short.xlsx");
 

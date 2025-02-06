@@ -4,6 +4,7 @@ public class Trade {
   private final Signal open;
   private final Signal close;
   private Double pnl = null;
+  private double maxPainPercent;
 
   public Trade(Signal open, Signal close) {
     this.open = open;
@@ -24,5 +25,13 @@ public class Trade {
 
   public Signal getClose() {
     return close;
+  }
+
+  public double getMaxPainPercent() {
+    return maxPainPercent;
+  }
+
+ public void setMaxPainPercent(double maxPainPercent) {
+    this.maxPainPercent = maxPainPercent;
   }
 }

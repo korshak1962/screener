@@ -31,7 +31,8 @@ public class ExcelExportService {
       Row headerRow = sheet.createRow(0);
       String[] headers = {
           "Open Date", "Open Price", "Close Date", "Close Price",
-          "PnL", "Duration (days)", "Return %", "tilt open", "tilt close", "trend tilt open", "trend tilt close"
+          "PnL", "Duration (days)", "Return %","max possible loss %", "tilt open", "tilt close",
+          "trend tilt open", "trend tilt close"
       };
 
       CellStyle headerStyle = createHeaderStyle(workbook);
@@ -80,6 +81,10 @@ public class ExcelExportService {
         double returnPercent = trade.getPnl() / trade.getOpen().getPrice();
         returnCell.setCellValue(returnPercent);
         returnCell.setCellStyle(percentStyle);
+
+        Cell posLossCell = row.createCell(7);
+        posLossCell.setCellValue(trade.getMaxPainPercent());
+        posLossCell.setCellStyle(numberStyle);
 
         if (trade.getOpen() instanceof SignalTilt) {
           SignalTilt signalTiltOpen = (SignalTilt) trade.getOpen();

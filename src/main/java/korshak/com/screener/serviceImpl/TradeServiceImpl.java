@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 public class TradeServiceImpl implements TradeService {
   Map<String, NavigableMap<LocalDateTime, Double>> indicators = new HashMap<>();
 
+  List<Trade> tradesLong;
+
   @Override
   /**
    * Calculate profit/loss and maximum drawdown from a list of trades
@@ -41,10 +43,10 @@ public class TradeServiceImpl implements TradeService {
 
   @Override
   public StrategyResult calculateProfitAndDrawdownLong(Strategy strategy) {
+    tradesLong = new ArrayList<>();
     double longPnL = 0;
     TreeMap<LocalDateTime, Double> currentPnL = new TreeMap<>();
     Map<LocalDateTime, Double> minLongPnl = new HashMap<>();
-    List<Trade> tradesLong = new ArrayList<>();
     //========================= temporary
     if (strategy.getSignalsLong().getLast().getSignalType() == SignalType.LongOpen){
       SignalTilt signal = new SignalTilt(strategy.getPrices().getLast().getId().getDate(),
@@ -72,7 +74,8 @@ public class TradeServiceImpl implements TradeService {
       prevSignal = currentSignal;
     }
 
-    double maxPossibleLoss = calcMaxPossibleLoss(strategy.getPrices());
+    double maxPossibleLoss = calcMaxPossibleLossLong();
+    calculateMaxPainPercentages(tradesLong, strategy.getPrices());
     indicators.put("long PnL", currentPnL);
     return new StrategyResult(strategy.getPrices(), longPnL, 0,
         longPnL, minLongPnl, Map.of(), tradesLong,
@@ -105,15 +108,57 @@ public class TradeServiceImpl implements TradeService {
       }
       prevSignal = currentSignal;
     }
-    double maxPossibleLoss = calcMaxPossibleLoss(strategy.getPrices());
+    double maxPossibleLoss = calcMaxPossibleLossLong();
     indicators.put("current PnL", currentPnL);
     return new StrategyResult(strategy.getPrices(), 0, shortPnL,
         shortPnL, Map.of(), minShortPnl, List.of(),
         tradesShort, strategy.getSignalsShort(), maxPossibleLoss, indicators);
   }
 
-  double calcMaxPossibleLoss(List<? extends BasePrice> prices) {
-    BasePrice minPrice = prices.stream().min(Comparator.comparing(BasePrice::getClose)).get();
-    return minPrice.getClose() - prices.getFirst().getClose();
+  double calcMaxPossibleLossLong() {
+    double cumulativePnL = 0;
+    double maxLoss = 0;
+    for (Trade trade : tradesLong) {
+      cumulativePnL += trade.getPnl();
+      if (cumulativePnL < maxLoss) {
+        maxLoss = cumulativePnL;
+      }
+    }
+      return maxLoss;
+  }
+  /**
+   * Calculates maximum pain percentage for each trade based on minimum price during trade duration
+   * @param trades List of trades ordered by time
+   * @param prices List of prices ordered by time
+   */
+  public static void calculateMaxPainPercentages(List<Trade> trades, List<? extends BasePrice> prices) {
+    if (trades == null || trades.isEmpty() || prices == null || prices.isEmpty()) {
+      return;
+    }
+    int priceIndex = 0;
+    for (Trade trade : trades) {
+      LocalDateTime tradeStartTime = trade.getOpen().getDate();
+      LocalDateTime tradeEndTime = trade.getClose().getDate();
+      double openPrice = trade.getOpen().getPrice();
+      // Find start index for this trade's time range
+      while (priceIndex < prices.size() &&
+          prices.get(priceIndex).getId().getDate().isBefore(tradeStartTime)) {
+        priceIndex++;
+      }
+      // Find minimum price during trade duration
+      double minPrice = prices.get(priceIndex).getClose();
+      int currentIndex = priceIndex;
+      while (currentIndex < prices.size()) {
+        BasePrice price = prices.get(currentIndex);
+        LocalDateTime priceTime = price.getId().getDate();
+        if (priceTime.isAfter(tradeEndTime)) {
+          break;
+        }
+        minPrice = Math.min(minPrice, price.getLow());
+        currentIndex++;
+      }
+        double maxPainPercent = ((openPrice - minPrice) / openPrice) * 100.0;
+        trade.setMaxPainPercent(maxPainPercent);
+    }
   }
 }
