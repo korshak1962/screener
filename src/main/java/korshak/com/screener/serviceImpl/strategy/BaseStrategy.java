@@ -63,7 +63,7 @@ public abstract class BaseStrategy implements Strategy {
 
   public abstract Signal getSignal(BasePrice price);
 
-  public abstract Signal getSignal(BasePrice prevPrice, BasePrice price);
+  public abstract Signal getSignal(BasePrice priceOfBackupTimeframe, BasePrice price);
 
   @Override
   public TimeFrame getTimeFrame() {
@@ -163,13 +163,13 @@ public abstract class BaseStrategy implements Strategy {
     return specialTimeframeSignals;
   }
 
-  List<BasePrice> getPricesForTimeframe(TimeFrame specialTimeFrame) {
+  List<BasePrice> getPricesForTimeframe(TimeFrame signalTimeFrame) {
     // Get prices for the special timeframe
     List<? extends BasePrice> specialPrices = priceDao.findByDateRange(
         ticker,
         prices.getFirst().getId().getDate(),
         endDate,
-        specialTimeFrame
+        signalTimeFrame
     );
     return (List<BasePrice>) specialPrices;
   }

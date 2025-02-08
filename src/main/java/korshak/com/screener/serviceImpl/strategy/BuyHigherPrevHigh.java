@@ -28,12 +28,12 @@ public class BuyHigherPrevHigh extends BaseStrategy {
   }
 
   @Override
-  public Signal getSignal(BasePrice prevPrice,BasePrice price) {
+  public Signal getSignal(BasePrice priceOfBackupTimeframe,BasePrice price) {
     Signal signal = null;
-    if (price.getHigh() > prevPrice.getHigh()) {
+    if (price.getHigh() > priceOfBackupTimeframe.getHigh()) {
       signal = Utils.createSignal(price, SignalType.LongOpen);
     }
-    if (price.getLow() < prevPrice.getLow()) {
+    if (price.getLow() < priceOfBackupTimeframe.getLow()) {
       signal = Utils.createSignal(price, SignalType.LongClose);
     }
     return signal;

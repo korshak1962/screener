@@ -25,6 +25,7 @@ import korshak.com.screener.serviceImpl.strategy.Optimizator;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
+import korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.TiltStrategy;
 import korshak.com.screener.utils.ExcelExportService;
 import korshak.com.screener.utils.Utils;
@@ -63,6 +64,9 @@ public class ScreenerApplication implements CommandLineRunner {
   @Autowired
   @Qualifier("CombinedStrategy")
   private TiltCombinedStrategy tiltCombinedStrategy;
+  @Autowired
+  @Qualifier("TiltFromBaseStrategy")
+  private TiltFromBaseStrategy tiltFromBaseStrategy;
   @Autowired
   @Qualifier("BuyHigherPrevHigh")
   private BuyHigherPrevHigh buyHigherPrevHigh;
@@ -107,11 +111,11 @@ public class ScreenerApplication implements CommandLineRunner {
     LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0);
 
-    initStrategy(tiltCombinedStrategy, TimeFrame.DAY, ticker, startDate, endDate);
+    initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate);
 
    // buyHigherPrevHigh.init(ticker, TimeFrame.WEEK, startDate, endDate);
     strategyMerger.init(ticker,TimeFrame.DAY,startDate,endDate);
-    strategyMerger.addStrategy(tiltCombinedStrategy);
+    strategyMerger.addStrategy(tiltFromBaseStrategy);
     evaluateStrategy(strategyMerger);
 
 
@@ -152,6 +156,17 @@ public class ScreenerApplication implements CommandLineRunner {
     return tiltStrategy;
   }
 
+  private TiltFromBaseStrategy initStrategy(TiltFromBaseStrategy tiltStrategy, TimeFrame timeFrame, String ticker,
+                                            LocalDateTime startDate,
+                                            LocalDateTime endDate) {
+    tiltStrategy.init(ticker, timeFrame, startDate, endDate);
+    tiltStrategy.setLength(9);
+    tiltStrategy.setTiltBuy(0.02);
+    tiltStrategy.setTiltSell(-0.02);
+    tiltStrategy.calcSignals();
+    return tiltStrategy;
+  }
+
   private DoubleTiltStrategy initStrategy(DoubleTiltStrategy doubleTiltStrategy) {
     return doubleTiltStrategy;
   }
@@ -173,9 +188,10 @@ public class ScreenerApplication implements CommandLineRunner {
     System.out.println(strategy.StrategyName() + " result: " + strategyResultTilt);
     System.out.println(buyAndHoldStrategy.StrategyName() + " result: " + buyAndHoldstrategyResult);
 
+    /*
     ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesLong(),
         "trades_long.xlsx");
-        /*
+
     ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesShort(),
         "trades_short.xlsx");
 

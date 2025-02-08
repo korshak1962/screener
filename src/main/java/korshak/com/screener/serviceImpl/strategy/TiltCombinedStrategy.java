@@ -144,6 +144,7 @@ public class TiltCombinedStrategy implements Strategy {
           "Tilt buy threshold must be greater than tilt sell threshold");
     }
     this.tiltBuy = tiltBuy;
+   if(!allSignals.isEmpty()) {calcSignals();}
   }
 
   public double getTiltSell() {
@@ -156,6 +157,7 @@ public class TiltCombinedStrategy implements Strategy {
           "Tilt sell threshold must be less than tilt buy threshold");
     }
     this.tiltSell = tiltSell;
+    if(!allSignals.isEmpty()) {calcSignals();}
   }
 
   public int getLength() {
@@ -182,6 +184,7 @@ public class TiltCombinedStrategy implements Strategy {
             sma -> sma.getId().getDate(),
             sma -> sma
         ));
+    if(!allSignals.isEmpty()) {calcSignals();}
   }
 
   public TimeFrame getTimeFrame() {
