@@ -13,14 +13,14 @@ public class StopLossPercentStrategy extends BaseStrategy{
     super(priceDao);
   }
   BasePrice pricePrev;
-  double stopLossPercent = .97;
+  double stopLossPercent = .03;
   @Override
   public Signal getSignal(BasePrice price) {
     if (pricePrev == null) {
       pricePrev = price;
       return null;
     }
-    if ((price.getLow() - pricePrev.getLow()) < stopLossPercent*pricePrev.getLow()) {
+    if ((price.getLow() - pricePrev.getLow()) < -stopLossPercent*pricePrev.getLow()) {
       pricePrev = price;
       return Utils.createSignal(price, SignalType.LongClose);
     }

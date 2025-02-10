@@ -1,0 +1,77 @@
+package korshak.com.screener.serviceImpl.strategy;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.dao.Trend;
+import korshak.com.screener.dao.TrendRepository;
+import korshak.com.screener.service.strategy.Strategy;
+import korshak.com.screener.utils.Utils;
+import korshak.com.screener.vo.Signal;
+import korshak.com.screener.vo.SignalType;
+import org.springframework.stereotype.Service;
+
+@Service("StopLossLessThanPrevMinExtremumStrategy")
+public class StopLossLessThanPrevMinExtremumStrategy extends BaseStrategy {
+  TrendRepository trendRepository;
+  List<Trend> trends;
+  int deepOfStopLoss = 2;
+  List<Double> recentExtremes = new LinkedList<>();
+  int iTrends = 0;
+
+  public StopLossLessThanPrevMinExtremumStrategy(PriceDao priceDao,
+                                                 TrendRepository trendRepository) {
+    super(priceDao);
+    this.trendRepository = trendRepository;
+  }
+
+  @Override
+  public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+                       LocalDateTime endDate) {
+    super.init(ticker, timeFrame, startDate, endDate);
+    trends = trendRepository.findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc(ticker,
+        timeFrame, startDate, endDate);
+    for (iTrends = 0; iTrends < deepOfStopLoss; iTrends++) {
+      recentExtremes.add(trends.get(iTrends).getExtremum());
+    }
+    return this;
+  }
+
+  @Override
+  public Signal getSignal(BasePrice price) {
+    if (trends.get(iTrends).getId().getDate().isAfter(price.getId().getDate())) {
+      return null;
+    }
+    if (price.getLow() < Collections.min(recentExtremes)) {
+      iterateOverTrend();
+      return Utils.createSignal(price, SignalType.LongClose);
+    }
+    iterateOverTrend();
+    return null;
+  }
+
+  private void iterateOverTrend() {
+    recentExtremes.remove(0);
+    recentExtremes.add(trends.get(iTrends).getExtremum());
+    if (iTrends < trends.size() - 1) {
+      iTrends++;
+    }
+  }
+
+  @Override
+  public Signal getSignal(BasePrice priceOfBackupTimeframe, BasePrice price) {
+    return getSignal(price);
+  }
+
+  public int getDeepOfStopLoss() {
+    return deepOfStopLoss;
+  }
+
+  public void setDeepOfStopLoss(int deepOfStopLoss) {
+    this.deepOfStopLoss = deepOfStopLoss;
+  }
+}

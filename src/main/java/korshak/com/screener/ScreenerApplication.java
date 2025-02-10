@@ -23,6 +23,7 @@ import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
 import korshak.com.screener.serviceImpl.strategy.Optimizator;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
+import korshak.com.screener.serviceImpl.strategy.StopLossLessThanPrevMinExtremumStrategy;
 import korshak.com.screener.serviceImpl.strategy.StopLossPercentStrategy;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
 import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
@@ -72,6 +73,9 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("StopLossPercentStrategy")
   StopLossPercentStrategy stopLossPercentStrategy;
   @Autowired
+  @Qualifier("StopLossLessThanPrevMinExtremumStrategy")
+  StopLossLessThanPrevMinExtremumStrategy stopLossLessThanPrevMinExtremumStrategy;
+  @Autowired
   @Qualifier("BuyHigherPrevHigh")
   private BuyHigherPrevHigh buyHigherPrevHigh;
   @Autowired
@@ -110,18 +114,21 @@ public class ScreenerApplication implements CommandLineRunner {
     //   evaluateDoubleTiltStrategyMinusDownTrend();
 
 
-    String ticker = "SPXL";
+    String ticker = "SPY";
 
-    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2019, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
 
     strategyMerger
         .init(ticker, TimeFrame.DAY, startDate, endDate)
-        .addStrategy(stopLossPercentStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
-        .addStrategy(initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate));
+        .addStrategy(stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
+        .addStrategy(initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate))
+        ;
     evaluateStrategy(strategyMerger);
 
-    downloadSeries("SPXL", "2019-", 1, 12);
+
+
+  //  downloadSeries("SPXL", "2019-", 1, 12);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("SPY", "2025-", 2, 2);
     //priceAggregationService.aggregateAllTickers();
@@ -130,7 +137,7 @@ public class ScreenerApplication implements CommandLineRunner {
     // calcSMA_incremental("YY",2,100);
     //calcSMA("SPXL", 2, 50);
     //calcSMA( 2, 50);
-    // trendService.calculateAndStorePriceTrend("SPY",TimeFrame.WEEK);
+    //trendService.calculateAndStorePriceTrend("SPY",TimeFrame.DAY);
     System.exit(0);
   }
 

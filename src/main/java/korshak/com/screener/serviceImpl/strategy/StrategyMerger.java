@@ -14,10 +14,13 @@ import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
+import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
 
 @Service("StrategyMerger")
 public class StrategyMerger implements Strategy {
+
+  double stopLossMaxPercent = .97;
 
   Map<String, Strategy> nameToStrategy = new HashMap<>();
   TimeFrame timeFrame;
@@ -143,6 +146,15 @@ public class StrategyMerger implements Strategy {
   public void mergeSignals() {
     Signal lastSignal = null;
     for (BasePrice price : prices) {
+      // stopLoss
+      if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen &&
+          price.getLow() < stopLossMaxPercent * lastSignal.getPrice()) {
+        Signal signalStopLoss = Utils.createSignal(price, SignalType.LongClose);
+        lastSignal =
+            Utils.fillLongShortLists(signalStopLoss, lastSignal, signalsShort, signalsLong);
+        continue;
+      }
+
       List<Signal> signalsForPrice = dateToSignals.get(price.getId().getDate());
       //  decision make
       if (signalsForPrice == null || signalsForPrice.isEmpty()) {
@@ -152,5 +164,13 @@ public class StrategyMerger implements Strategy {
           Comparator.comparingInt(sgnal -> sgnal.getSignalType().value));
       lastSignal = Utils.fillLongShortLists(signalMin, lastSignal, signalsShort, signalsLong);
     }
+  }
+
+  public double getStopLossMaxPercent() {
+    return stopLossMaxPercent;
+  }
+
+  public void setStopLossMaxPercent(double stopLossMaxPercent) {
+    this.stopLossMaxPercent = stopLossMaxPercent;
   }
 }
