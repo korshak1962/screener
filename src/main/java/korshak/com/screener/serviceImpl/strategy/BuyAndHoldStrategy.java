@@ -41,7 +41,7 @@ public class BuyAndHoldStrategy implements Strategy {
   }
 
   @Override
-  public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+  public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                    LocalDateTime endDate) {
     this.ticker=ticker;
     this.prices = priceDao.findByDateRange(
@@ -54,6 +54,7 @@ public class BuyAndHoldStrategy implements Strategy {
         SignalType.LongOpen));
     signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(),
         SignalType.LongClose));
+    return this;
   }
 
   @Override

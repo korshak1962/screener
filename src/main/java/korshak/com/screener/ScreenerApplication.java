@@ -19,12 +19,13 @@ import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
 import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevClose;
 import korshak.com.screener.serviceImpl.strategy.BuyHigherPrevHigh;
-import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
 import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
 import korshak.com.screener.serviceImpl.strategy.Optimizator;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
+import korshak.com.screener.serviceImpl.strategy.StopLossPercentStrategy;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
+import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
 import korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.TiltStrategy;
 import korshak.com.screener.utils.ExcelExportService;
@@ -68,6 +69,9 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("TiltFromBaseStrategy")
   private TiltFromBaseStrategy tiltFromBaseStrategy;
   @Autowired
+  @Qualifier("StopLossPercentStrategy")
+  StopLossPercentStrategy stopLossPercentStrategy;
+  @Autowired
   @Qualifier("BuyHigherPrevHigh")
   private BuyHigherPrevHigh buyHigherPrevHigh;
   @Autowired
@@ -106,30 +110,25 @@ public class ScreenerApplication implements CommandLineRunner {
     //   evaluateDoubleTiltStrategyMinusDownTrend();
 
 
-    String ticker = "SPY";
+    String ticker = "SPXL";
 
     LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
 
-    initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate);
-
-   // buyHigherPrevHigh.init(ticker, TimeFrame.WEEK, startDate, endDate);
-    strategyMerger.init(ticker,TimeFrame.DAY,startDate,endDate);
-    strategyMerger.addStrategy(tiltFromBaseStrategy);
+    strategyMerger
+        .init(ticker, TimeFrame.DAY, startDate, endDate)
+        .addStrategy(stopLossPercentStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
+        .addStrategy(initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate));
     evaluateStrategy(strategyMerger);
 
-
-
-
-
-    //downloadSeries("SPXL", "2019-", 1, 12);
-   //downloadSeries("TQQQ", "2024-", 1, 12);
-    //downloadSeriesUnsafe("SPY", "2025-", 1, 2);
+    downloadSeries("SPXL", "2019-", 1, 12);
+    //downloadSeries("TQQQ", "2024-", 1, 12);
+    //downloadSeriesUnsafe("SPY", "2025-", 2, 2);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("SPY");
     //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
     // calcSMA_incremental("YY",2,100);
-    //calcSMA("VALE", 2, 50);
+    //calcSMA("SPXL", 2, 50);
     //calcSMA( 2, 50);
     // trendService.calculateAndStorePriceTrend("SPY",TimeFrame.WEEK);
     System.exit(0);
@@ -145,7 +144,8 @@ public class ScreenerApplication implements CommandLineRunner {
     return tiltStrategy;
   }
 
-  private TiltCombinedStrategy initStrategy(TiltCombinedStrategy tiltStrategy, TimeFrame timeFrame, String ticker,
+  private TiltCombinedStrategy initStrategy(TiltCombinedStrategy tiltStrategy, TimeFrame timeFrame,
+                                            String ticker,
                                             LocalDateTime startDate,
                                             LocalDateTime endDate) {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
@@ -156,7 +156,8 @@ public class ScreenerApplication implements CommandLineRunner {
     return tiltStrategy;
   }
 
-  private TiltFromBaseStrategy initStrategy(TiltFromBaseStrategy tiltStrategy, TimeFrame timeFrame, String ticker,
+  private TiltFromBaseStrategy initStrategy(TiltFromBaseStrategy tiltStrategy, TimeFrame timeFrame,
+                                            String ticker,
                                             LocalDateTime startDate,
                                             LocalDateTime endDate) {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
@@ -273,7 +274,8 @@ public class ScreenerApplication implements CommandLineRunner {
     System.out.println(
         buyAndHoldStrategyMinusDownTrend.StrategyName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
-    ChartService chartService = new ChartServiceImpl(buyAndHoldStrategyMinusDownTrend.StrategyName());
+    ChartService chartService =
+        new ChartServiceImpl(buyAndHoldStrategyMinusDownTrend.StrategyName());
 
 
     Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();

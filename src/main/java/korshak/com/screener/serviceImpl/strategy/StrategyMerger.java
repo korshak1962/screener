@@ -49,8 +49,8 @@ public class StrategyMerger implements Strategy {
   }
 
   @Override
-  public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
-                   LocalDateTime endDate) {
+  public StrategyMerger init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+                             LocalDateTime endDate) {
     this.timeFrame = timeFrame;
     this.ticker = ticker;
     this.startDate = startDate;
@@ -61,7 +61,7 @@ public class StrategyMerger implements Strategy {
         endDate,
         timeFrame
     );
-
+    return this;
   }
 
   @Override
@@ -120,7 +120,7 @@ public class StrategyMerger implements Strategy {
     return List.of();
   }
 
-  public void addStrategy(Strategy strategy) {
+  public StrategyMerger addStrategy(Strategy strategy) {
     nameToStrategy.put(strategy.StrategyName(), strategy);
     List<? extends Signal> signalsOfStrategy = strategy.getAllSignals(timeFrame);
     if (signalsOfStrategy.isEmpty()) {
@@ -129,9 +129,11 @@ public class StrategyMerger implements Strategy {
     signalsOfStrategy.forEach(signal -> {
       if (!dateToSignals.containsKey(signal.getDate())) {
         dateToSignals.put(signal.getDate(), new ArrayList<>());
+      } else {
+        dateToSignals.get(signal.getDate()).add(signal);
       }
-      dateToSignals.get(signal.getDate()).add(signal);
     });
+    return this;
   }
 
   public Map<String, Strategy> getNameToStrategy() {

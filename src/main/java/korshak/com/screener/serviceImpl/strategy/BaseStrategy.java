@@ -28,7 +28,7 @@ public abstract class BaseStrategy implements Strategy {
   }
 
   @Override
-  public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+  public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                    LocalDateTime endDate) {
     this.timeFrame = timeFrame;
     this.ticker = ticker;
@@ -40,6 +40,7 @@ public abstract class BaseStrategy implements Strategy {
         endDate,
         timeFrame
     );
+    return this;
   }
 
   @Override

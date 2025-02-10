@@ -190,11 +190,12 @@ public class DoubleTiltStrategy implements Strategy {
   }
 
   @Override
-  public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate) {
+  public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate) {
     this.ticker = ticker;
     this.timeFrame = timeFrame;
     this.startDate = startDate;
     this.endDate = endDate;
+    return this;
   }
 
   public String StrategyName() {

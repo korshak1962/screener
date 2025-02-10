@@ -11,7 +11,7 @@ import korshak.com.screener.vo.Signal;
 public interface Strategy {
   List<? extends Signal> getSignalsLong();
   List<? extends Signal> getSignalsShort();
-void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate);
+Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate);
   String StrategyName();
   List<? extends BasePrice> getPrices();
   Map<String, NavigableMap<LocalDateTime, Double>> getIndicators();
