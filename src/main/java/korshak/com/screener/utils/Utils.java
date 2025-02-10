@@ -130,4 +130,11 @@ public class Utils {
         price.getClose(),
         longOpen);
   }
+
+  public static Signal createSignal(BasePrice price, SignalType longOpen, double precizePrice) {
+    return new Signal(
+        price.getId().getDate(),
+        precizePrice,
+        longOpen);
+  }
 }

@@ -46,9 +46,12 @@ public class StopLossLessThanPrevMinExtremumStrategy extends BaseStrategy {
     if (trends.get(iTrends).getId().getDate().isAfter(price.getId().getDate())) {
       return null;
     }
-    if (price.getLow() < Collections.min(recentExtremes)) {
+    Double prevLow = Collections.min(recentExtremes);
+    if (price.getLow() < prevLow) {
       iterateOverTrend();
-      return Utils.createSignal(price, SignalType.LongClose);
+      Signal signal = Utils.createSignal(price, SignalType.LongClose, prevLow);
+      signal.setComment("close cause less than prevLow = " + prevLow);
+      return signal;
     }
     iterateOverTrend();
     return null;

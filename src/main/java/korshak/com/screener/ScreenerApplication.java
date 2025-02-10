@@ -116,19 +116,20 @@ public class ScreenerApplication implements CommandLineRunner {
 
     String ticker = "SPY";
 
-    LocalDateTime startDate = LocalDateTime.of(2019, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.NOVEMBER, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
 
     strategyMerger
+        .setStopLossMaxPercent(.97)
         .init(ticker, TimeFrame.DAY, startDate, endDate)
-        .addStrategy(stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
+        .addStrategy(
+            stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
         .addStrategy(initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate))
-        ;
+    ;
     evaluateStrategy(strategyMerger);
 
 
-
-  //  downloadSeries("SPXL", "2019-", 1, 12);
+    //  downloadSeries("SPXL", "2019-", 1, 12);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("SPY", "2025-", 2, 2);
     //priceAggregationService.aggregateAllTickers();

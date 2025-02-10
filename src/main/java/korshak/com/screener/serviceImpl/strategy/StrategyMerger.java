@@ -132,9 +132,8 @@ public class StrategyMerger implements Strategy {
     signalsOfStrategy.forEach(signal -> {
       if (!dateToSignals.containsKey(signal.getDate())) {
         dateToSignals.put(signal.getDate(), new ArrayList<>());
-      } else {
-        dateToSignals.get(signal.getDate()).add(signal);
       }
+      dateToSignals.get(signal.getDate()).add(signal);
     });
     return this;
   }
@@ -146,31 +145,49 @@ public class StrategyMerger implements Strategy {
   public void mergeSignals() {
     Signal lastSignal = null;
     for (BasePrice price : prices) {
-      // stopLoss
-      if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen &&
-          price.getLow() < stopLossMaxPercent * lastSignal.getPrice()) {
-        Signal signalStopLoss = Utils.createSignal(price, SignalType.LongClose);
-        lastSignal =
-            Utils.fillLongShortLists(signalStopLoss, lastSignal, signalsShort, signalsLong);
-        continue;
-      }
-
-      List<Signal> signalsForPrice = dateToSignals.get(price.getId().getDate());
-      //  decision make
+      List<Signal> signalsForPrice = getSignalsWithStopLoss(price, lastSignal);
       if (signalsForPrice == null || signalsForPrice.isEmpty()) {
         continue;
       }
-      Signal signalMin = Collections.min(signalsForPrice,
-          Comparator.comparingInt(sgnal -> sgnal.getSignalType().value));
+      Signal signalMin = Collections.min(signalsForPrice, signalComparator);
       lastSignal = Utils.fillLongShortLists(signalMin, lastSignal, signalsShort, signalsLong);
     }
+  }
+
+  private List<Signal> getSignalsWithStopLoss(BasePrice price, Signal lastSignal) {
+    // stopLoss
+    Signal signalStopLoss = null;
+    if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen &&
+        price.getLow() < stopLossMaxPercent * lastSignal.getPrice()) {
+      signalStopLoss = Utils.createSignal(price, SignalType.LongClose,
+          stopLossMaxPercent * lastSignal.getPrice());
+    }
+    List<Signal> signalsForPrice = dateToSignals.get(price.getId().getDate());
+    if (signalStopLoss != null) {
+      if (signalsForPrice == null) {
+        signalsForPrice = new ArrayList<>();
+      }
+      signalsForPrice.add(signalStopLoss);
+    }
+    return signalsForPrice;
   }
 
   public double getStopLossMaxPercent() {
     return stopLossMaxPercent;
   }
 
-  public void setStopLossMaxPercent(double stopLossMaxPercent) {
+  public StrategyMerger setStopLossMaxPercent(double stopLossMaxPercent) {
     this.stopLossMaxPercent = stopLossMaxPercent;
+    return this;
   }
+
+  Comparator<Signal> signalComparator = (s1, s2) -> {
+    // First compare by SignalType value
+    int valueCompare = Integer.compare(s1.getSignalType().value, s2.getSignalType().value);
+    if (valueCompare != 0) {
+      return valueCompare;
+    }
+    // If SignalType values are equal, compare by price in reverse order (to get max price)
+    return Double.compare(s2.getPrice(), s1.getPrice());
+  };
 }
