@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class StopLossLessThanPrevMinExtremumStrategy extends BaseStrategy {
   TrendRepository trendRepository;
   List<Trend> trends;
-  int deepOfStopLoss = 2;
+  int deepOfStopLoss = 1;
   List<Double> recentExtremes = new LinkedList<>();
   int iTrends = 0;
 
@@ -36,33 +36,37 @@ public class StopLossLessThanPrevMinExtremumStrategy extends BaseStrategy {
     trends = trendRepository.findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc(ticker,
         timeFrame, startDate, endDate);
     for (iTrends = 0; iTrends < deepOfStopLoss; iTrends++) {
-      recentExtremes.add(trends.get(iTrends).getExtremum());
+      recentExtremes.add(trends.get(iTrends).getMinExtremum());
     }
     return this;
   }
 
   @Override
   public Signal getSignal(BasePrice price) {
-    if (trends.get(iTrends).getId().getDate().isAfter(price.getId().getDate())) {
+    if (!trends.get(iTrends).getId().getDate().isBefore(price.getId().getDate())) {
       return null;
+    }
+    if (iTrends < trends.size() - 1
+        && trends.get(iTrends+1).getId().getDate().isBefore(price.getId().getDate())) {
+      iterateOverTrend();
     }
     Double prevLow = Collections.min(recentExtremes);
     if (price.getLow() < prevLow) {
-      iterateOverTrend();
       Signal signal = Utils.createSignal(price, SignalType.LongClose, prevLow);
       signal.setComment("close cause less than prevLow = " + prevLow);
+    //  iterateOverTrend();
       return signal;
     }
-    iterateOverTrend();
+    //iterateOverTrend();
     return null;
   }
 
   private void iterateOverTrend() {
-    recentExtremes.remove(0);
-    recentExtremes.add(trends.get(iTrends).getExtremum());
-    if (iTrends < trends.size() - 1) {
+    recentExtremes.removeFirst();
+    recentExtremes.add(trends.get(iTrends).getMinExtremum());
+   // if (iTrends < trends.size() - 1) {
       iTrends++;
-    }
+   // }
   }
 
   @Override

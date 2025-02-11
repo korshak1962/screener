@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 @Service
 public class TrendServiceImpl implements TrendService {
   private final PriceDao priceDao;
@@ -41,8 +40,14 @@ public class TrendServiceImpl implements TrendService {
 
   private List<Trend> findExtremumsAndCalculateTrends(List<? extends BasePrice> prices, String ticker, TimeFrame timeFrame) {
     List<Trend> trends = new ArrayList<>();
-    Double lastMax = prices.getFirst().getHigh();
-    Double lastMin = prices.getFirst().getLow();
+
+    // Track last confirmed extremums
+    Double lastConfirmedMax = null;
+    Double lastConfirmedMin = null;
+    LocalDateTime lastMaxDate = null;
+    LocalDateTime lastMinDate = null;
+
+    // Previous values for trend determination
     Double prevMax = null;
     Double prevMin = null;
 
@@ -52,41 +57,40 @@ public class TrendServiceImpl implements TrendService {
       BasePrice current = prices.get(i);
       BasePrice next = prices.get(i + 1);
 
+      boolean extremumFound = false;
+      int trend = 0;
+
       // Check for local maximum
       if (current.getHigh() > prev.getHigh() && current.getHigh() > next.getHigh()) {
-        int trend = 0;
-        if ( prevMax != null && prevMin != null) {
-          trend = determineTrend(current.getHigh(), lastMax, lastMin, prevMin);
-        }
-
-        Trend newMax = new Trend(
-            new TrendKey(ticker, current.getId().getDate(), timeFrame),
-            current.getHigh(),
-            trend
-        );
-        trends.add(newMax);
-
-        // Update max history
-        prevMax = lastMax;
-        lastMax = current.getHigh();
+        prevMax = lastConfirmedMax;
+        lastConfirmedMax = current.getHigh();
+        lastMaxDate = current.getId().getDate();
+        extremumFound = true;
       }
 
       // Check for local minimum
       if (current.getLow() < prev.getLow() && current.getLow() < next.getLow()) {
-        int trend = 0;
-        if ( prevMax != null && prevMin != null) {
-          trend = determineTrend(lastMax, prevMax, current.getLow(), prevMin);
-        }
-        Trend newMin = new Trend(
-            new TrendKey(ticker, current.getId().getDate(), timeFrame),
-            current.getLow(),
-            trend  // Trend is only determined at maxima
-        );
-        trends.add(newMin);
+        prevMin = lastConfirmedMin;
+        lastConfirmedMin = current.getLow();
+        lastMinDate = current.getId().getDate();
+        extremumFound = true;
+      }
 
-        // Update min history
-        prevMin = lastMin;
-        lastMin = current.getLow();
+      // If we found an extremum and have enough history, determine trend
+      if (extremumFound && prevMax != null && prevMin != null
+          && lastConfirmedMax != null && lastConfirmedMin != null) {
+        trend = determineTrend(lastConfirmedMax, prevMax, lastConfirmedMin, prevMin);
+      }
+
+      // Create trend record if we found an extremum
+      if (extremumFound) {
+        Trend newTrend = new Trend(
+            new TrendKey(ticker, current.getId().getDate(), timeFrame),
+            lastConfirmedMax,  // Always store the last confirmed maximum
+            lastConfirmedMin,  // Always store the last confirmed minimum
+            trend
+        );
+        trends.add(newTrend);
       }
     }
 

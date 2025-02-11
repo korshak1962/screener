@@ -10,15 +10,17 @@ public class Trend {
   @EmbeddedId
   private TrendKey id;
 
-  private double extremum;
+  private Double maxExtremum;
+  private Double minExtremum;
   private int trend;
 
   public Trend() {
   }
 
-  public Trend(TrendKey id, double extremum, int trend) {
+  public Trend(TrendKey id, Double maxExtremum, Double minExtremum, int trend) {
     this.id = id;
-    this.extremum = extremum;
+    this.maxExtremum = maxExtremum;
+    this.minExtremum = minExtremum;
     this.trend = trend;
   }
 
@@ -30,12 +32,20 @@ public class Trend {
     this.id = id;
   }
 
-  public double getExtremum() {
-    return extremum;
+  public Double getMaxExtremum() {
+    return maxExtremum;
   }
 
-  public void setExtremum(double extremum) {
-    this.extremum = extremum;
+  public void setMaxExtremum(Double maxExtremum) {
+    this.maxExtremum = maxExtremum;
+  }
+
+  public Double getMinExtremum() {
+    return minExtremum;
+  }
+
+  public void setMinExtremum(Double minExtremum) {
+    this.minExtremum = minExtremum;
   }
 
   public int getTrend() {

@@ -116,8 +116,8 @@ public class ScreenerApplication implements CommandLineRunner {
 
     String ticker = "SPY";
 
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.NOVEMBER, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2019, Month.JANUARY, 22, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 10, 0, 0);
 
     strategyMerger
         .setStopLossMaxPercent(.97)
@@ -197,7 +197,7 @@ public class ScreenerApplication implements CommandLineRunner {
     System.out.println(strategy.StrategyName() + " result: " + strategyResultTilt);
     System.out.println(buyAndHoldStrategy.StrategyName() + " result: " + buyAndHoldstrategyResult);
 
-    /*
+/*
     ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesLong(),
         "trades_long.xlsx");
 
