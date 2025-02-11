@@ -58,11 +58,16 @@ public class TradeServiceImpl implements TradeService {
     Iterator<? extends Signal> iteratorSignal = strategy.getSignalsLong().iterator();
     Signal prevSignal = iteratorSignal.next();
     double prevPnl;
-
+    Map<LocalDateTime, Double> worstLongTrade = new HashMap<>();
+    worstLongTrade.put(strategy.getSignalsLong().getFirst().getDate(),Double.MIN_VALUE);
     while (iteratorSignal.hasNext()) {
       Signal currentSignal = iteratorSignal.next();
       if (currentSignal.getSignalType() == SignalType.LongClose) {
         Trade trade = new Trade(prevSignal, currentSignal);
+        if (worstLongTrade.values().iterator().next() > trade.getPnl()) {
+          worstLongTrade.clear();
+          worstLongTrade.put(trade.getClose().getDate(), trade.getPnl());
+        }
         tradesLong.add(trade);
         longPnL += trade.getPnl();
         currentPnL.put(trade.getClose().getDate(), longPnL);
@@ -79,7 +84,7 @@ public class TradeServiceImpl implements TradeService {
     indicators.put("long PnL", currentPnL);
     return new StrategyResult(strategy.getPrices(), longPnL, 0,
         longPnL, minLongPnl, Map.of(), tradesLong,
-        List.of(), strategy.getSignalsLong(), maxPossibleLoss, indicators);
+        List.of(), strategy.getSignalsLong(), maxPossibleLoss, indicators,worstLongTrade);
   }
 
   @Override
@@ -112,7 +117,7 @@ public class TradeServiceImpl implements TradeService {
     indicators.put("current PnL", currentPnL);
     return new StrategyResult(strategy.getPrices(), 0, shortPnL,
         shortPnL, Map.of(), minShortPnl, List.of(),
-        tradesShort, strategy.getSignalsShort(), maxPossibleLoss, indicators);
+        tradesShort, strategy.getSignalsShort(), maxPossibleLoss, indicators,Map.of());
   }
 
   double calcMaxPossibleLossLong() {

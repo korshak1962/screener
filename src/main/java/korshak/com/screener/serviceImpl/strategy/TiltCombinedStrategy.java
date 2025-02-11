@@ -110,7 +110,7 @@ public class TiltCombinedStrategy implements Strategy {
   }
 
   @Override
-  public String StrategyName() {
+  public String getStrategyName() {
     return "TiltCombinedStrategy";
   }
 

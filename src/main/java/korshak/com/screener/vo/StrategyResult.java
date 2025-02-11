@@ -13,7 +13,8 @@ public class StrategyResult {
   private final double shortPnL;
   private final double totalPnL;
   private final double maxPossibleLoss;
-  private final Map<LocalDateTime, Double> minLongPnl;
+  private final Map<LocalDateTime, Double> minLongPnl; // the minimum profit or max loss
+  private final Map<LocalDateTime, Double> worstLongTrade;
   private final Map<LocalDateTime, Double> minShortPnl;
   private final List<Trade> tradesLong;
   private final List<Trade> tradesShort;
@@ -26,7 +27,8 @@ public class StrategyResult {
                         Map<LocalDateTime, Double> minShortPnl, List<Trade> tradesLong,
                         List<Trade> tradesShort, List<? extends Signal> signals,
                         double maxPossibleLoss,
-                        Map<String, NavigableMap<LocalDateTime, Double>> indicators) {
+                        Map<String, NavigableMap<LocalDateTime, Double>> indicators,
+                        Map<LocalDateTime, Double> worstLongTrade) {
     this.prices = prices;
     this.longPnL = longPnL;
     this.shortPnL = shortPnL;
@@ -38,6 +40,7 @@ public class StrategyResult {
     this.tradesShort = tradesShort;
     this.signals = signals;
     this.indicators = indicators;
+    this.worstLongTrade = worstLongTrade;
   }
 
   @Override
@@ -48,6 +51,7 @@ public class StrategyResult {
         ", totalPnL=" + totalPnL +
 
         ", minLongPnl=" + minLongPnl +
+        ", worstLongTrade=" + worstLongTrade +
         ", minShortPnl=" + minShortPnl +
         ", AnnualPercentageReturnLong =" + getAnnualPercentageReturnLong() +
         ", maxPossibleLossIfBuyAndHold=" + maxPossibleLoss +

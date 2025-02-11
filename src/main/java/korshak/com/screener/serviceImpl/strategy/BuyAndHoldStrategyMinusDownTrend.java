@@ -17,7 +17,7 @@ public class BuyAndHoldStrategyMinusDownTrend extends DoubleTiltStrategy {
   }
 
   @Override
-  public String StrategyName() {
+  public String getStrategyName() {
     return "BuyandHoldMinusDownTrend";
   }
 

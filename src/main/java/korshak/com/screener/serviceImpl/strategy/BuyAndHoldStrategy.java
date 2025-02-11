@@ -58,7 +58,7 @@ public class BuyAndHoldStrategy implements Strategy {
   }
 
   @Override
-  public String StrategyName() {
+  public String getStrategyName() {
     return this.getClass().getName();
   }
 

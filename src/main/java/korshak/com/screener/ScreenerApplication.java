@@ -114,22 +114,24 @@ public class ScreenerApplication implements CommandLineRunner {
     //   evaluateDoubleTiltStrategyMinusDownTrend();
 
 
-    String ticker = "SPY";
+    String ticker = "SPXL";
 
-    LocalDateTime startDate = LocalDateTime.of(2019, Month.JANUARY, 22, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 10, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2019, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0);
 
     strategyMerger
-        .setStopLossMaxPercent(.97)
+        .setStopLossMaxPercent(.98)
         .init(ticker, TimeFrame.DAY, startDate, endDate)
-        .addStrategy(
-            stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
+      //  .addStrategy(
+      //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
         .addStrategy(initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate))
     ;
     evaluateStrategy(strategyMerger);
 
 
-    //  downloadSeries("SPXL", "2019-", 1, 12);
+
+
+     // downloadSeries("SPXL", "2018-", 1, 12);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("SPY", "2025-", 2, 2);
     //priceAggregationService.aggregateAllTickers();
@@ -138,7 +140,7 @@ public class ScreenerApplication implements CommandLineRunner {
     // calcSMA_incremental("YY",2,100);
     //calcSMA("SPXL", 2, 50);
     //calcSMA( 2, 50);
-    //trendService.calculateAndStorePriceTrend("SPY",TimeFrame.DAY);
+    //trendService.calculateAndStorePriceTrend("SPXL",TimeFrame.DAY);
     System.exit(0);
   }
 
@@ -194,8 +196,8 @@ public class ScreenerApplication implements CommandLineRunner {
             strategy.getStartDate(),
             strategy.getEndDate(),
             strategy.getTimeFrame());
-    System.out.println(strategy.StrategyName() + " result: " + strategyResultTilt);
-    System.out.println(buyAndHoldStrategy.StrategyName() + " result: " + buyAndHoldstrategyResult);
+    System.out.println(strategy.getStrategyName() + " result: " + strategyResultTilt);
+    System.out.println(buyAndHoldStrategy.getStrategyName() + " result: " + buyAndHoldstrategyResult);
 
 /*
     ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesLong(),
@@ -206,7 +208,7 @@ public class ScreenerApplication implements CommandLineRunner {
 
    */
     System.setProperty("java.awt.headless", "false");
-    ChartService chartService = new ChartServiceImpl(strategy.StrategyName());
+    ChartService chartService = new ChartServiceImpl(strategy.getStrategyName());
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
         , strategy.getPriceIndicators()
         , strategyResultTilt.getTradesLong(), strategy.getIndicators());
@@ -275,15 +277,15 @@ public class ScreenerApplication implements CommandLineRunner {
             timeFrame);
     StrategyResult strategyResultDoubleTiltShort =
         tradeService.calculateProfitAndDrawdownShort(buyAndHoldStrategyMinusDownTrend);
-    System.out.println(buyAndHoldStrategyMinusDownTrend.StrategyName() + " Long result: " +
+    System.out.println(buyAndHoldStrategyMinusDownTrend.getStrategyName() + " Long result: " +
         strategyResultDoubleTiltMinusDownTrendLong);
-    System.out.println(buyAndHoldStrategyMinusDownTrend.StrategyName() + " Short result: " +
+    System.out.println(buyAndHoldStrategyMinusDownTrend.getStrategyName() + " Short result: " +
         strategyResultDoubleTiltShort);
     System.out.println(
-        buyAndHoldStrategyMinusDownTrend.StrategyName() + " result: " + buyAndHoldstrategyResult);
+        buyAndHoldStrategyMinusDownTrend.getStrategyName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
     ChartService chartService =
-        new ChartServiceImpl(buyAndHoldStrategyMinusDownTrend.StrategyName());
+        new ChartServiceImpl(buyAndHoldStrategyMinusDownTrend.getStrategyName());
 
 
     Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();
@@ -358,12 +360,12 @@ public class ScreenerApplication implements CommandLineRunner {
     StrategyResult strategyResultDoubleTiltShort =
         tradeService.calculateProfitAndDrawdownShort(doubleTiltStrategy);
     System.out.println(
-        doubleTiltStrategy.StrategyName() + " Long result: " + strategyResultDoubleTiltLong);
+        doubleTiltStrategy.getStrategyName() + " Long result: " + strategyResultDoubleTiltLong);
     System.out.println(
-        doubleTiltStrategy.StrategyName() + " Short result: " + strategyResultDoubleTiltShort);
-    System.out.println(buyAndHoldStrategy.StrategyName() + " result: " + buyAndHoldstrategyResult);
+        doubleTiltStrategy.getStrategyName() + " Short result: " + strategyResultDoubleTiltShort);
+    System.out.println(buyAndHoldStrategy.getStrategyName() + " result: " + buyAndHoldstrategyResult);
     System.setProperty("java.awt.headless", "false");
-    ChartService chartService = new ChartServiceImpl(doubleTiltStrategy.StrategyName());
+    ChartService chartService = new ChartServiceImpl(doubleTiltStrategy.getStrategyName());
 
 
     Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();

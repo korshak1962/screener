@@ -68,7 +68,7 @@ public class StrategyMerger implements Strategy {
   }
 
   @Override
-  public String StrategyName() {
+  public String getStrategyName() {
     return "StrategyMerger " +
         nameToStrategy.keySet().stream().reduce("", (s1, s2) -> s1 + " " + s2);
   }
@@ -124,10 +124,10 @@ public class StrategyMerger implements Strategy {
   }
 
   public StrategyMerger addStrategy(Strategy strategy) {
-    nameToStrategy.put(strategy.StrategyName(), strategy);
+    nameToStrategy.put(strategy.getStrategyName(), strategy);
     List<? extends Signal> signalsOfStrategy = strategy.getAllSignals(timeFrame);
     if (signalsOfStrategy.isEmpty()) {
-      throw new RuntimeException("Strategy " + strategy.StrategyName() + " has no signals");
+      throw new RuntimeException("Strategy " + strategy.getStrategyName() + " has no signals");
     }
     signalsOfStrategy.forEach(signal -> {
       if (!dateToSignals.containsKey(signal.getDate())) {

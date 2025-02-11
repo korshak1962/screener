@@ -198,7 +198,7 @@ public class DoubleTiltStrategy implements Strategy {
     return this;
   }
 
-  public String StrategyName() {
+  public String getStrategyName() {
     return "DoubleTiltStrategy";
   }
 

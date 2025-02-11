@@ -44,8 +44,8 @@ public abstract class BaseStrategy implements Strategy {
   }
 
   @Override
-  public String StrategyName() {
-    return this.getClass().getName();
+  public String getStrategyName() {
+    return this.getClass().getSimpleName();
   }
 
   public List<Signal> calcSignals() {

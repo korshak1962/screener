@@ -63,10 +63,8 @@ public class StopLossLessThanPrevMinExtremumStrategy extends BaseStrategy {
 
   private void iterateOverTrend() {
     recentExtremes.removeFirst();
+    iTrends++;
     recentExtremes.add(trends.get(iTrends).getMinExtremum());
-   // if (iTrends < trends.size() - 1) {
-      iTrends++;
-   // }
   }
 
   @Override
