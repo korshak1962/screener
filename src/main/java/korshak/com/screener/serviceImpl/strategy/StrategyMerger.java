@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Service("StrategyMerger")
 public class StrategyMerger implements Strategy {
 
-  double stopLossMaxPercent = .97;
+  double stopLossMaxPercent = .98;
 
   Map<String, Strategy> nameToStrategy = new HashMap<>();
   TimeFrame timeFrame;
@@ -123,6 +123,11 @@ public class StrategyMerger implements Strategy {
     return List.of();
   }
 
+  @Override
+  public void calcSignals() {
+
+  }
+
   public StrategyMerger addStrategy(Strategy strategy) {
     nameToStrategy.put(strategy.getStrategyName(), strategy);
     return this;
@@ -135,8 +140,8 @@ public class StrategyMerger implements Strategy {
   public void mergeSignals() {
     dateToSignals = new HashMap<>();
     signalsLong = new ArrayList<>();
-    for (Strategy strategy : nameToStrategy.values()
-    ) {
+    for (Strategy strategy : nameToStrategy.values()) {
+      strategy.calcSignals();
       List<? extends Signal> signalsOfStrategy = strategy.getAllSignals(timeFrame);
       if (signalsOfStrategy.isEmpty()) {
         throw new RuntimeException("Strategy " + strategy.getStrategyName() + " has no signals");

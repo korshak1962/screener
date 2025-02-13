@@ -104,30 +104,28 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    int minLength = 30;
-    int maxLength = 40;
+    String ticker = "SPY";
+    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2024, Month.MAY, 1, 0, 0);
+
+    int minLength = 7;
+    int maxLength = 10;
     int stepLength = 1;
     double minTiltBuy = 0.0;
-    double maxTiltBuy = 0.05;
+    double maxTiltBuy = 0.02;
     double tiltBuyStep = 0.01;
     double minTiltSell = -0.03;
-    double maxTiltSell = -0.01;
+    double maxTiltSell = -0.0;
     double tiltSellStep = 0.01;
 
     optimizatorTilt.configure(minLength, maxLength, stepLength, minTiltBuy, maxTiltBuy, tiltBuyStep,
         minTiltSell, maxTiltSell, tiltSellStep);
-    optimazeStrategy(optimizatorTilt,
-        "SPY", TimeFrame.DAY,
-        LocalDateTime.of(2019, Month.JANUARY, 1, 0, 0),
-        LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0));
+   //optimazeStrategy(optimizatorTilt, ticker, TimeFrame.DAY, startDate, endDate);
 
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
 
-/*
-    String ticker = "SPY";
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
+
     //buyAndHoldStrategy.init(ticker, TimeFrame.DAY, startDate, endDate);
     strategyMerger
         .setStopLossMaxPercent(.98)
@@ -135,10 +133,10 @@ public class ScreenerApplication implements CommandLineRunner {
       //  .addStrategy(
       //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
         .addStrategy(initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate))
-        .mergeSignals();
+        .mergeSignals()
     ;
     evaluateStrategy(strategyMerger);
- */
+
 
       downloadSeries("MCHI", "2021-", 1, 12);
     //downloadSeries("TQQQ", "2024-", 1, 12);
@@ -181,7 +179,8 @@ public class ScreenerApplication implements CommandLineRunner {
                                             LocalDateTime endDate) {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
     tiltStrategy.setLength(9);
-    tiltStrategy.setTiltBuy(0.02);
+    //tiltStrategy.setTiltBuy(0.02);
+    tiltStrategy.setTiltBuy(0.0);
     tiltStrategy.setTiltSell(-0.02);
     tiltStrategy.calcSignals();
     return tiltStrategy;

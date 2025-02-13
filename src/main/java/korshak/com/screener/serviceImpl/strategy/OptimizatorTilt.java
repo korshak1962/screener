@@ -61,18 +61,18 @@ public class OptimizatorTilt extends Optimizator {
 
   private void optimazeTiltStrategy() {
     optimumParameters = new HashMap<>();
-    tiltFromBaseStrategy.setLength(minLength);
     double maxPnl = -10E6;
     StrategyResult strategyResultLong;
     StrategyResult strategyResulShort;
-    for (int tiltLength = minLength; tiltLength < maxLength; tiltLength += stepLength) {
+    for (int tiltLength = minLength; tiltLength <= maxLength; tiltLength += stepLength) {
       tiltFromBaseStrategy.setLength(tiltLength);
-      for (double currentTiltBuy = minTiltBuy; currentTiltBuy < maxTiltBuy;
+      for (double currentTiltBuy = minTiltBuy; currentTiltBuy <= maxTiltBuy;
            currentTiltBuy += tiltBuyStep) {
         tiltFromBaseStrategy.setTiltBuy(currentTiltBuy);
-        for (double currentTiltSell = minTiltSell; currentTiltSell < maxTiltSell;
+        for (double currentTiltSell = minTiltSell; currentTiltSell <= maxTiltSell;
              currentTiltSell += tiltSellStep) {
           tiltFromBaseStrategy.setTiltSell(currentTiltSell);
+          System.out.println("====tiltLength =" + tiltLength);
           System.out.println("====currentTiltBuy =" + currentTiltBuy);
           System.out.println("====currentTiltSell =" + currentTiltSell);
           merger.mergeSignals();

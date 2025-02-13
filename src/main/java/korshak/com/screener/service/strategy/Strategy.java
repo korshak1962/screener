@@ -22,6 +22,7 @@ Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, Local
   LocalDateTime getEndDate();
   List<Signal> getAllSignals();
   List<Signal> getAllSignals(TimeFrame timeFrame);
+  void calcSignals();
 
 
 }

@@ -57,9 +57,6 @@ public class TiltFromBaseStrategy extends BaseStrategy {
 
   public void setTiltBuy(double tiltBuy) {
     this.tiltBuy = tiltBuy;
-    if (!allSignals.isEmpty()) {
-      calcSignals();
-    }
   }
 
   public double getTiltSell() {
@@ -68,9 +65,6 @@ public class TiltFromBaseStrategy extends BaseStrategy {
 
   public void setTiltSell(double tiltSell) {
     this.tiltSell = tiltSell;
-    if (!allSignals.isEmpty()) {
-      calcSignals();
-    }
   }
 
   public int getLength() {
@@ -97,9 +91,6 @@ public class TiltFromBaseStrategy extends BaseStrategy {
             sma -> sma.getId().getDate(),
             sma -> sma
         ));
-    if (!allSignals.isEmpty()) {
-      calcSignals();
-    }
   }
 
   @Override

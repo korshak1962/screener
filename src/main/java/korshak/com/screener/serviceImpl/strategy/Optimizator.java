@@ -27,8 +27,10 @@ public abstract class Optimizator {
     this.timeFrame = timeFrame;
     this.startDate = startDate;
     this.endDate = endDate;
+    merger.nameToStrategy.values().forEach(strategy ->
+        strategy.init(ticker,timeFrame,startDate,endDate));
+    // Then initialize merger
     merger.init(ticker,timeFrame,startDate,endDate);
-    merger.nameToStrategy.values().forEach(strategy -> strategy.init(ticker,timeFrame,startDate,endDate));
   }
 
   public abstract Map<String, Double> findOptimumParameters();

@@ -203,6 +203,11 @@ public class TiltStrategy implements Strategy {
     return List.of();
   }
 
+  @Override
+  public void calcSignals() {
+
+  }
+
   public List<? extends BaseSma> getSmaList() {
     return smaList;
   }

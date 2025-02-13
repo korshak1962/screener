@@ -48,7 +48,8 @@ public abstract class BaseStrategy implements Strategy {
     return this.getClass().getSimpleName();
   }
 
-  public List<Signal> calcSignals() {
+  public void calcSignals() {
+    allSignals.clear();
     if (prices == null || prices.isEmpty()) {
       throw new RuntimeException("Prices are not initialized");
     }
@@ -59,7 +60,6 @@ public abstract class BaseStrategy implements Strategy {
         allSignals.add(signalToAdd);
       }
     }
-    return allSignals;
   }
 
   public abstract Signal getSignal(BasePrice price);
