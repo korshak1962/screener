@@ -8,6 +8,7 @@ import korshak.com.screener.service.TradeService;
 
 public abstract class Optimizator {
   public static final String MAX_PNL = "MAX_PNL";
+  public static final String STOP_LOSS = "StopLoss";
   StrategyMerger merger;
   String ticker;
   TimeFrame timeFrame;
@@ -41,7 +42,7 @@ public abstract class Optimizator {
       Map<String, Double> pars = findOptimumParameters();
       if (parsBest == null || parsBest.get(MAX_PNL) < pars.get(MAX_PNL)) {
         parsBest = pars;
-        parsBest.put("StopLoss",currentPercent);
+        parsBest.put(STOP_LOSS,currentPercent);
       }
     }
     return parsBest;

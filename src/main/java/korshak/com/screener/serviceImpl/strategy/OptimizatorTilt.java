@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 
 @Service("OptimizatorTilt")
 public class OptimizatorTilt extends Optimizator {
+  public static final String LENGTH = "Length";
+  public static final String TILT_BUY = "TiltBuy";
+  public static final String TILT_SELL = "TiltSell";
   int minLength = 30;
   int maxLength = 40;
   int stepLength = 1;
@@ -90,9 +93,9 @@ public class OptimizatorTilt extends Optimizator {
           if (maxPnl < longPnL) {
             maxPnl = longPnL;
             optimumParameters.put(MAX_PNL, maxPnl);
-            optimumParameters.put("TiltBuy", tiltFromBaseStrategy.getTiltBuy());
-            optimumParameters.put("TiltSell", tiltFromBaseStrategy.getTiltSell());
-            optimumParameters.put("Length", (double) tiltFromBaseStrategy.getLength());
+            optimumParameters.put(TILT_BUY, tiltFromBaseStrategy.getTiltBuy());
+            optimumParameters.put(TILT_SELL, tiltFromBaseStrategy.getTiltSell());
+            optimumParameters.put(LENGTH, (double) tiltFromBaseStrategy.getLength());
           }
         }
       }

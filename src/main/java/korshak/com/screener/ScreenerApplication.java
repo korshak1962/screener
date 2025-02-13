@@ -105,11 +105,11 @@ public class ScreenerApplication implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
     String ticker = "SPXL";
-    LocalDateTime startDate = LocalDateTime.of(2018, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
 
-    int minLength = 3;
-    int maxLength = 50;
+    int minLength = 5;
+    int maxLength = 10;
     int stepLength = 1;
     double minTiltBuy = -0.01;
     double maxTiltBuy = 0.02;
@@ -123,8 +123,10 @@ public class ScreenerApplication implements CommandLineRunner {
 
     optimizatorTilt.configure(minLength, maxLength, stepLength, minTiltBuy, maxTiltBuy, tiltBuyStep,
         minTiltSell, maxTiltSell, tiltSellStep);
-    optimazeStrategy(optimizatorTilt, ticker, TimeFrame.DAY, startDate, endDate, minStopLossPercent,
-        maxStopLossPercent, stepOfStopLoss);
+    Map<String, Double> optParams =
+        optimazeStrategy(optimizatorTilt, ticker, TimeFrame.DAY, startDate, endDate,
+            minStopLossPercent,
+            maxStopLossPercent, stepOfStopLoss);
 
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
@@ -132,14 +134,16 @@ public class ScreenerApplication implements CommandLineRunner {
 
     //buyAndHoldStrategy.init(ticker, TimeFrame.DAY, startDate, endDate);
     strategyMerger
-        .setStopLossPercent(.98)
+        .setStopLossPercent(optParams.get(Optimizator.STOP_LOSS))
         .init(ticker, TimeFrame.DAY, startDate, endDate)
         //  .addStrategy(
         //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
-        .addStrategy(initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate))
+        .addStrategy(
+            initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate, optParams)
+        )
         .mergeSignals()
     ;
-    //evaluateStrategy(strategyMerger);
+    evaluateStrategy(strategyMerger);
 
 
     //downloadSeries("IEMG", "2023-", 1, 12);
@@ -180,15 +184,17 @@ public class ScreenerApplication implements CommandLineRunner {
   private TiltFromBaseStrategy initStrategy(TiltFromBaseStrategy tiltStrategy, TimeFrame timeFrame,
                                             String ticker,
                                             LocalDateTime startDate,
-                                            LocalDateTime endDate) {
+                                            LocalDateTime endDate,
+                                            Map<String, Double> params
+  ) {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
     //{Length=44.0, TiltBuy=0.01, TiltSell=-0.05}
     //tiltStrategy.setLength(9);
-    tiltStrategy.setLength(44);
+    tiltStrategy.setLength(params.get(OptimizatorTilt.LENGTH).intValue());
     //tiltStrategy.setTiltBuy(0.02);
-    tiltStrategy.setTiltBuy(0.01);
+    tiltStrategy.setTiltBuy(params.get(OptimizatorTilt.TILT_BUY));
     //tiltStrategy.setTiltSell(-0.02);
-    tiltStrategy.setTiltSell(-0.05);
+    tiltStrategy.setTiltSell(params.get(OptimizatorTilt.TILT_SELL));
     tiltStrategy.calcSignals();
     return tiltStrategy;
   }
@@ -245,11 +251,14 @@ public class ScreenerApplication implements CommandLineRunner {
     }
   }
 
-  private void optimazeStrategy(Optimizator optimizator, String ticker, TimeFrame timeFrame,
-                                LocalDateTime startDate, LocalDateTime endDate, double minPercent,
-                                double maxPercent, double step) {
+  private Map<String, Double> optimazeStrategy(Optimizator optimizator, String ticker,
+                                               TimeFrame timeFrame,
+                                               LocalDateTime startDate, LocalDateTime endDate,
+                                               double minPercent,
+                                               double maxPercent, double step) {
     optimizator.init(ticker, timeFrame, startDate, endDate);
-    Map<String, Double> params = optimizator.findOptimumParametersWithStopLoss(minPercent, maxPercent, step);
+    Map<String, Double> params =
+        optimizator.findOptimumParametersWithStopLoss(minPercent, maxPercent, step);
     System.out.println(" " + ticker + " " + params.remove(Optimizator.MAX_PNL) + " " + params);
     StrategyResult buyAndHoldstrategyResult =
         tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, ticker,
@@ -257,7 +266,8 @@ public class ScreenerApplication implements CommandLineRunner {
             endDate,
             timeFrame);
     System.out.println("Buy and hold pnl = " + buyAndHoldstrategyResult.getLongPnL());
-    System.exit(0);
+    //System.exit(0);
+    return params;
   }
 
   private void evaluateDoubleTiltStrategyMinusDownTrend() throws IOException {
