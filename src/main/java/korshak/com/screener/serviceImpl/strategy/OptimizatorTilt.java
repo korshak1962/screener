@@ -89,6 +89,7 @@ public class OptimizatorTilt extends Optimizator {
 
           if (maxPnl < longPnL) {
             maxPnl = longPnL;
+            optimumParameters.put(MAX_PNL, maxPnl);
             optimumParameters.put("TiltBuy", tiltFromBaseStrategy.getTiltBuy());
             optimumParameters.put("TiltSell", tiltFromBaseStrategy.getTiltSell());
             optimumParameters.put("Length", (double) tiltFromBaseStrategy.getLength());

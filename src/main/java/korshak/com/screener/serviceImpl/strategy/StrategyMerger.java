@@ -186,7 +186,7 @@ public class StrategyMerger implements Strategy {
     return stopLossMaxPercent;
   }
 
-  public StrategyMerger setStopLossMaxPercent(double stopLossMaxPercent) {
+  public StrategyMerger setStopLossPercent(double stopLossMaxPercent) {
     this.stopLossMaxPercent = stopLossMaxPercent;
     return this;
   }
