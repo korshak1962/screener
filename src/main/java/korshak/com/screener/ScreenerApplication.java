@@ -104,34 +104,43 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-/*
+    int minLength = 30;
+    int maxLength = 40;
+    int stepLength = 1;
+    double minTiltBuy = 0.0;
+    double maxTiltBuy = 0.05;
+    double tiltBuyStep = 0.01;
+    double minTiltSell = -0.03;
+    double maxTiltSell = -0.01;
+    double tiltSellStep = 0.01;
+
+    optimizatorTilt.configure(minLength, maxLength, stepLength, minTiltBuy, maxTiltBuy, tiltBuyStep,
+        minTiltSell, maxTiltSell, tiltSellStep);
     optimazeStrategy(optimizatorTilt,
-        "YY", TimeFrame.DAY,
-        LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0),
-        LocalDateTime.of(2024, Month.DECEMBER, 1, 0, 0));
- */
+        "SPY", TimeFrame.DAY,
+        LocalDateTime.of(2019, Month.JANUARY, 1, 0, 0),
+        LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0));
+
     //evaluateDoubleTiltStrategy();
     //   evaluateDoubleTiltStrategyMinusDownTrend();
 
-
-    String ticker = "SPXL";
-
-    LocalDateTime startDate = LocalDateTime.of(2019, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.FEBRUARY, 1, 0, 0);
-
+/*
+    String ticker = "SPY";
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
+    //buyAndHoldStrategy.init(ticker, TimeFrame.DAY, startDate, endDate);
     strategyMerger
         .setStopLossMaxPercent(.98)
         .init(ticker, TimeFrame.DAY, startDate, endDate)
       //  .addStrategy(
       //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
         .addStrategy(initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate))
+        .mergeSignals();
     ;
     evaluateStrategy(strategyMerger);
+ */
 
-
-
-
-     // downloadSeries("SPXL", "2018-", 1, 12);
+      downloadSeries("MCHI", "2021-", 1, 12);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("SPY", "2025-", 2, 2);
     //priceAggregationService.aggregateAllTickers();

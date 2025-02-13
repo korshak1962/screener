@@ -29,10 +29,10 @@ public class StrategyMerger implements Strategy {
   final PriceDao priceDao;
   String ticker;
   List<? extends BasePrice> prices;
-  List<Signal> signalsLong = new ArrayList<>();
+  List<Signal> signalsLong;
   List<Signal> signalsShort = new ArrayList<>();
 
-  Map<LocalDateTime, List<Signal>> dateToSignals = new HashMap<>();
+  Map<LocalDateTime, List<Signal>> dateToSignals;
 
   public StrategyMerger(PriceDao priceDao) {
     this.priceDao = priceDao;
@@ -125,16 +125,6 @@ public class StrategyMerger implements Strategy {
 
   public StrategyMerger addStrategy(Strategy strategy) {
     nameToStrategy.put(strategy.getStrategyName(), strategy);
-    List<? extends Signal> signalsOfStrategy = strategy.getAllSignals(timeFrame);
-    if (signalsOfStrategy.isEmpty()) {
-      throw new RuntimeException("Strategy " + strategy.getStrategyName() + " has no signals");
-    }
-    signalsOfStrategy.forEach(signal -> {
-      if (!dateToSignals.containsKey(signal.getDate())) {
-        dateToSignals.put(signal.getDate(), new ArrayList<>());
-      }
-      dateToSignals.get(signal.getDate()).add(signal);
-    });
     return this;
   }
 
@@ -143,6 +133,21 @@ public class StrategyMerger implements Strategy {
   }
 
   public void mergeSignals() {
+    dateToSignals = new HashMap<>();
+    signalsLong = new ArrayList<>();
+    for (Strategy strategy : nameToStrategy.values()
+    ) {
+      List<? extends Signal> signalsOfStrategy = strategy.getAllSignals(timeFrame);
+      if (signalsOfStrategy.isEmpty()) {
+        throw new RuntimeException("Strategy " + strategy.getStrategyName() + " has no signals");
+      }
+      signalsOfStrategy.forEach(signal -> {
+        if (!dateToSignals.containsKey(signal.getDate())) {
+          dateToSignals.put(signal.getDate(), new ArrayList<>());
+        }
+        dateToSignals.get(signal.getDate()).add(signal);
+      });
+    }
     Signal lastSignal = null;
     for (BasePrice price : prices) {
       List<Signal> signalsForPrice = getSignalsWithStopLoss(price, lastSignal);

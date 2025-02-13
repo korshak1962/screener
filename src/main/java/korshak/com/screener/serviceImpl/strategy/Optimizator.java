@@ -9,15 +9,15 @@ import korshak.com.screener.service.TradeService;
 
 public abstract class Optimizator {
 
-  Strategy strategy;
+  StrategyMerger merger;
   String ticker;
   TimeFrame timeFrame;
   LocalDateTime startDate;
   LocalDateTime endDate;
   TradeService tradeService;
 
-  public Optimizator(Strategy strategy, TradeService tradeService) {
-    this.strategy = strategy;
+  public Optimizator(StrategyMerger merger, TradeService tradeService) {
+    this.merger = merger;
     this.tradeService = tradeService;
   }
 
@@ -27,7 +27,8 @@ public abstract class Optimizator {
     this.timeFrame = timeFrame;
     this.startDate = startDate;
     this.endDate = endDate;
-    strategy.init(ticker,timeFrame,startDate,endDate);
+    merger.init(ticker,timeFrame,startDate,endDate);
+    merger.nameToStrategy.values().forEach(strategy -> strategy.init(ticker,timeFrame,startDate,endDate));
   }
 
   public abstract Map<String, Double> findOptimumParameters();

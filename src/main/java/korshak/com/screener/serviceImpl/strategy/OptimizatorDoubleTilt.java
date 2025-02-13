@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service("OptimizatorDoubleTilt")
 public class OptimizatorDoubleTilt extends Optimizator {
 
-  public OptimizatorDoubleTilt(@Qualifier("DoubleTiltStrategy") DoubleTiltStrategy strategy, TradeService tradeService) {
+  public OptimizatorDoubleTilt( StrategyMerger strategy, TradeService tradeService) {
     super(strategy, tradeService);
   }
 
@@ -26,11 +26,13 @@ public class OptimizatorDoubleTilt extends Optimizator {
 
   @Override
   public Map<String, Double> findOptimumParameters() {
+
     Map<String, Double> optimumParameters = new HashMap<>();
+    /*
     double maxPnl = -10E6;
     StrategyResult strategyResultDoubleTiltLong;
     StrategyResult strategyResultDoubleTiltShort;
-    DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy) this.strategy;
+    DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy) this.merger;
     //fullDoubleTiltStrategy.setTiltPeriod(5);
     fullDoubleTiltStrategy.setTrendLengthSma(15);
 
@@ -53,13 +55,13 @@ public class OptimizatorDoubleTilt extends Optimizator {
            currentShortLength += numStepsShortStep) {
         fullDoubleTiltStrategy.setSmaLength(currentShortLength);
         strategyResultDoubleTiltLong =
-            tradeService.calculateProfitAndDrawdownLong(strategy);
+            tradeService.calculateProfitAndDrawdownLong(merger);
 
         double longPnL = strategyResultDoubleTiltLong.getLongPnL();
         System.out.println("maxPnl= " + maxPnl + " longPnL= " + longPnL + " currentShortLength=" +
             currentShortLength);
 
-        strategyResultDoubleTiltShort = tradeService.calculateProfitAndDrawdownShort(strategy);
+        strategyResultDoubleTiltShort = tradeService.calculateProfitAndDrawdownShort(merger);
         double shortPnL = strategyResultDoubleTiltShort.getShortPnL();
         System.out.println(" shortPnL= " + shortPnL);
 
@@ -70,6 +72,8 @@ public class OptimizatorDoubleTilt extends Optimizator {
         }
       }
     }
+
+     */
     return optimumParameters;
   }
 
