@@ -21,15 +21,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-@Service
-public class SharePriceDownLoaderServiceImpl implements SharePriceDownLoaderService {
+@Service("AlphaVintageDownloader")
+public class AlphaVintageDownloader implements SharePriceDownLoaderService {
   String apiKey;
   String baseUrl;
   PriceDao priceDao;
 
-  public SharePriceDownLoaderServiceImpl(PriceDao priceDao,
-                                         @Value("${alpha.apiKey}") String apiKey,
-                                         @Value("${alpha.baseUrl}") String baseUrl) {
+  public AlphaVintageDownloader(PriceDao priceDao,
+                                @Value("${alpha.apiKey}") String apiKey,
+                                @Value("${alpha.baseUrl}") String baseUrl) {
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
     this.priceDao = priceDao;

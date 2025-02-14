@@ -31,7 +31,9 @@ public class FuturePriceByTiltCalculator {
     List<? extends BaseSma> smas = smaDao.findByDateRangeOrderByIdDateAsc(ticker, startDate, endDate, timeFrame, smaLength);
 
     if (prices.isEmpty() || smas.isEmpty()) {
-      throw new IllegalStateException("No data found for ticker " + ticker);
+      //throw new IllegalStateException("No data found for ticker " + ticker);
+      System.out.println("No data found for ticker " + ticker);
+      return 0.0;
     }
 
     List<? extends BasePrice> latestPrices = prices.subList(prices.size() - (smaLength - 1), prices.size());

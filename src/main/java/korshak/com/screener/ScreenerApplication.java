@@ -15,7 +15,9 @@ import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.service.TrendService;
 import korshak.com.screener.service.strategy.Strategy;
+import korshak.com.screener.serviceImpl.AlphaVintageDownloader;
 import korshak.com.screener.serviceImpl.FuturePriceByTiltCalculator;
+import korshak.com.screener.serviceImpl.MoexSharePriceDownLoaderServiceImpl;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
 import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevClose;
@@ -51,7 +53,8 @@ public class ScreenerApplication implements CommandLineRunner {
   }
 
   @Autowired
-  private SharePriceDownLoaderService sharePriceDownLoaderService;
+  @Qualifier("AlphaVintageDownloader")
+  private AlphaVintageDownloader alfaVintageDownloader;
   @Autowired
   private SmaCalculationService smaCalculationService;
   @Autowired
@@ -105,12 +108,19 @@ public class ScreenerApplication implements CommandLineRunner {
   @Autowired
   private FuturePriceByTiltCalculator futurePriceByTiltCalculator;
 
+  @Autowired
+  @Qualifier("moexDownloader")
+  private MoexSharePriceDownLoaderServiceImpl moexDownloader;
+
   @Override
   public void run(String... args) throws Exception {
-    optAndShow("SPY",
+     /* optAndShow("IEMG",
         LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0),
         LocalDateTime.of(2025, Month.MARCH, 1, 0, 0));
-    //downloadSeries("IEMG", "2023-", 1, 12);
+      */
+
+    downloadSeries("SBER", "2025-", 1, 12, moexDownloader);
+    //downloadSeries("IEMG", "2023-", 1, 12, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("QQQ", "2025-", 2, 2);
     //priceAggregationService.aggregateAllTickers();
@@ -124,7 +134,7 @@ public class ScreenerApplication implements CommandLineRunner {
   }
 
   private void optAndShow(String ticker,LocalDateTime startDate,LocalDateTime endDate) throws IOException {;
-
+    TimeFrame timeFrame = TimeFrame.DAY;
     int minLength = 3;
     int maxLength = 10;
     int stepLength = 1;
@@ -141,17 +151,17 @@ public class ScreenerApplication implements CommandLineRunner {
     optimizatorTilt.configure(minLength, maxLength, stepLength, minTiltBuy, maxTiltBuy, tiltBuyStep,
         minTiltSell, maxTiltSell, tiltSellStep);
     Map<String, Double> optParams =
-        optimazeStrategy(optimizatorTilt, ticker, TimeFrame.DAY, startDate, endDate,
+        optimazeStrategy(optimizatorTilt, ticker, timeFrame, startDate, endDate,
             minStopLossPercent,
             maxStopLossPercent, stepOfStopLoss);
 
     strategyMerger
         .setStopLossPercent(optParams.get(Optimizator.STOP_LOSS))
-        .init(ticker, TimeFrame.DAY, startDate, endDate)
+        .init(ticker, timeFrame, startDate, endDate)
         //  .addStrategy(
         //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
         .addStrategy(
-            initStrategy(tiltFromBaseStrategy, TimeFrame.DAY, ticker, startDate, endDate, optParams)
+            initStrategy(tiltFromBaseStrategy, timeFrame, ticker, startDate, endDate, optParams)
         )
         .mergeSignals()
     ;
@@ -473,7 +483,8 @@ public class ScreenerApplication implements CommandLineRunner {
   }
 
 
-  private void downloadSeries(final String ticker, String year, int startMonth, int finalMonth) {
+  private void downloadSeries(final String ticker, String year, int startMonth, int finalMonth,
+                              SharePriceDownLoaderService sharePriceDownLoaderService) {
     // final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
     // String interval = "5min";
     int lengthMin = 2;
@@ -517,7 +528,7 @@ public class ScreenerApplication implements CommandLineRunner {
       }
 
       System.out.println("yearMonth = " + yearMonth);
-      saved += sharePriceDownLoaderService
+      saved += alfaVintageDownloader
           .fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
       System.out.println("saved = " + saved);
     }
