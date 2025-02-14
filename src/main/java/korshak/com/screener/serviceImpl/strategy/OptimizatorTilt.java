@@ -100,6 +100,6 @@ public class OptimizatorTilt extends Optimizator {
         }
       }
     }
-    System.out.println("Optimized maxPnl = " + maxPnl);
+ //   System.out.println("Optimized maxPnl = " + maxPnl);
   }
 }

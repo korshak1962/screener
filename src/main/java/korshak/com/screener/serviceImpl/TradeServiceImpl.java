@@ -82,6 +82,7 @@ public class TradeServiceImpl implements TradeService {
     double maxPossibleLoss = calcMaxPossibleLossLong();
     calculateMaxPainPercentages(tradesLong, strategy.getPrices());
     indicators.put("long PnL", currentPnL);
+
     return new StrategyResult(strategy.getPrices(), longPnL, 0,
         longPnL, minLongPnl, Map.of(), tradesLong,
         List.of(), strategy.getSignalsLong(), maxPossibleLoss, indicators,worstLongTrade);

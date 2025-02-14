@@ -15,6 +15,7 @@ import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.service.TrendService;
 import korshak.com.screener.service.strategy.Strategy;
+import korshak.com.screener.serviceImpl.FuturePriceByTiltCalculator;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
 import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevClose;
@@ -101,14 +102,30 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Autowired
   private TrendService trendService;
+  @Autowired
+  private FuturePriceByTiltCalculator futurePriceByTiltCalculator;
 
   @Override
   public void run(String... args) throws Exception {
-    String ticker = "SPXL";
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
+    optAndShow("SPY",
+        LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0),
+        LocalDateTime.of(2025, Month.MARCH, 1, 0, 0));
+    //downloadSeries("IEMG", "2023-", 1, 12);
+    //downloadSeries("TQQQ", "2024-", 1, 12);
+    //downloadSeriesUnsafe("QQQ", "2025-", 2, 2);
+    //priceAggregationService.aggregateAllTickers();
+    //priceAggregationService.aggregateAllTimeFrames("SPY");
+    //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
+    // calcSMA_incremental("YY",2,100);
+    //calcSMA("SPXL", 2, 50);
+    //calcSMA( 2, 50);
+    //trendService.calculateAndStorePriceTrend("SPXL",TimeFrame.DAY);
+    System.exit(0);
+  }
 
-    int minLength = 5;
+  private void optAndShow(String ticker,LocalDateTime startDate,LocalDateTime endDate) throws IOException {;
+
+    int minLength = 3;
     int maxLength = 10;
     int stepLength = 1;
     double minTiltBuy = -0.01;
@@ -128,11 +145,6 @@ public class ScreenerApplication implements CommandLineRunner {
             minStopLossPercent,
             maxStopLossPercent, stepOfStopLoss);
 
-    //evaluateDoubleTiltStrategy();
-    //   evaluateDoubleTiltStrategyMinusDownTrend();
-
-
-    //buyAndHoldStrategy.init(ticker, TimeFrame.DAY, startDate, endDate);
     strategyMerger
         .setStopLossPercent(optParams.get(Optimizator.STOP_LOSS))
         .init(ticker, TimeFrame.DAY, startDate, endDate)
@@ -143,20 +155,17 @@ public class ScreenerApplication implements CommandLineRunner {
         )
         .mergeSignals()
     ;
+    futurePriceCalc(ticker, optParams);
     evaluateStrategy(strategyMerger);
+  }
 
-
-    //downloadSeries("IEMG", "2023-", 1, 12);
-    //downloadSeries("TQQQ", "2024-", 1, 12);
-    //downloadSeriesUnsafe("SPY", "2025-", 2, 2);
-    //priceAggregationService.aggregateAllTickers();
-    //priceAggregationService.aggregateAllTimeFrames("SPY");
-    //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
-    // calcSMA_incremental("YY",2,100);
-    //calcSMA("SPXL", 2, 50);
-    //calcSMA( 2, 50);
-    //trendService.calculateAndStorePriceTrend("SPXL",TimeFrame.DAY);
-    System.exit(0);
+  private void futurePriceCalc(String ticker, Map<String, Double> optParams) {
+    double priceToBuy = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
+        optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_BUY));
+    double priceToSell = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
+        optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_SELL));
+    System.out.println("Price to buy: " + priceToBuy);
+    System.out.println("Price to sell: " + priceToSell);
   }
 
   private TiltStrategy initStrategy(TiltStrategy tiltStrategy, TimeFrame timeFrame, String ticker,
