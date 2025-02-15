@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.ChartService;
 import korshak.com.screener.service.PriceAggregationService;
+import korshak.com.screener.service.RsiService;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.service.TradeService;
@@ -112,6 +113,9 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("moexDownloader")
   private MoexSharePriceDownLoaderServiceImpl moexDownloader;
 
+  @Autowired
+  RsiService rsiService;
+
   @Override
   public void run(String... args) throws Exception {
      /* optAndShow("IEMG",
@@ -119,7 +123,8 @@ public class ScreenerApplication implements CommandLineRunner {
         LocalDateTime.of(2025, Month.MARCH, 1, 0, 0));
       */
 
-    downloadSeries("SBER", "2025-", 1, 12, moexDownloader);
+    downloadSeries("SBER", "2018-", 1, 12, moexDownloader);
+    //downloadSeries("TMOS", "2025-", 1, 12, moexDownloader);
     //downloadSeries("IEMG", "2023-", 1, 12, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("QQQ", "2025-", 2, 2);
@@ -127,9 +132,11 @@ public class ScreenerApplication implements CommandLineRunner {
     //priceAggregationService.aggregateAllTimeFrames("SPY");
     //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
     // calcSMA_incremental("YY",2,100);
-    //calcSMA("SPXL", 2, 50);
+    calcSMA("SBER", 2, 50);
     //calcSMA( 2, 50);
     //trendService.calculateAndStorePriceTrend("SPXL",TimeFrame.DAY);
+    //calcRSI(3,50);
+    //calcRSI("SBER", 11, 50);
     System.exit(0);
   }
 
@@ -472,11 +479,31 @@ public class ScreenerApplication implements CommandLineRunner {
     System.exit(0);
   }
 
+  private void calcRSI(String ticker, int startLength, int endLength) {
+    int step = 1;
+    long start = System.currentTimeMillis();
+    for (int length = startLength; length <= endLength; length += step) {
+      rsiService.calculateRsiForAllTimeFrames(ticker, length);
+      System.out.println("length = " + length);
+    }
+    System.out.println("total in minutes= " + (System.currentTimeMillis() - start) / 60000);
+    System.exit(0);
+  }
+
   private void calcSMA(int startLength, int endLength) {
     int step = 1;
     long start = System.currentTimeMillis();
     for (int length = startLength; length <= endLength; length += step) {
       smaCalculationService.calculateSMAForAllTimeFrameAndTickers(length);
+    }
+    System.out.println("total in minutes= " + (System.currentTimeMillis() - start) / 60000);
+    System.exit(0);
+  }
+  private void calcRSI(int startLength, int endLength) {
+    int step = 1;
+    long start = System.currentTimeMillis();
+    for (int length = startLength; length <= endLength; length += step) {
+      rsiService.calculateIncrementalRsiForAllTickersAndTimeFrames(length);
     }
     System.out.println("total in minutes= " + (System.currentTimeMillis() - start) / 60000);
     System.exit(0);

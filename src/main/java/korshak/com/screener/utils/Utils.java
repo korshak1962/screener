@@ -11,6 +11,7 @@ import korshak.com.screener.dao.SmaHour;
 import korshak.com.screener.dao.SmaMonth;
 import korshak.com.screener.dao.SmaWeek;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.dao.TiltableIndicator;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
 
@@ -34,30 +35,49 @@ public class Utils {
     };
   }
 
-  public static double calculateTilt(List<BaseSma> smaWindow) {
-    // Calculate linear regression slope as tilt
-    int n = smaWindow.size();
+  public static double calculateTilt(List<? extends TiltableIndicator> window) {
+    // Check if we have enough data points
+    if (window == null || window.size() < 2) {
+      return 0.0;
+    }
+
+    int n = window.size();
     double sumX = 0;
     double sumY = 0;
     double sumXY = 0;
     double sumXX = 0;
 
+    // First pass: calculate sums and check for NaN values
     for (int i = 0; i < n; i++) {
-      double x = i;
-      double y = smaWindow.get(i).getValue();
-      sumX += x;
-      sumY += y;
-      sumXY += x * y;
-      sumXX += x * x;
+      double value = window.get(i).getValue();
+      if (Double.isNaN(value)) {
+        return 0.0;  // Return 0 if we encounter any NaN values
+      }
+      sumX += i;
+      sumY += value;
+      sumXY += i * value;
+      sumXX += i * i;
+    }
+
+    // Calculate denominator first to check for division by zero
+    double denominator = n * sumXX - sumX * sumX;
+    if (denominator == 0) {
+      return 0.0;  // Return 0 if slope calculation would be undefined
     }
 
     // Calculate slope using least squares method
-    double slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    double slope = (n * sumXY - sumX * sumY) / denominator;
 
-    // Normalize the slope by the average SMA value to get a percentage
-    double avgSma = sumY / n;
-    double normalizedSlope = (slope / avgSma) * 100;
-    return normalizedSlope;
+    // Normalize the slope by the average value to get a percentage
+    double avgValue = sumY / n;
+    if (avgValue == 0) {
+      return 0.0;  // Avoid division by zero in normalization
+    }
+
+    double normalizedSlope = (slope / avgValue) * 100;
+
+    // Final NaN check
+    return Double.isNaN(normalizedSlope) ? 0.0 : normalizedSlope;
   }
 
   public static BaseSma getBaseSma(TimeFrame timeFrame) {

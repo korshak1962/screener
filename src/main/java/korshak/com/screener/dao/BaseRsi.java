@@ -3,18 +3,17 @@ package korshak.com.screener.dao;
 import jakarta.persistence.*;
 
 @MappedSuperclass
-public abstract class BaseSma implements TiltableIndicator{
+public abstract class BaseRsi implements TiltableIndicator{
   @EmbeddedId
-  private SmaKey id;
+  private RsiKey id;
   private double value;
   private double tilt;
-  private double yield;
 
-  public SmaKey getId() {
+  public RsiKey getId() {
     return id;
   }
 
-  public void setId(SmaKey id) {
+  public void setId(RsiKey id) {
     this.id = id;
   }
 
@@ -32,13 +31,5 @@ public abstract class BaseSma implements TiltableIndicator{
 
   public void setTilt(double tilt) {
     this.tilt = tilt;
-  }
-
-  public double getYield() {
-    return yield;
-  }
-
-  public void setYield(double yield) {
-    this.yield = yield;
   }
 }
