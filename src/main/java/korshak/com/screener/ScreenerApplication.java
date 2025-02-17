@@ -118,20 +118,21 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-     /* optAndShow("IEMG",
+/*
+      optAndShow("TMOS_MOEX",
         LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0),
         LocalDateTime.of(2025, Month.MARCH, 1, 0, 0));
-      */
-    //downloadSeries("TMOS", "2022-", 1, 12, moexDownloader);
-    downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
+*/
+    downloadSeries("LKOH", "2020-01-01");
+    //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
     //downloadSeries("YY", "2022-", 1, 12, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("QQQ", "2025-", 2, 2);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("NVTK_MOEX");
-    //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
+   // priceAggregationService.aggregateData("TMOS_MOEX", TimeFrame.DAY);
      //calcSMA_incremental("NVTK_MOEX",2,100);
-   // calcSMA("NVTK_MOEX", 2, 50);
+   // calcSMA("TMOS_MOEX", 2, 50);
     //calcSMA( 2, 50);
     //trendService.calculateAndStorePriceTrend("SPXL",TimeFrame.DAY);
     //calcRSI(3,50);
@@ -508,6 +509,19 @@ public class ScreenerApplication implements CommandLineRunner {
     System.exit(0);
   }
 
+  private void downloadSeries(final String ticker, final String startDate) {
+    int lengthMin = 2;
+    int lengthMax = 50;
+    int saved = moexDownloader.fetchAndSaveDataFromDate(ticker, startDate);
+      System.out.println("saved = " + saved);
+    if (saved > 0) {
+      priceAggregationService.aggregateAllTimeFrames(moexDownloader.getDbTicker());
+      for (int i = lengthMin; i <= lengthMax; i++) {
+        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(moexDownloader.getDbTicker(), i);
+      }
+    }
+    System.exit(0);
+  }
 
   private void downloadSeries(final String ticker, String year, int startMonth, int finalMonth,
                               SharePriceDownLoaderService sharePriceDownLoaderService) {

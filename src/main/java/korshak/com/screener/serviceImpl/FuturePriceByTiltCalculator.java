@@ -11,9 +11,9 @@ import java.util.ArrayList;
 @Service
 public class FuturePriceByTiltCalculator {
   private static final int TILT_PERIOD = 5;
-  private static final double INITIAL_STEP = 0.02; // 1%
+  private static final double INITIAL_STEP = 0.03; // 1%
   private static final double PRECISION = 0.001;
-  private static final int MAX_ITERATIONS = 100;
+  private static final int MAX_ITERATIONS = 200;
 
   private final PriceDao priceDao;
   private final SmaDao smaDao;
@@ -84,7 +84,7 @@ public class FuturePriceByTiltCalculator {
     }
 
     if (iterations == MAX_ITERATIONS) {
-      throw new RuntimeException("Failed to converge to target tilt within " + MAX_ITERATIONS + " iterations");
+        System.out.println("Failed to converge to target tilt within " + MAX_ITERATIONS + " iterations");
     }
 
     return calcPrice;

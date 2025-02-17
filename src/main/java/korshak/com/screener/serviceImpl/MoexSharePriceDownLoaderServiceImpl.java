@@ -2,6 +2,7 @@ package korshak.com.screener.serviceImpl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.PriceDao;
@@ -69,7 +70,8 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
       }
 
       JsonNode root = parseResponse(response);
-      List<PriceHour> priceDataList = extractPriceData(root, ticker+"_MOEX");
+      dbTicker = ticker + "_MOEX";
+      List<PriceHour> priceDataList = extractPriceData(root, dbTicker);
 
       if (priceDataList.isEmpty()) {
         System.out.println("No data found for " + ticker + " in " + yearMonth);
@@ -87,24 +89,28 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
 
   private String buildMoexUrl(String ticker, String yearMonth) {
     String[] parts = yearMonth.split("-");
-    String fromDate = String.format("%s-%s-01", parts[0], parts[1]);
+    int year = Integer.parseInt(parts[0]);
+    int month = Integer.parseInt(parts[1]);
 
-    // Check if this is the current month
-    YearMonth requestedMonth = YearMonth.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
-    YearMonth currentMonth = YearMonth.now();
+    YearMonth requestedYearMonth = YearMonth.of(year, month);
+    YearMonth currentYearMonth = YearMonth.now();
 
+    // Get first day of month
+    String fromDate = String.format("%s-%02d-01", year, month);
+
+    // Build base URL
     String baseUrl = MOEX_BASE_URL + ticker + "/candles.json?iss.meta=off&interval=60";
 
-    if (requestedMonth.equals(currentMonth)) {
+    if (requestedYearMonth.equals(currentYearMonth)) {
       // For current month, only use fromDate
       return baseUrl + "&from=" + fromDate;
     } else {
-      // For past months, use both from and till dates
-      String tillDate = String.format("%s-%s-31", parts[0], parts[1]);
+      // For past months, get the actual last day of the month
+      int lastDay = requestedYearMonth.lengthOfMonth();
+      String tillDate = String.format("%s-%02d-%02d", year, month, lastDay);
       return baseUrl + "&from=" + fromDate + "&till=" + tillDate;
     }
   }
-
   private JsonNode parseResponse(String response) {
     try {
       return objectMapper.readTree(response);
@@ -168,5 +174,73 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
       }
     }
     throw new RuntimeException("Column " + columnName + " not found in MOEX response");
+  }
+
+  /** Downloads and saves data from a given start date up to today
+     * @param ticker The ticker symbol
+     * @param startDate Start date in format "YYYY-MM-DD"
+      * @return Number of records saved
+     */
+  private static final int MAX_RECORDS = 500;
+  // Assuming trading hours 10:00-18:45, that's about 9 hours = 9 records per day
+  // So 500/9 ≈ 55 days would be safe for one request
+  private static final int DAYS_PER_CHUNK = 30;
+
+  public int fetchAndSaveDataFromDate(String ticker, LocalDate startDate) {
+    LocalDate currentDate = LocalDate.now();
+    LocalDate chunkStart = startDate;
+    int totalSaved = 0;
+
+    while (chunkStart.isBefore(currentDate)) {
+      LocalDate chunkEnd = chunkStart.plusDays(DAYS_PER_CHUNK);
+      if (chunkEnd.isAfter(currentDate)) {
+        chunkEnd = currentDate;
+      }
+
+      String url = buildChunkedUrl(ticker, chunkStart, chunkEnd);
+      System.out.println("Requesting chunk from " + chunkStart + " to " + chunkEnd);
+      System.out.println("URL: " + url);
+
+      try {
+        String response = restTemplate.getForObject(url, String.class);
+        if (response == null) {
+          throw new RuntimeException("No response from MOEX API");
+        }
+
+        JsonNode root = parseResponse(response);
+        List<PriceHour> priceDataList = extractPriceData(root, ticker+"_MOEX");
+
+        if (!priceDataList.isEmpty()) {
+          System.out.println("Saving " + priceDataList.size() + " records for chunk");
+          List<PriceHour> saved = priceDao.saveAll(priceDataList);
+          totalSaved += saved.size();
+        }
+
+        // Add a small delay between requests to be nice to the API
+        Thread.sleep(100);
+      } catch (Exception e) {
+        System.err.println("Error processing chunk " + chunkStart + " to " + chunkEnd + ": " + e.getMessage());
+        // Continue with next chunk despite error
+      }
+
+      chunkStart = chunkEnd.plusDays(1);
+    }
+
+    System.out.println("Total records saved: " + totalSaved);
+    return totalSaved;
+  }
+
+  public int fetchAndSaveDataFromDate(String ticker, String startDate) {
+    LocalDate parsedDate = LocalDate.parse(startDate);
+    return fetchAndSaveDataFromDate(ticker, parsedDate);
+  }
+
+  private String buildChunkedUrl(String ticker, LocalDate fromDate, LocalDate tillDate) {
+    return MOEX_BASE_URL + ticker +
+        "/candles.json" +
+        "?iss.meta=off" +
+        "&interval=60" +
+        "&from=" + fromDate.format(DateTimeFormatter.ISO_LOCAL_DATE) +
+        "&till=" + tillDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
   }
 }
