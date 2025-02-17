@@ -122,17 +122,16 @@ public class ScreenerApplication implements CommandLineRunner {
         LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0),
         LocalDateTime.of(2025, Month.MARCH, 1, 0, 0));
       */
-
-    downloadSeries("SBER", "2018-", 1, 12, moexDownloader);
-    //downloadSeries("TMOS", "2025-", 1, 12, moexDownloader);
-    //downloadSeries("IEMG", "2023-", 1, 12, alfaVintageDownloader);
+    //downloadSeries("TMOS", "2022-", 1, 12, moexDownloader);
+    downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
+    //downloadSeries("YY", "2022-", 1, 12, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("QQQ", "2025-", 2, 2);
     //priceAggregationService.aggregateAllTickers();
-    //priceAggregationService.aggregateAllTimeFrames("SPY");
+    //priceAggregationService.aggregateAllTimeFrames("NVTK_MOEX");
     //priceAggregationService.aggregateData("SPY", TimeFrame.DAY);
-    // calcSMA_incremental("YY",2,100);
-    calcSMA("SBER", 2, 50);
+     //calcSMA_incremental("NVTK_MOEX",2,100);
+   // calcSMA("NVTK_MOEX", 2, 50);
     //calcSMA( 2, 50);
     //trendService.calculateAndStorePriceTrend("SPXL",TimeFrame.DAY);
     //calcRSI(3,50);
@@ -531,9 +530,9 @@ public class ScreenerApplication implements CommandLineRunner {
       System.out.println("saved = " + saved);
     }
     if (saved > 0) {
-      priceAggregationService.aggregateAllTimeFrames(ticker);
+      priceAggregationService.aggregateAllTimeFrames(sharePriceDownLoaderService.getDbTicker());
       for (int i = lengthMin; i <= lengthMax; i++) {
-        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(ticker, i);
+        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(sharePriceDownLoaderService.getDbTicker(), i);
       }
     }
     System.exit(0);

@@ -2,6 +2,7 @@ package korshak.com.screener.serviceImpl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.YearMonth;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.PriceKey;
@@ -68,7 +69,7 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
       }
 
       JsonNode root = parseResponse(response);
-      List<PriceHour> priceDataList = extractPriceData(root, ticker);
+      List<PriceHour> priceDataList = extractPriceData(root, ticker+"_MOEX");
 
       if (priceDataList.isEmpty()) {
         System.out.println("No data found for " + ticker + " in " + yearMonth);
@@ -87,13 +88,21 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
   private String buildMoexUrl(String ticker, String yearMonth) {
     String[] parts = yearMonth.split("-");
     String fromDate = String.format("%s-%s-01", parts[0], parts[1]);
-    String tillDate = String.format("%s-%s-31", parts[0], parts[1]);
 
-    return MOEX_BASE_URL + ticker + "/candles.json" +
-        "?iss.meta=off" +
-        "&interval=60" +  // 60 minutes = 1 hour
-        "&from=" + fromDate +
-        "&till=" + tillDate;
+    // Check if this is the current month
+    YearMonth requestedMonth = YearMonth.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+    YearMonth currentMonth = YearMonth.now();
+
+    String baseUrl = MOEX_BASE_URL + ticker + "/candles.json?iss.meta=off&interval=60";
+
+    if (requestedMonth.equals(currentMonth)) {
+      // For current month, only use fromDate
+      return baseUrl + "&from=" + fromDate;
+    } else {
+      // For past months, use both from and till dates
+      String tillDate = String.format("%s-%s-31", parts[0], parts[1]);
+      return baseUrl + "&from=" + fromDate + "&till=" + tillDate;
+    }
   }
 
   private JsonNode parseResponse(String response) {
@@ -104,7 +113,13 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
     }
   }
 
+  public String getDbTicker() {
+    return dbTicker;
+  }
+
+  String dbTicker;
   private List<PriceHour> extractPriceData(JsonNode root, String ticker) {
+    dbTicker = ticker;
     List<PriceHour> priceDataList = new ArrayList<>();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 

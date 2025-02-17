@@ -53,6 +53,7 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
   //json
   public int fetchAndSaveData(String timeSeriesLabel, String ticker, String interval,
                               String yearMonth) {
+    dbTicker = ticker;
     String url =
         baseUrl + timeSeriesLabel + "&symbol=" + ticker + "&interval=" + interval + "&month=" +
             yearMonth
@@ -124,4 +125,11 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
       throw new IllegalArgumentException("Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
     }
   }
+
+  @Override
+  public String getDbTicker() {
+    return dbTicker;
+  }
+
+  String dbTicker;
 }

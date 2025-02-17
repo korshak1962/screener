@@ -24,6 +24,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class PriceAggregationServiceImpl implements PriceAggregationService {
 
+  private static final LocalTime MARKET_OPEN = LocalTime.of(9, 30);  // ET
+  private static final LocalTime MARKET_CLOSE = LocalTime.of(16, 0); // ET
+
   private final PriceDao priceDao;
 
   public PriceAggregationServiceImpl(
@@ -170,9 +173,6 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
     };
   }
 
-  private static final LocalTime MARKET_OPEN = LocalTime.of(9, 30);  // ET
-  private static final LocalTime MARKET_CLOSE = LocalTime.of(16, 0); // ET
-
   private List<? extends BasePrice> filterDataForMissingPeriods(
       List<? extends BasePrice> sourceData,
       List<? extends BasePrice> existingData,
@@ -187,14 +187,14 @@ public class PriceAggregationServiceImpl implements PriceAggregationService {
     return sourceData.stream()
         .filter(price -> {
           LocalDateTime periodStart = truncateToTimeFrame(price.getId().getDate(), timeFrame);
-          // Only apply market hours filter for hour aggregation
-          if (timeFrame == TimeFrame.HOUR) {
+          // Only apply market hours filter for hour aggregation and non-MOEX tickers
+          if (timeFrame == TimeFrame.HOUR && !price.getId().getTicker().contains("MOEX")) {
             LocalTime time = price.getId().getDate().toLocalTime();
             return !timeToPriceInDB.containsKey(periodStart) &&
                 time.isAfter(MARKET_OPEN.minusMinutes(1)) &&  // Include 9:30
-                time.isBefore(MARKET_CLOSE);
-          }               // Include up to 16:00
-          // For other timeframes, just check if period exists
+                time.isBefore(MARKET_CLOSE);                   // Include up to 16:00
+          }
+          // For MOEX tickers or other timeframes, just check if period exists
           return !timeToPriceInDB.containsKey(periodStart);
         })
         .collect(Collectors.toList());
