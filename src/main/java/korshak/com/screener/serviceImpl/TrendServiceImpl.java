@@ -1,8 +1,15 @@
 package korshak.com.screener.serviceImpl;
 
 import java.time.LocalDateTime;
-import java.util.*;
-import korshak.com.screener.dao.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.dao.Trend;
+import korshak.com.screener.dao.TrendKey;
+import korshak.com.screener.dao.TrendRepository;
 import korshak.com.screener.service.TrendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +28,16 @@ public class TrendServiceImpl implements TrendService {
 
   @Override
   @Transactional
+  public void calculateAndStorePriceTrendForAllTimeframes(String ticker) {
+    for (TimeFrame timeFrame : TimeFrame.values()) {
+      if (timeFrame != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
+        calculateAndStorePriceTrend(ticker, timeFrame);
+      }
+    }
+  }
+
+  @Override
+  @Transactional
   public List<Trend> calculateAndStorePriceTrend(String ticker, TimeFrame timeFrame) {
     List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);
 
@@ -31,14 +48,15 @@ public class TrendServiceImpl implements TrendService {
     // Delete existing trends
     LocalDateTime startDate = prices.get(0).getId().getDate();
     LocalDateTime endDate = prices.get(prices.size() - 1).getId().getDate();
-    trendRepository.deleteByIdTickerAndIdTimeframeAndIdDateBetween(
-        ticker, timeFrame, startDate, endDate);
+  //  trendRepository.deleteByIdTickerAndIdTimeframeAndIdDateBetween(
+   //     ticker, timeFrame, startDate, endDate);
 
     List<Trend> trends = findExtremumsAndCalculateTrends(prices, ticker, timeFrame);
     return trendRepository.saveAll(trends);
   }
 
-  private List<Trend> findExtremumsAndCalculateTrends(List<? extends BasePrice> prices, String ticker, TimeFrame timeFrame) {
+  private List<Trend> findExtremumsAndCalculateTrends(List<? extends BasePrice> prices,
+                                                      String ticker, TimeFrame timeFrame) {
     List<Trend> trends = new ArrayList<>();
 
     // Track last confirmed extremums
@@ -97,7 +115,8 @@ public class TrendServiceImpl implements TrendService {
     return trends;
   }
 
-  private int determineTrend(double currentMax, double previousMax, double currentMin, double previousMin) {
+  private int determineTrend(double currentMax, double previousMax, double currentMin,
+                             double previousMin) {
     // Uptrend: Both maximum and minimum are higher
     if (currentMax > previousMax && currentMin > previousMin) {
       return 1;

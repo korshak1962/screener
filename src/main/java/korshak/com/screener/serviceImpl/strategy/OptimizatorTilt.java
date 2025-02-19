@@ -75,14 +75,14 @@ public class OptimizatorTilt extends Optimizator {
         for (double currentTiltSell = minTiltSell; currentTiltSell <= maxTiltSell;
              currentTiltSell += tiltSellStep) {
           tiltFromBaseStrategy.setTiltSell(currentTiltSell);
-          System.out.println("====tiltLength =" + tiltLength);
-          System.out.println("====currentTiltBuy =" + currentTiltBuy);
-          System.out.println("====currentTiltSell =" + currentTiltSell);
+          //System.out.println("====tiltLength =" + tiltLength);
+          //System.out.println("====currentTiltBuy =" + currentTiltBuy);
+          //System.out.println("====currentTiltSell =" + currentTiltSell);
           merger.mergeSignals();
           strategyResultLong = tradeService.calculateProfitAndDrawdownLong(merger);
           double longPnL = strategyResultLong.getLongPnL();
-          System.out.println("maxPnl= " + maxPnl + " longPnL= " + longPnL + " tiltLength=" +
-              tiltLength);
+          //System.out.println("maxPnl= " + maxPnl + " longPnL= " + longPnL + " tiltLength=" +
+          //    tiltLength);
 
           /*
           strategyResulShort = tradeService.calculateProfitAndDrawdownShort(strategy);

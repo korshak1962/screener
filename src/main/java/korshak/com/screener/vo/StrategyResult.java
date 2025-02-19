@@ -20,7 +20,7 @@ public class StrategyResult {
   private final List<Trade> tradesShort;
   private final List<? extends Signal> signals;
   private Map<String, NavigableMap<LocalDateTime, Double>> indicators;
-
+private Map<String, Double> optParams;
 
   public StrategyResult(List<? extends BasePrice> prices, double longPnL, double shortPnL,
                         double totalPnL, Map<LocalDateTime, Double> minLongPnl,
@@ -111,5 +111,13 @@ public class StrategyResult {
 
   public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
     return indicators;
+  }
+
+  public Map<String, Double> getOptParams() {
+    return optParams;
+  }
+
+  public void setOptParams(Map<String, Double> optParams) {
+    this.optParams = optParams;
   }
 }

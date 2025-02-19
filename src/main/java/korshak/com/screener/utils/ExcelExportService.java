@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import korshak.com.screener.vo.SignalTilt;
 import korshak.com.screener.vo.Trade;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -11,9 +12,11 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -150,6 +153,79 @@ public class ExcelExportService {
   private static CellStyle createPercentStyle(Workbook workbook) {
     CellStyle style = workbook.createCellStyle();
     style.setDataFormat(workbook.createDataFormat().getFormat("0.00%"));
+    return style;
+  }
+
+  /**
+   * Creates an Excel report from a map where keys become column names and values become cell values.
+   *
+   * @param filePath Path where the Excel file will be saved
+   * @param sheetName Name for the worksheet
+   * @param results Map where keys are column names and values are cell values
+   * @throws IOException If there's an error writing the file
+   */
+  public static void reportForMap(String filePath, String sheetName, Map<String, String> results) throws IOException {
+    if (results == null || results.isEmpty()) {
+      throw new IllegalArgumentException("Results map cannot be empty");
+    }
+
+    try (Workbook workbook = new XSSFWorkbook()) {
+      Sheet sheet = workbook.createSheet(sheetName);
+
+      // Create header row
+      Row headerRow = sheet.createRow(0);
+      CellStyle headerStyle = createHeaderStyle(workbook);
+
+      // Create data row
+      Row dataRow = sheet.createRow(1);
+      CellStyle dataStyle = createDataStyle(workbook);
+
+      int colNum = 0;
+      for (Map.Entry<String, String> entry : results.entrySet()) {
+        // Header cell
+        Cell headerCell = headerRow.createCell(colNum);
+        headerCell.setCellValue(entry.getKey());
+        headerCell.setCellStyle(headerStyle);
+
+        // Data cell
+        Cell dataCell = dataRow.createCell(colNum);
+        dataCell.setCellValue(entry.getValue());
+        dataCell.setCellStyle(dataStyle);
+
+        colNum++;
+      }
+
+      // Auto-size columns
+      for (int i = 0; i < results.size(); i++) {
+        sheet.autoSizeColumn(i);
+      }
+
+      // Write to file
+      try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+        workbook.write(fileOut);
+      }
+    }
+  }
+
+  /**
+   * Creates a standard data cell style
+   * @param workbook The workbook to create the style in
+   * @return CellStyle configured for data cells
+   */
+  private static CellStyle createDataStyle(Workbook workbook) {
+    CellStyle style = workbook.createCellStyle();
+    style.setBorderBottom(BorderStyle.THIN);
+    style.setBorderLeft(BorderStyle.THIN);
+    style.setBorderRight(BorderStyle.THIN);
+    style.setBorderTop(BorderStyle.THIN);
+    style.setAlignment(HorizontalAlignment.LEFT);
+    style.setVerticalAlignment(VerticalAlignment.CENTER);
+
+    Font font = workbook.createFont();
+    font.setFontName("Arial");
+    font.setFontHeightInPoints((short) 11);
+    style.setFont(font);
+
     return style;
   }
 }

@@ -3,7 +3,9 @@ package korshak.com.screener;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -19,6 +21,7 @@ import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.serviceImpl.AlphaVintageDownloader;
 import korshak.com.screener.serviceImpl.FuturePriceByTiltCalculator;
 import korshak.com.screener.serviceImpl.MoexSharePriceDownLoaderServiceImpl;
+import korshak.com.screener.serviceImpl.Reporter;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTrend;
 import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevClose;
@@ -116,64 +119,36 @@ public class ScreenerApplication implements CommandLineRunner {
   @Autowired
   RsiService rsiService;
 
+  @Autowired
+  Reporter reporter;
+
   @Override
   public void run(String... args) throws Exception {
-/*
-      optAndShow("TMOS_MOEX",
-        LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0),
-        LocalDateTime.of(2025, Month.MARCH, 1, 0, 0));
-*/
-    downloadSeries("LKOH", "2020-01-01");
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
+
+    List<String> tickers = new ArrayList<>();
+    String ticker = "YMM";
+    tickers.add(ticker);
+    reporter.createExcelReport(tickers,startDate, endDate,TimeFrame.DAY);
+    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+
+   // downloadSeries("LKOH", "2011-01-01");
+   // downloadSeries("LKOH", "2025-02-10");
+    //calcSMA("YMM", 2, 50);
     //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
-    //downloadSeries("YY", "2022-", 1, 12, alfaVintageDownloader);
+    //downloadSeries("YMM", "2025-", 1, 2, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
-    //downloadSeriesUnsafe("QQQ", "2025-", 2, 2);
+    //downloadSeriesUnsafe("TLT", "2025-", 1, 2);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("NVTK_MOEX");
    // priceAggregationService.aggregateData("TMOS_MOEX", TimeFrame.DAY);
      //calcSMA_incremental("NVTK_MOEX",2,100);
-   // calcSMA("TMOS_MOEX", 2, 50);
     //calcSMA( 2, 50);
     //trendService.calculateAndStorePriceTrend("SPXL",TimeFrame.DAY);
     //calcRSI(3,50);
     //calcRSI("SBER", 11, 50);
     System.exit(0);
-  }
-
-  private void optAndShow(String ticker,LocalDateTime startDate,LocalDateTime endDate) throws IOException {;
-    TimeFrame timeFrame = TimeFrame.DAY;
-    int minLength = 3;
-    int maxLength = 10;
-    int stepLength = 1;
-    double minTiltBuy = -0.01;
-    double maxTiltBuy = 0.02;
-    double tiltBuyStep = 0.01;
-    double minTiltSell = -0.05;
-    double maxTiltSell = 0.01;
-    double tiltSellStep = 0.01;
-    double minStopLossPercent = .95;
-    double maxStopLossPercent = .99;
-    double stepOfStopLoss = 0.01;
-
-    optimizatorTilt.configure(minLength, maxLength, stepLength, minTiltBuy, maxTiltBuy, tiltBuyStep,
-        minTiltSell, maxTiltSell, tiltSellStep);
-    Map<String, Double> optParams =
-        optimazeStrategy(optimizatorTilt, ticker, timeFrame, startDate, endDate,
-            minStopLossPercent,
-            maxStopLossPercent, stepOfStopLoss);
-
-    strategyMerger
-        .setStopLossPercent(optParams.get(Optimizator.STOP_LOSS))
-        .init(ticker, timeFrame, startDate, endDate)
-        //  .addStrategy(
-        //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
-        .addStrategy(
-            initStrategy(tiltFromBaseStrategy, timeFrame, ticker, startDate, endDate, optParams)
-        )
-        .mergeSignals()
-    ;
-    futurePriceCalc(ticker, optParams);
-    evaluateStrategy(strategyMerger);
   }
 
   private void futurePriceCalc(String ticker, Map<String, Double> optParams) {
@@ -229,46 +204,7 @@ public class ScreenerApplication implements CommandLineRunner {
     return doubleTiltStrategy;
   }
 
-  private void evaluateStrategy(Strategy strategy) throws IOException {
-    StrategyResult buyAndHoldstrategyResult =
-        tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, strategy.getTicker(),
-            strategy.getStartDate(),
-            strategy.getEndDate(),
-            strategy.getTimeFrame());
-    //StrategyResult strategyResultTilt =
-    //    tradeService.calculateProfitAndDrawdownLong(tiltStrategy, ticker, timeFrame);
-
-    StrategyResult strategyResultTilt =
-        tradeService.calculateProfitAndDrawdownLong(strategy, strategy.getTicker(),
-            strategy.getStartDate(),
-            strategy.getEndDate(),
-            strategy.getTimeFrame());
-    System.out.println(strategy.getStrategyName() + " result: " + strategyResultTilt);
-    System.out.println(
-        buyAndHoldStrategy.getStrategyName() + " result: " + buyAndHoldstrategyResult);
-
-/*
-    ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesLong(),
-        "trades_long.xlsx");
-
-    ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesShort(),
-        "trades_short.xlsx");
-
-   */
-    System.setProperty("java.awt.headless", "false");
-    ChartService chartService = new ChartServiceImpl(strategy.getStrategyName());
-    chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
-        , strategy.getPriceIndicators()
-        , strategyResultTilt.getTradesLong(), strategy.getIndicators());
-    pause();
-    /*chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignalsLong()
-        , ((TiltStrategy) tiltStrategy).getSmaList()
-        , strategyResultTilt.getTradesLong());
-     */
-    //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignalsLong());
-  }
-
-  private static void pause() {
+   static void pause() {
     try {
       System.out.println("Press any key to continue...");
       System.in.read();
@@ -476,7 +412,7 @@ public class ScreenerApplication implements CommandLineRunner {
       System.out.println("length = " + length);
     }
     System.out.println("total in minutes= " + (System.currentTimeMillis() - start) / 60000);
-    System.exit(0);
+    //System.exit(0);
   }
 
   private void calcRSI(String ticker, int startLength, int endLength) {
@@ -520,7 +456,7 @@ public class ScreenerApplication implements CommandLineRunner {
         smaCalculationService.calculateIncrementalSMAForAllTimeFrames(moexDownloader.getDbTicker(), i);
       }
     }
-    System.exit(0);
+    //System.exit(0);
   }
 
   private void downloadSeries(final String ticker, String year, int startMonth, int finalMonth,

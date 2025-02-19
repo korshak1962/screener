@@ -50,6 +50,7 @@ public class BuyAndHoldStrategy implements Strategy {
         endDate,
         timeFrame
     );
+    signals.clear();
     signals.add(new Signal(prices.getFirst().getId().getDate(), prices.getFirst().getClose(),
         SignalType.LongOpen));
     signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(),

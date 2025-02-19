@@ -8,4 +8,5 @@ import korshak.com.screener.vo.MinMax;
 
 public interface TrendService {
   List<Trend> calculateAndStorePriceTrend(String ticker, TimeFrame timeFrame);
+  void calculateAndStorePriceTrendForAllTimeframes(String ticker);
 }
