@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Share Price Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
@@ -18,7 +18,7 @@
 <h1>Share Price Dashboard</h1>
 <div class="section">
     <h2>Fetch and Save Share Price Data</h2>
-    <input type="text" id="fetchTicker" placeholder="Ticker">
+    <input id="fetchTicker" placeholder="Ticker" type="text">
     <select id="timeSeriesLabel">
         <option value="TIME_SERIES_INTRADAY">Intraday</option>
         <option value="TIME_SERIES_DAILY">Daily</option>
@@ -32,38 +32,38 @@
         <option value="30min">30 min</option>
         <option value="60min">60 min</option>
     </select>
-    <input type="month" id="monthInput">
+    <input id="monthInput" type="month">
     <button onclick="fetchAndSaveData()">Fetch and Save Data</button>
     <div id="fetchResult"></div>
     <div id="downloadProgress"></div>
 </div>
 <div class="section">
     <h2>Get Share Price</h2>
-    <input type="text" id="ticker" placeholder="Ticker">
-    <input type="date" id="dateInput">
-    <input type="time" id="timeInput" step="1">
+    <input id="ticker" placeholder="Ticker" type="text">
+    <input id="dateInput" type="date">
+    <input id="timeInput" step="1" type="time">
     <button onclick="getSharePrice()">Get Price</button>
     <div id="sharePriceResult"></div>
 </div>
 
 <div class="section">
     <h2>Get Share Prices</h2>
-    <input type="text" id="tickerList" placeholder="Ticker">
-    <input type="number" id="page" placeholder="Page" value="0">
-    <input type="number" id="size" placeholder="Size" value="10">
+    <input id="tickerList" placeholder="Ticker" type="text">
+    <input id="page" placeholder="Page" type="number" value="0">
+    <input id="size" placeholder="Size" type="number" value="10">
     <button onclick="getSharePrices()">Get Prices</button>
     <div id="sharePricesResult"></div>
 </div>
 
 <div class="section">
     <h2>Get Share Prices Between Dates</h2>
-    <input type="text" id="tickerBetween" placeholder="Ticker">
-    <input type="date" id="startDateInput">
-    <input type="time" id="startTimeInput" step="1">
-    <input type="date" id="endDateInput">
-    <input type="time" id="endTimeInput" step="1">
-    <input type="number" id="pageBetween" placeholder="Page" value="0">
-    <input type="number" id="sizeBetween" placeholder="Size" value="10">
+    <input id="tickerBetween" placeholder="Ticker" type="text">
+    <input id="startDateInput" type="date">
+    <input id="startTimeInput" step="1" type="time">
+    <input id="endDateInput" type="date">
+    <input id="endTimeInput" step="1" type="time">
+    <input id="pageBetween" placeholder="Page" type="number" value="0">
+    <input id="sizeBetween" placeholder="Size" type="number" value="10">
     <button onclick="getSharePricesBetweenDates()">Get Prices</button>
     <div id="sharePricesBetweenResult"></div>
 </div>
@@ -71,19 +71,19 @@
 <script>
     const API_BASE_URL = 'http://localhost:8080/api/share-prices';
 
-   async function getSharePrice() {
-    const ticker = document.getElementById('ticker').value;
-    const date = document.getElementById('dateInput').value;
-    const time = document.getElementById('timeInput').value || '00:00:00'; // Default to midnight if no time is selected
-    const dateTime = `${date}T${time}`;
-    try {
-        const response = await axios.get(`${API_BASE_URL}/${ticker}/${encodeURIComponent(dateTime)}`);
-        displaySharePrice(response.data, 'sharePriceResult');
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('sharePriceResult').innerHTML = `Error: ${error.response?.data?.message || error.message}`;
+    async function getSharePrice() {
+        const ticker = document.getElementById('ticker').value;
+        const date = document.getElementById('dateInput').value;
+        const time = document.getElementById('timeInput').value || '00:00:00'; // Default to midnight if no time is selected
+        const dateTime = `${date}T${time}`;
+        try {
+            const response = await axios.get(`${API_BASE_URL}/${ticker}/${encodeURIComponent(dateTime)}`);
+            displaySharePrice(response.data, 'sharePriceResult');
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('sharePriceResult').innerHTML = `Error: ${error.response?.data?.message || error.message}`;
+        }
     }
-}
 
     async function getSharePrices() {
         const ticker = document.getElementById('tickerList').value;
@@ -98,31 +98,31 @@
         }
     }
 
-   async function getSharePricesBetweenDates() {
-    const ticker = document.getElementById('tickerBetween').value;
-    const startDate = document.getElementById('startDateInput').value;
-    const startTime = document.getElementById('startTimeInput').value || '00:00:00';
-    const endDate = document.getElementById('endDateInput').value;
-    const endTime = document.getElementById('endTimeInput').value || '23:59:59';
-    const startDateTime = `${startDate}T${startTime}`;
-    const endDateTime = `${endDate}T${endTime}`;
-    const page = document.getElementById('pageBetween').value;
-    const size = document.getElementById('sizeBetween').value;
-    try {
-        const response = await axios.get(`${API_BASE_URL}/${ticker}/between`, {
-            params: {
-                startDate: startDateTime,
-                endDate: endDateTime,
-                page: page,
-                size: size
-            }
-        });
-        displaySharePrices(response.data.content, 'sharePricesBetweenResult');
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('sharePricesBetweenResult').innerHTML = `Error: ${error.response?.data?.message || error.message}`;
+    async function getSharePricesBetweenDates() {
+        const ticker = document.getElementById('tickerBetween').value;
+        const startDate = document.getElementById('startDateInput').value;
+        const startTime = document.getElementById('startTimeInput').value || '00:00:00';
+        const endDate = document.getElementById('endDateInput').value;
+        const endTime = document.getElementById('endTimeInput').value || '23:59:59';
+        const startDateTime = `${startDate}T${startTime}`;
+        const endDateTime = `${endDate}T${endTime}`;
+        const page = document.getElementById('pageBetween').value;
+        const size = document.getElementById('sizeBetween').value;
+        try {
+            const response = await axios.get(`${API_BASE_URL}/${ticker}/between`, {
+                params: {
+                    startDate: startDateTime,
+                    endDate: endDateTime,
+                    page: page,
+                    size: size
+                }
+            });
+            displaySharePrices(response.data.content, 'sharePricesBetweenResult');
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('sharePricesBetweenResult').innerHTML = `Error: ${error.response?.data?.message || error.message}`;
+        }
     }
-}
     function displaySharePrice(sharePrice, elementId) {
         let html = `
             <h3>Share Price for ${sharePrice.ticker} on ${sharePrice.date}</h3>
@@ -166,74 +166,74 @@
     }
 
     async function fetchAndSaveData() {
-    const ticker = document.getElementById('fetchTicker').value;
-    const timeSeriesLabel = document.getElementById('timeSeriesLabel').value;
-    const interval = document.getElementById('interval').value;
-    const monthInput = document.getElementById('monthInput').value;
+        const ticker = document.getElementById('fetchTicker').value;
+        const timeSeriesLabel = document.getElementById('timeSeriesLabel').value;
+        const interval = document.getElementById('interval').value;
+        const monthInput = document.getElementById('monthInput').value;
 
-    const month = monthInput.slice(0, 7); // This will give us "YYYY-MM"
+        const month = monthInput.slice(0, 7); // This will give us "YYYY-MM"
 
-    if (!ticker || !monthInput) {
-        updateFetchResult('Error: Please fill in all fields');
-        return;
+        if (!ticker || !monthInput) {
+            updateFetchResult('Error: Please fill in all fields');
+            return;
+        }
+
+        try {
+            const response = await axios.post(`${API_BASE_URL}/fetch`, null, {
+                params: {
+                    timeSeriesLabel,
+                    ticker,
+                    interval,
+                    month
+                }
+            });
+            updateFetchResult(`${response.data}`);
+            startProgressMonitoring();
+        } catch (error) {
+            console.error('Error:', error);
+            updateFetchResult(`Error: ${error.response?.data || error.message}`);
+        }
     }
 
-    try {
-        const response = await axios.post(`${API_BASE_URL}/fetch`, null, {
-            params: {
-                timeSeriesLabel,
-                ticker,
-                interval,
-                month
-            }
+    function startProgressMonitoring() {
+        const progressDiv = document.getElementById('downloadProgress');
+        if (!progressDiv) {
+            console.error('Download progress element not found');
+            return;
+        }
+
+        const eventSource = new EventSource(`${API_BASE_URL}/fetch-status`);
+
+        updateProgress('Download in progress...');
+
+        eventSource.addEventListener('complete', (event) => {
+            updateProgress(event.data);
+            eventSource.close();
         });
-        updateFetchResult(`${response.data}`);
-        startProgressMonitoring();
-    } catch (error) {
-        console.error('Error:', error);
-        updateFetchResult(`Error: ${error.response?.data || error.message}`);
-    }
-}
 
-function startProgressMonitoring() {
-    const progressDiv = document.getElementById('downloadProgress');
-    if (!progressDiv) {
-        console.error('Download progress element not found');
-        return;
+        eventSource.onerror = () => {
+            updateProgress('Error occurred while fetching status');
+            eventSource.close();
+        };
     }
 
-    const eventSource = new EventSource(`${API_BASE_URL}/fetch-status`);
-
-    updateProgress('Download in progress...');
-
-    eventSource.addEventListener('complete', (event) => {
-        updateProgress(event.data);
-        eventSource.close();
-    });
-
-    eventSource.onerror = () => {
-        updateProgress('Error occurred while fetching status');
-        eventSource.close();
-    };
-}
-
-function updateFetchResult(message) {
-    const fetchResultDiv = document.getElementById('fetchResult');
-    if (fetchResultDiv) {
-        fetchResultDiv.innerHTML = message;
-    } else {
-        console.error('Fetch result element not found');
+    function updateFetchResult(message) {
+        const fetchResultDiv = document.getElementById('fetchResult');
+        if (fetchResultDiv) {
+            fetchResultDiv.innerHTML = message;
+        } else {
+            console.error('Fetch result element not found');
+        }
     }
-}
 
-function updateProgress(message) {
-    const progressDiv = document.getElementById('downloadProgress');
-    if (progressDiv) {
-        progressDiv.innerHTML = message;
-    } else {
-        console.error('Download progress element not found');
+    function updateProgress(message) {
+        const progressDiv = document.getElementById('downloadProgress');
+        if (progressDiv) {
+            progressDiv.innerHTML = message;
+        } else {
+            console.error('Download progress element not found');
+        }
     }
-}
 </script>
 </body>
 </html>

@@ -16,11 +16,14 @@ import org.springframework.stereotype.Service;
 @Service("BuyAndHoldStrategy")
 public class BuyAndHoldStrategy implements Strategy {
   PriceDao priceDao;
-  private List<? extends BasePrice> prices;
-
   List<Signal> signals = new ArrayList<>();
   TimeFrame timeFrame;
   String ticker;
+  private List<? extends BasePrice> prices;
+
+  public BuyAndHoldStrategy(PriceDao priceDao) {
+    this.priceDao = priceDao;
+  }
 
   public List<Signal> getSignalsLong(List<? extends BasePrice> prices) {
     return signals;
@@ -31,10 +34,6 @@ public class BuyAndHoldStrategy implements Strategy {
     return getSignalsLong(prices);
   }
 
-  public BuyAndHoldStrategy(PriceDao priceDao) {
-    this.priceDao = priceDao;
-  }
-
   @Override
   public List<? extends Signal> getSignalsShort() {
     return List.of();
@@ -42,8 +41,8 @@ public class BuyAndHoldStrategy implements Strategy {
 
   @Override
   public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
-                   LocalDateTime endDate) {
-    this.ticker=ticker;
+                       LocalDateTime endDate) {
+    this.ticker = ticker;
     this.prices = priceDao.findByDateRange(
         ticker,
         startDate,

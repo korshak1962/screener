@@ -48,8 +48,8 @@ public class TrendServiceImpl implements TrendService {
     // Delete existing trends
     LocalDateTime startDate = prices.get(0).getId().getDate();
     LocalDateTime endDate = prices.get(prices.size() - 1).getId().getDate();
-  //  trendRepository.deleteByIdTickerAndIdTimeframeAndIdDateBetween(
-   //     ticker, timeFrame, startDate, endDate);
+    //  trendRepository.deleteByIdTickerAndIdTimeframeAndIdDateBetween(
+    //     ticker, timeFrame, startDate, endDate);
 
     List<Trend> trends = findExtremumsAndCalculateTrends(prices, ticker, timeFrame);
     return trendRepository.saveAll(trends);

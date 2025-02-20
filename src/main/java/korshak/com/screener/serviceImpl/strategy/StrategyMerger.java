@@ -20,19 +20,27 @@ import org.springframework.stereotype.Service;
 @Service("StrategyMerger")
 public class StrategyMerger implements Strategy {
 
+  final PriceDao priceDao;
   double stopLossMaxPercent = .98;
-
   Map<String, Strategy> nameToStrategy = new HashMap<>();
   TimeFrame timeFrame;
   LocalDateTime startDate;
   LocalDateTime endDate;
-  final PriceDao priceDao;
   String ticker;
   List<? extends BasePrice> prices;
   List<Signal> signalsLong;
   List<Signal> signalsShort = new ArrayList<>();
 
   Map<LocalDateTime, List<Signal>> dateToSignals;
+  Comparator<Signal> signalComparator = (s1, s2) -> {
+    // First compare by SignalType value
+    int valueCompare = Integer.compare(s1.getSignalType().value, s2.getSignalType().value);
+    if (valueCompare != 0) {
+      return valueCompare;
+    }
+    // If SignalType values are equal, compare by price in reverse order (to get max price)
+    return Double.compare(s2.getPrice(), s1.getPrice());
+  };
 
   public StrategyMerger(PriceDao priceDao) {
     this.priceDao = priceDao;
@@ -190,14 +198,4 @@ public class StrategyMerger implements Strategy {
     this.stopLossMaxPercent = stopLossMaxPercent;
     return this;
   }
-
-  Comparator<Signal> signalComparator = (s1, s2) -> {
-    // First compare by SignalType value
-    int valueCompare = Integer.compare(s1.getSignalType().value, s2.getSignalType().value);
-    if (valueCompare != 0) {
-      return valueCompare;
-    }
-    // If SignalType values are equal, compare by price in reverse order (to get max price)
-    return Double.compare(s2.getPrice(), s1.getPrice());
-  };
 }

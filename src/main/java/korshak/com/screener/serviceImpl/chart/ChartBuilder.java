@@ -1,23 +1,26 @@
 package korshak.com.screener.serviceImpl.chart;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.Trade;
-import org.jfree.chart.*;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.awt.Color;
-import java.awt.Font;
 
 public class ChartBuilder {
   private final List<? extends BasePrice> prices;
@@ -178,7 +181,8 @@ public class ChartBuilder {
     rangeAxis.setAutoRangeIncludesZero(false);
 
     // Create custom renderer for multiple lines
-    XYLineAndShapeRenderer renderer = rendererFactory.createMultipleIndicatorsRenderer(indicators.size());
+    XYLineAndShapeRenderer renderer =
+        rendererFactory.createMultipleIndicatorsRenderer(indicators.size());
 
     XYPlot plot = new XYPlot(dataset, null, rangeAxis, renderer);
 

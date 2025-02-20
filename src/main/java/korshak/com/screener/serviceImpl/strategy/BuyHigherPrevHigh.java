@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 @Service("BuyHigherPrevHigh")
 public class BuyHigherPrevHigh extends BaseStrategy {
 
+  BasePrice pricePrev;
+
   public BuyHigherPrevHigh(PriceDao priceDao) {
     super(priceDao);
   }
-
-  BasePrice pricePrev;
 
   @Override
   public Signal getSignal(BasePrice price) {
@@ -22,13 +22,13 @@ public class BuyHigherPrevHigh extends BaseStrategy {
       pricePrev = price;
       return null;
     }
-    Signal signal = getSignal(pricePrev,price);
+    Signal signal = getSignal(pricePrev, price);
     pricePrev = price;
     return signal;
   }
 
   @Override
-  public Signal getSignal(BasePrice priceOfBackupTimeframe,BasePrice price) {
+  public Signal getSignal(BasePrice priceOfBackupTimeframe, BasePrice price) {
     Signal signal = null;
     if (price.getHigh() > priceOfBackupTimeframe.getHigh()) {
       signal = Utils.createSignal(price, SignalType.LongOpen);

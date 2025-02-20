@@ -12,5 +12,6 @@ interface PriceHourRepository extends JpaRepository<PriceHour, PriceKey> {
       LocalDateTime startDate,
       LocalDateTime endDate
   );
+
   List<PriceHour> findByIdTickerOrderByIdDateAsc(String ticker);
 }

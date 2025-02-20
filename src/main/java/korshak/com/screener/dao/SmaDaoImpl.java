@@ -66,7 +66,7 @@ public class SmaDaoImpl implements SmaDao {
       TimeFrame timeFrame,
       int length) {
     SmaRepository smaRepository = getSmaRepository(timeFrame);
-   return smaRepository.findByIdTickerAndIdLengthAndIdDateBetweenOrderByIdDateAsc(
+    return smaRepository.findByIdTickerAndIdLengthAndIdDateBetweenOrderByIdDateAsc(
         ticker, length, startDate, endDate);
   }
 

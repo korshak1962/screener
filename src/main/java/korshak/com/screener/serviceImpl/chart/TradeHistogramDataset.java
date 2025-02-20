@@ -1,10 +1,10 @@
 package korshak.com.screener.serviceImpl.chart;
 
-import korshak.com.screener.vo.Trade;
-import org.jfree.data.xy.AbstractXYDataset;
-import java.util.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
+import korshak.com.screener.vo.Trade;
+import org.jfree.data.xy.AbstractXYDataset;
 
 public class TradeHistogramDataset extends AbstractXYDataset {
   private final List<Trade> trades;

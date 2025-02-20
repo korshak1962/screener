@@ -21,13 +21,13 @@ public class BuyCloseHigherPrevClose extends BaseStrategy {
       pricePrev = price;
       return null;
     }
-    Signal signal = getSignal(pricePrev,price);
+    Signal signal = getSignal(pricePrev, price);
     pricePrev = price;
     return signal;
   }
 
   @Override
-   public Signal getSignal(BasePrice priceOfBackupTimeframe,BasePrice price) {
+  public Signal getSignal(BasePrice priceOfBackupTimeframe, BasePrice price) {
     Signal signal = null;
     if (price.getClose() > priceOfBackupTimeframe.getClose()) {
       signal = Utils.createSignal(price, SignalType.LongOpen);

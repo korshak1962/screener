@@ -8,7 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import korshak.com.screener.dao.*;
+import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.BaseSma;
+import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.PriceKey;
+import korshak.com.screener.dao.PriceMin5;
+import korshak.com.screener.dao.SmaDao;
+import korshak.com.screener.dao.SmaKey;
+import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.SmaCalculationService;
 import korshak.com.screener.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +37,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
 
   /**
    * Calculates incremental SMAs for all timeframes for a given ticker and length
+   *
    * @param ticker Stock ticker
    * @param length SMA length
    */
@@ -52,6 +60,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
 
   /**
    * Calculates incremental SMAs for all tickers and timeframes for a given length
+   *
    * @param length SMA length
    */
   @Transactional
@@ -81,8 +90,9 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
 
   /**
    * Calculates SMA and tilt only for new prices, utilizing existing SMA values
-   * @param ticker Stock ticker
-   * @param length SMA length
+   *
+   * @param ticker    Stock ticker
+   * @param length    SMA length
    * @param timeFrame Time frame for calculation
    * @return List of newly calculated SMAs
    */
@@ -119,7 +129,8 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
 
     // Calculate start index for previous prices needed for SMA window
     int previousPricesStartIndex = Math.max(0, newPricesStartIndex - (length - 1));
-    List<? extends BasePrice> previousPrices = prices.subList(previousPricesStartIndex, newPricesStartIndex);
+    List<? extends BasePrice> previousPrices =
+        prices.subList(previousPricesStartIndex, newPricesStartIndex);
     List<? extends BasePrice> pricesToProcess = prices.subList(newPricesStartIndex, prices.size());
 
     // Get previous SMAs for tilt calculation using binary search if we have existing SMAs
@@ -164,7 +175,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
         if (tiltWindow.size() == TILT_PERIOD) {
           double tilt = Utils.calculateTilt(tiltWindow);
           sma.setTilt(tilt);
-          sma.setYield(Utils.calculateYield(timeFrame,tilt));
+          sma.setYield(Utils.calculateYield(timeFrame, tilt));
         }
 
         newSmas.add(sma);
@@ -275,7 +286,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
       if (tiltWindow.size() == TILT_PERIOD) {
         double tilt = Utils.calculateTilt(tiltWindow);
         sma.setTilt(tilt);
-        sma.setYield(Utils.calculateYield(timeFrame,tilt));
+        sma.setYield(Utils.calculateYield(timeFrame, tilt));
       }
 
       if (i < prices.size() - 1) {
@@ -312,7 +323,7 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
   public void calculateSMAForAllTimeFrameAndTickers(int length) {
     Set<String> tickers = priceDao.findUniqueTickers();
     for (String ticker : tickers) {
-      System.out.println("Calculating SMAs for " + ticker +" length = " + length);
+      System.out.println("Calculating SMAs for " + ticker + " length = " + length);
       calculateSMAForAllTimeFrame(ticker, length);
     }
   }

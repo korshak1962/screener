@@ -1,9 +1,10 @@
 package korshak.com.screener.dao;
 
-import jakarta.persistence.*;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.MappedSuperclass;
 
 @MappedSuperclass
-public abstract class BaseRsi implements TiltableIndicator{
+public abstract class BaseRsi implements TiltableIndicator {
   @EmbeddedId
   private RsiKey id;
   private double value;

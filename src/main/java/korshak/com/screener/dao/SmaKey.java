@@ -13,6 +13,7 @@ public class SmaKey implements Serializable {
 
   public SmaKey() {
   }
+
   public SmaKey(String ticker, LocalDateTime date, int length) {
     this.ticker = ticker;
     this.date = date;

@@ -9,9 +9,9 @@ public class Trade {
   public Trade(Signal open, Signal close) {
     this.open = open;
     this.close = close;
-    pnl = (close.price  - open.price);
-    if (close.getSignalType()==SignalType.ShortClose){ // short trade
-      pnl=-pnl;
+    pnl = (close.price - open.price);
+    if (close.getSignalType() == SignalType.ShortClose) { // short trade
+      pnl = -pnl;
     }
   }
 
@@ -31,7 +31,7 @@ public class Trade {
     return maxPainPercent;
   }
 
- public void setMaxPainPercent(double maxPainPercent) {
+  public void setMaxPainPercent(double maxPainPercent) {
     this.maxPainPercent = maxPainPercent;
   }
 }

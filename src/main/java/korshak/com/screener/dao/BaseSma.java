@@ -1,9 +1,10 @@
 package korshak.com.screener.dao;
 
-import jakarta.persistence.*;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.MappedSuperclass;
 
 @MappedSuperclass
-public abstract class BaseSma implements TiltableIndicator{
+public abstract class BaseSma implements TiltableIndicator {
   @EmbeddedId
   private SmaKey id;
   private double value;

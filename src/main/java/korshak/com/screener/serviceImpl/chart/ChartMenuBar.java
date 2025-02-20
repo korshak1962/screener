@@ -1,7 +1,10 @@
 package korshak.com.screener.serviceImpl.chart;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 
 public class ChartMenuBar extends JMenuBar {
   private final ChartController controller;

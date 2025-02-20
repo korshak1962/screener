@@ -42,7 +42,7 @@ public abstract class Optimizator {
       Map<String, Double> pars = findOptimumParameters();
       if (parsBest == null || parsBest.get(MAX_PNL) < pars.get(MAX_PNL)) {
         parsBest = pars;
-        parsBest.put(STOP_LOSS,currentPercent);
+        parsBest.put(STOP_LOSS, currentPercent);
       }
     }
     return parsBest;

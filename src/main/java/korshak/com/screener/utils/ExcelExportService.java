@@ -34,7 +34,7 @@ public class ExcelExportService {
       Row headerRow = sheet.createRow(0);
       String[] headers = {
           "Open Date", "Open Price", "Close Date", "Close Price",
-          "PnL", "Duration (days)", "Return %","max possible loss %", "tilt open", "tilt close",
+          "PnL", "Duration (days)", "Return %", "max possible loss %", "tilt open", "tilt close",
           "trend tilt open", "trend tilt close"
       };
 
@@ -89,8 +89,7 @@ public class ExcelExportService {
         posLossCell.setCellValue(trade.getMaxPainPercent());
         posLossCell.setCellStyle(numberStyle);
 
-        if (trade.getOpen() instanceof SignalTilt) {
-          SignalTilt signalTiltOpen = (SignalTilt) trade.getOpen();
+        if (trade.getOpen() instanceof SignalTilt signalTiltOpen) {
 
           Cell tiltOpenCell = row.createCell(7);
           double tiltOpenValue = signalTiltOpen.getTilt();
@@ -158,14 +157,16 @@ public class ExcelExportService {
 
   /**
    * Creates an Excel report from a map where keys become column names and values become cell values.
+   * Each column can have multiple values represented as a list.
    *
-   * @param filePath Path where the Excel file will be saved
-   * @param sheetName Name for the worksheet
-   * @param results Map where keys are column names and values are cell values
+   * @param filePath     Path where the Excel file will be saved
+   * @param sheetName    Name for the worksheet
+   * @param nameToValues Map where keys are column names and values are lists of cell values
    * @throws IOException If there's an error writing the file
    */
-  public static void reportForMap(String filePath, String sheetName, Map<String, String> results) throws IOException {
-    if (results == null || results.isEmpty()) {
+  public static void reportForMap(String filePath, String sheetName,
+                                  Map<String, List<String>> nameToValues) throws IOException {
+    if (nameToValues == null || nameToValues.isEmpty()) {
       throw new IllegalArgumentException("Results map cannot be empty");
     }
 
@@ -176,27 +177,44 @@ public class ExcelExportService {
       Row headerRow = sheet.createRow(0);
       CellStyle headerStyle = createHeaderStyle(workbook);
 
-      // Create data row
-      Row dataRow = sheet.createRow(1);
+      // Add column headers
+      int colNum = 0;
+      for (String columnName : nameToValues.keySet()) {
+        Cell headerCell = headerRow.createCell(colNum++);
+        headerCell.setCellValue(columnName);
+        headerCell.setCellStyle(headerStyle);
+      }
+
+      // Determine maximum number of rows needed
+      int maxRowCount = 0;
+      for (List<String> values : nameToValues.values()) {
+        maxRowCount = Math.max(maxRowCount, values.size());
+      }
+
+      // Create data style
       CellStyle dataStyle = createDataStyle(workbook);
 
-      int colNum = 0;
-      for (Map.Entry<String, String> entry : results.entrySet()) {
-        // Header cell
-        Cell headerCell = headerRow.createCell(colNum);
-        headerCell.setCellValue(entry.getKey());
-        headerCell.setCellStyle(headerStyle);
+      // Populate data rows
+      for (int rowIdx = 0; rowIdx < maxRowCount; rowIdx++) {
+        Row dataRow = sheet.createRow(rowIdx + 1); // +1 to account for header row
 
-        // Data cell
-        Cell dataCell = dataRow.createCell(colNum);
-        dataCell.setCellValue(entry.getValue());
-        dataCell.setCellStyle(dataStyle);
+        colNum = 0;
+        for (Map.Entry<String, List<String>> entry : nameToValues.entrySet()) {
+          List<String> columnValues = entry.getValue();
 
-        colNum++;
+          // Only add a value if this column has enough values
+          if (rowIdx < columnValues.size()) {
+            Cell dataCell = dataRow.createCell(colNum);
+            dataCell.setCellValue(columnValues.get(rowIdx));
+            dataCell.setCellStyle(dataStyle);
+          }
+
+          colNum++;
+        }
       }
 
       // Auto-size columns
-      for (int i = 0; i < results.size(); i++) {
+      for (int i = 0; i < nameToValues.size(); i++) {
         sheet.autoSizeColumn(i);
       }
 
@@ -209,6 +227,7 @@ public class ExcelExportService {
 
   /**
    * Creates a standard data cell style
+   *
    * @param workbook The workbook to create the style in
    * @return CellStyle configured for data cells
    */

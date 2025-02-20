@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-interface SmaHourRepository extends JpaRepository<SmaHour, SmaKey>,SmaRepository {
+interface SmaHourRepository extends JpaRepository<SmaHour, SmaKey>, SmaRepository {
   void deleteByIdTickerAndIdLength(String ticker, int length);
+
   // Find all SMAs for a specific ticker and length, ordered by date
   List<SmaHour> findByIdTickerAndIdLengthOrderByIdDateAsc(String ticker, int length);
 

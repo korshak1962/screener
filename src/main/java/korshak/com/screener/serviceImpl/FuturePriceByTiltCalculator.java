@@ -1,12 +1,16 @@
 package korshak.com.screener.serviceImpl;
 
-import korshak.com.screener.dao.*;
-import korshak.com.screener.utils.Utils;
-import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.BaseSma;
+import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.SmaDao;
+import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.utils.Utils;
+import org.springframework.stereotype.Service;
 
 @Service
 public class FuturePriceByTiltCalculator {
@@ -23,7 +27,8 @@ public class FuturePriceByTiltCalculator {
     this.smaDao = smaDao;
   }
 
-  public double calculatePrice(String ticker, TimeFrame timeFrame, int smaLength, double targetTilt) {
+  public double calculatePrice(String ticker, TimeFrame timeFrame, int smaLength,
+                               double targetTilt) {
     // Use current time as end date
     LocalDateTime endDate = LocalDateTime.now();
 
@@ -31,8 +36,10 @@ public class FuturePriceByTiltCalculator {
     LocalDateTime startDate = calculateStartDate(endDate, timeFrame, smaLength + TILT_PERIOD);
 
     // Get just enough prices and SMAs for the calculation
-    List<? extends BasePrice> prices = priceDao.findByDateRange(ticker, startDate, endDate, timeFrame);
-    List<? extends BaseSma> smas = smaDao.findByDateRangeOrderByIdDateAsc(ticker, startDate, endDate, timeFrame, smaLength);
+    List<? extends BasePrice> prices =
+        priceDao.findByDateRange(ticker, startDate, endDate, timeFrame);
+    List<? extends BaseSma> smas =
+        smaDao.findByDateRangeOrderByIdDateAsc(ticker, startDate, endDate, timeFrame, smaLength);
 
     if (prices.size() < smaLength || smas.size() < TILT_PERIOD) {
       System.out.println("Insufficient historical data for ticker " + ticker);
@@ -40,7 +47,8 @@ public class FuturePriceByTiltCalculator {
     }
 
     // Get the required data for calculation
-    List<? extends BasePrice> latestPrices = prices.subList(prices.size() - (smaLength - 1), prices.size());
+    List<? extends BasePrice> latestPrices =
+        prices.subList(prices.size() - (smaLength - 1), prices.size());
     List<? extends BaseSma> latestSmas = smas.subList(smas.size() - (TILT_PERIOD - 1), smas.size());
 
     return calculatePriceFromData(latestPrices, latestSmas, smaLength, targetTilt);
@@ -48,13 +56,15 @@ public class FuturePriceByTiltCalculator {
 
   /**
    * Calculates the price that would result in the target tilt using binary search algorithm.
-   * @param ticker Stock ticker
-   * @param timeFrame Time frame (DAY, WEEK, etc.)
-   * @param smaLength SMA length/period
+   *
+   * @param ticker     Stock ticker
+   * @param timeFrame  Time frame (DAY, WEEK, etc.)
+   * @param smaLength  SMA length/period
    * @param targetTilt The target tilt value to achieve
    * @return The calculated price
    */
-  public double calculatePriceBinary(String ticker, TimeFrame timeFrame, int smaLength, double targetTilt) {
+  public double calculatePriceBinary(String ticker, TimeFrame timeFrame, int smaLength,
+                                     double targetTilt) {
     // Use current time as end date
     LocalDateTime endDate = LocalDateTime.now();
 
@@ -62,8 +72,10 @@ public class FuturePriceByTiltCalculator {
     LocalDateTime startDate = calculateStartDate(endDate, timeFrame, smaLength + TILT_PERIOD);
 
     // Get just enough prices and SMAs for the calculation
-    List<? extends BasePrice> prices = priceDao.findByDateRange(ticker, startDate, endDate, timeFrame);
-    List<? extends BaseSma> smas = smaDao.findByDateRangeOrderByIdDateAsc(ticker, startDate, endDate, timeFrame, smaLength);
+    List<? extends BasePrice> prices =
+        priceDao.findByDateRange(ticker, startDate, endDate, timeFrame);
+    List<? extends BaseSma> smas =
+        smaDao.findByDateRangeOrderByIdDateAsc(ticker, startDate, endDate, timeFrame, smaLength);
 
     if (prices.size() < smaLength || smas.size() < TILT_PERIOD) {
       System.out.println("Insufficient historical data for ticker " + ticker);
@@ -71,7 +83,8 @@ public class FuturePriceByTiltCalculator {
     }
 
     // Get the required data for calculation
-    List<? extends BasePrice> latestPrices = prices.subList(prices.size() - (smaLength - 1), prices.size());
+    List<? extends BasePrice> latestPrices =
+        prices.subList(prices.size() - (smaLength - 1), prices.size());
     List<? extends BaseSma> latestSmas = smas.subList(smas.size() - (TILT_PERIOD - 1), smas.size());
 
     return calculatePriceFromDataBinary(latestPrices, latestSmas, smaLength, targetTilt);
@@ -79,19 +92,20 @@ public class FuturePriceByTiltCalculator {
 
   /**
    * Calculates the start date for data retrieval based on end date and required length
-   * @param endDate The end date
+   *
+   * @param endDate   The end date
    * @param timeFrame The time frame
-   * @param length The SMA length
+   * @param length    The SMA length
    * @return The calculated start date
    */
   private LocalDateTime calculateStartDate(LocalDateTime endDate, TimeFrame timeFrame, int length) {
     int multiplier = 2 * length;
     return switch (timeFrame) {
-      case MIN5 -> endDate.minus(multiplier * 5, ChronoUnit.MINUTES);
-      case HOUR -> endDate.minus(multiplier, ChronoUnit.HOURS);
-      case DAY -> endDate.minus(multiplier, ChronoUnit.DAYS);
-      case WEEK -> endDate.minus(multiplier * 7, ChronoUnit.DAYS);
-      case MONTH -> endDate.minus(multiplier * 30, ChronoUnit.DAYS);
+      case MIN5 -> endDate.minusMinutes(multiplier * 5L);
+      case HOUR -> endDate.minusHours(multiplier);
+      case DAY -> endDate.minusDays(multiplier);
+      case WEEK -> endDate.minusDays(multiplier * 7L);
+      case MONTH -> endDate.minusDays(multiplier * 30L);
     };
   }
 
@@ -126,7 +140,8 @@ public class FuturePriceByTiltCalculator {
     }
 
     if (iterations == MAX_ITERATIONS) {
-      throw new RuntimeException("Failed to converge to target tilt within " + MAX_ITERATIONS + " iterations");
+      throw new RuntimeException(
+          "Failed to converge to target tilt within " + MAX_ITERATIONS + " iterations");
     }
 
     return calcPrice;
@@ -172,8 +187,12 @@ public class FuturePriceByTiltCalculator {
     }
 
     // Quick check for exact matches at bounds
-    if (Math.abs(lowerTilt - targetTilt) < PRECISION) return lowerPrice;
-    if (Math.abs(upperTilt - targetTilt) < PRECISION) return upperPrice;
+    if (Math.abs(lowerTilt - targetTilt) < PRECISION) {
+      return lowerPrice;
+    }
+    if (Math.abs(upperTilt - targetTilt) < PRECISION) {
+      return upperPrice;
+    }
 
     // Binary search between bounds
     double calcPrice = 0.0;
@@ -236,10 +255,12 @@ public class FuturePriceByTiltCalculator {
                              List<? extends BaseSma> previousSmas,
                              int smaLength) {
     if (prices.size() != smaLength - 1) {
-      throw new IllegalArgumentException("Expected " + (smaLength - 1) + " prices, got " + prices.size());
+      throw new IllegalArgumentException(
+          "Expected " + (smaLength - 1) + " prices, got " + prices.size());
     }
     if (previousSmas.size() != TILT_PERIOD - 1) {
-      throw new IllegalArgumentException("Expected " + (TILT_PERIOD - 1) + " SMAs, got " + previousSmas.size());
+      throw new IllegalArgumentException(
+          "Expected " + (TILT_PERIOD - 1) + " SMAs, got " + previousSmas.size());
     }
   }
 
@@ -258,7 +279,9 @@ public class FuturePriceByTiltCalculator {
     }
 
     // Add new SMA value
-    BaseSma newSmaPeriod = Utils.getBaseSma(previousSmas.get(0).getId().getDate().toLocalTime().getHour() == 0 ? TimeFrame.DAY : TimeFrame.HOUR);
+    BaseSma newSmaPeriod = Utils.getBaseSma(
+        previousSmas.get(0).getId().getDate().toLocalTime().getHour() == 0 ? TimeFrame.DAY :
+            TimeFrame.HOUR);
     newSmaPeriod.setValue(newSma);
     allSmas.add(newSmaPeriod);
 

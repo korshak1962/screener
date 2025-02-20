@@ -1,8 +1,10 @@
 package korshak.com.screener.serviceImpl.chart;
 
-import org.jfree.chart.renderer.xy.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Shape;
 import java.awt.geom.Path2D;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 public class RendererFactory {
   private static final Color[] SMA_COLORS = {
@@ -79,13 +81,13 @@ public class RendererFactory {
     int size = 8;
 
     if (pointUp) {
-      triangle.moveTo(-size, size/2);
-      triangle.lineTo(0, -size/2);
-      triangle.lineTo(size, size/2);
+      triangle.moveTo(-size, size / 2);
+      triangle.lineTo(0, -size / 2);
+      triangle.lineTo(size, size / 2);
     } else {
-      triangle.moveTo(-size, -size/2);
-      triangle.lineTo(0, size/2);
-      triangle.lineTo(size, -size/2);
+      triangle.moveTo(-size, -size / 2);
+      triangle.lineTo(0, size / 2);
+      triangle.lineTo(size, -size / 2);
     }
     triangle.closePath();
     return triangle;

@@ -17,10 +17,10 @@ import org.springframework.stereotype.Service;
 @Service("TiltFromBaseStrategy")
 public class TiltFromBaseStrategy extends BaseStrategy {
 
+  final SmaDao smaDao;
   Map<LocalDateTime, BaseSma> smaMap;
   double tiltBuy = 1;
   double tiltSell = -1;
-  final SmaDao smaDao;
   int length;
   List<? extends BaseSma> smaList;
 

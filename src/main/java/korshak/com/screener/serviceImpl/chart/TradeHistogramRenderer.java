@@ -1,14 +1,15 @@
 package korshak.com.screener.serviceImpl.chart;
 
-import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
-import org.jfree.chart.renderer.xy.XYItemRendererState;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.plot.CrosshairState;
-import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.xy.XYDataset;
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
 
 public class TradeHistogramRenderer extends AbstractXYItemRenderer {
   private final Color positiveColor;
@@ -21,8 +22,10 @@ public class TradeHistogramRenderer extends AbstractXYItemRenderer {
 
   @Override
   public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea,
-                       PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis,
-                       XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
+                       PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis,
+                       ValueAxis rangeAxis,
+                       XYDataset dataset, int series, int item, CrosshairState crosshairState,
+                       int pass) {
 
     TradeHistogramDataset histDataset = (TradeHistogramDataset) dataset;
 

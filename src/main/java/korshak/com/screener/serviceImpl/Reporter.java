@@ -2,6 +2,7 @@ package korshak.com.screener.serviceImpl;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,13 +26,15 @@ public class Reporter {
 
   private static final String PRICE_TO_BUY = "priceToBuy";
   private static final String PRICE_TO_SELL = "priceToSell";
-  private OptimizatorTilt optimizatorTilt;
-  private StrategyMerger strategyMerger;
-  private FuturePriceByTiltCalculator futurePriceByTiltCalculator;
-  private TradeService tradeService;
-  private TiltFromBaseStrategy tiltFromBaseStrategy;
-  private Strategy buyAndHoldStrategy;
-  private TrendService trendService;
+  private static final String TICKER = "Ticker";
+  public Map<String, StrategyResult> tickerToResult = new HashMap<>();
+  private final OptimizatorTilt optimizatorTilt;
+  private final StrategyMerger strategyMerger;
+  private final FuturePriceByTiltCalculator futurePriceByTiltCalculator;
+  private final TradeService tradeService;
+  private final TiltFromBaseStrategy tiltFromBaseStrategy;
+  private final Strategy buyAndHoldStrategy;
+  private final TrendService trendService;
 
   public Reporter(@Qualifier("OptimizatorTilt") OptimizatorTilt optimizatorTilt,
                   @Qualifier("StrategyMerger") StrategyMerger strategyMerger,
@@ -49,18 +52,40 @@ public class Reporter {
     this.trendService = trendService;
   }
 
-  public Map<String, StrategyResult> tickerToResult = new HashMap<>();
+  private static void show(Strategy strategy, StrategyResult strategyResultTilt) {
+    System.setProperty("java.awt.headless", "false");
+    ChartService chartService = new ChartServiceImpl(strategy.getStrategyName());
+    chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
+        , strategy.getPriceIndicators()
+        , strategyResultTilt.getTradesLong(), strategy.getIndicators());
+    pause();
+  }
+
+  static void pause() {
+    try {
+      System.out.println("Press any key to continue...");
+      System.in.read();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 
   public void createExcelReport(List<String> tickers, LocalDateTime startDate,
                                 LocalDateTime endDate, TimeFrame timeFrame) {
     Map<String, StrategyResult> res = reportForList(tickers, startDate,
         endDate, timeFrame);
-    Map<String, String> nameToValue = new HashMap<>();
+    Map<String, List<String>> nameToValue = new HashMap<>();
     for (Map.Entry<String, StrategyResult> entry : res.entrySet()) {
-      nameToValue.put("Ticker", entry.getKey());
       StrategyResult strategyResult = entry.getValue();
-      nameToValue.put(PRICE_TO_BUY, strategyResult.getOptParams().get(PRICE_TO_BUY).toString());
-      nameToValue.put(PRICE_TO_SELL, strategyResult.getOptParams().get(PRICE_TO_SELL).toString());
+      nameToValue.computeIfAbsent(TICKER, k -> new ArrayList<>());
+      nameToValue.get(TICKER).add(entry.getKey());
+
+      nameToValue.computeIfAbsent(PRICE_TO_BUY, k -> new ArrayList<>());
+      nameToValue.get(PRICE_TO_BUY).add(strategyResult.getOptParams().get(PRICE_TO_BUY).toString());
+
+      nameToValue.computeIfAbsent(PRICE_TO_SELL, k -> new ArrayList<>());
+      nameToValue.get(PRICE_TO_SELL)
+          .add(strategyResult.getOptParams().get(PRICE_TO_SELL).toString());
     }
     try {
       ExcelExportService.reportForMap("tiltStratRes.xlsx", "results", nameToValue);
@@ -156,8 +181,8 @@ public class Reporter {
     double priceToBuy = futurePriceByTiltCalculator.calculatePriceBinary(ticker, TimeFrame.DAY,
         optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_BUY));
     System.out.println("Binary Price to buy: " + priceToBuy);
-    priceToBuy = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
-        optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_BUY));
+    //priceToBuy = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
+    //    optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_BUY));
     // System.out.println("Old Price to buy: " + priceToBuy);
 
     double priceToSell = futurePriceByTiltCalculator.calculatePriceBinary(ticker, TimeFrame.DAY,
@@ -193,7 +218,7 @@ public class Reporter {
         "trades_short.xlsx");
 
    */
-   // show(strategy, strategyResultTilt);
+    // show(strategy, strategyResultTilt);
     /*chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignalsLong()
         , ((TiltStrategy) tiltStrategy).getSmaList()
         , strategyResultTilt.getTradesLong());
@@ -201,15 +226,6 @@ public class Reporter {
     //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignalsLong());Google01@vs7f20
 
     return strategyResultTilt;
-  }
-
-  private static void show(Strategy strategy, StrategyResult strategyResultTilt) {
-    System.setProperty("java.awt.headless", "false");
-    ChartService chartService = new ChartServiceImpl(strategy.getStrategyName());
-    chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
-        , strategy.getPriceIndicators()
-        , strategyResultTilt.getTradesLong(), strategy.getIndicators());
-    pause();
   }
 
   private TiltFromBaseStrategy initStrategy(TiltFromBaseStrategy tiltStrategy, TimeFrame timeFrame,
@@ -228,14 +244,5 @@ public class Reporter {
     tiltStrategy.setTiltSell(params.get(OptimizatorTilt.TILT_SELL));
     tiltStrategy.calcSignals();
     return tiltStrategy;
-  }
-
-  static void pause() {
-    try {
-      System.out.println("Press any key to continue...");
-      System.in.read();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 }

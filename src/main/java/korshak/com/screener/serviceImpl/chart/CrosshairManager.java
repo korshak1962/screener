@@ -1,18 +1,20 @@
 package korshak.com.screener.serviceImpl.chart;
 
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.OHLCDataset;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Container;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Rectangle2D;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import javax.swing.RootPaneContainer;
+import javax.swing.SwingUtilities;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.xy.OHLCDataset;
+import org.jfree.data.xy.XYDataset;
 
 public class CrosshairManager {
   private final ChartPanel chartPanel;
@@ -33,8 +35,7 @@ public class CrosshairManager {
       parent = parent.getParent();
     }
 
-    if (parent instanceof RootPaneContainer) {
-      RootPaneContainer root = (RootPaneContainer) parent;
+    if (parent instanceof RootPaneContainer root) {
       root.setGlassPane(overlay);
       overlay.setVisible(true);
 
@@ -66,8 +67,7 @@ public class CrosshairManager {
 
     XYPlot targetPlot;
 
-    if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot) {
-      CombinedDomainXYPlot combinedPlot = (CombinedDomainXYPlot) chartPanel.getChart().getPlot();
+    if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot combinedPlot) {
       @SuppressWarnings("unchecked")
       List<XYPlot> subplots = combinedPlot.getSubplots();
 
@@ -109,8 +109,7 @@ public class CrosshairManager {
 
     StringBuilder label = new StringBuilder();
 
-    if (plot.getDataset(0) instanceof OHLCDataset) {
-      OHLCDataset ohlcDataset = (OHLCDataset) plot.getDataset(0);
+    if (plot.getDataset(0) instanceof OHLCDataset ohlcDataset) {
       int item = findClosestItem(ohlcDataset, (long) currentX);
       if (item >= 0) {
         double open = ohlcDataset.getOpenValue(0, item);
@@ -131,8 +130,7 @@ public class CrosshairManager {
           }
         }
       }
-    } else if (plot.getDataset() instanceof TradeHistogramDataset) {
-      TradeHistogramDataset histDataset = (TradeHistogramDataset) plot.getDataset();
+    } else if (plot.getDataset() instanceof TradeHistogramDataset histDataset) {
       int item = findClosestTradeItem(histDataset, (long) currentX);
       if (item >= 0) {
         double pnl = histDataset.getY(0, item).doubleValue();

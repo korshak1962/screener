@@ -7,9 +7,10 @@ public enum SignalType {
   LongClose(1),
   LongOpen(2);
 
+  public final int value;
+
   SignalType(int value) {
     this.value = value;
   }
-  public final int value;
 }
 

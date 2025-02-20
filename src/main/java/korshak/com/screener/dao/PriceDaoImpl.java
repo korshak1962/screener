@@ -88,7 +88,8 @@ public class PriceDaoImpl implements PriceDao {
       case PriceWeek ignored -> (List<T>) weekRepository.saveAll((List<PriceWeek>) prices);
       case PriceMonth ignored -> (List<T>) monthRepository.saveAll((List<PriceMonth>) prices);
       case null -> throw new IllegalArgumentException("First element is null");
-      default -> throw new IllegalArgumentException("Unsupported price type: " + firstElement.getClass());
+      default ->
+          throw new IllegalArgumentException("Unsupported price type: " + firstElement.getClass());
     };
   }
 
@@ -104,7 +105,8 @@ public class PriceDaoImpl implements PriceDao {
     return findAllByTicker(ticker, timeFrame, false);
   }
 
-  public List<? extends BasePrice> findAllByTicker(String ticker, TimeFrame timeFrame, boolean includeExtendedHours) {
+  public List<? extends BasePrice> findAllByTicker(String ticker, TimeFrame timeFrame,
+                                                   boolean includeExtendedHours) {
     List<? extends BasePrice> prices = switch (timeFrame) {
       case MIN5 -> min5Repository.findByIdTickerOrderByIdDateAsc(ticker);
       case HOUR -> hourRepository.findByIdTickerOrderByIdDateAsc(ticker);

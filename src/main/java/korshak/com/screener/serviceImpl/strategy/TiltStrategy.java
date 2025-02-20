@@ -21,18 +21,18 @@ import org.springframework.stereotype.Service;
 
 @Service("TiltStrategy")
 public class TiltStrategy implements Strategy {
-   double tiltBuy = 1;
-   double tiltSell = -1;
-   int length;
-   TimeFrame timeFrame;
-   LocalDateTime startDate;
-   LocalDateTime endDate;
-   final SmaDao smaDao;
-   final PriceDao priceDao;
-   List<? extends BaseSma> smaList;
-   String ticker;
-   List<? extends BasePrice> prices;
-   TreeMap<LocalDateTime, Double> dateToTiltValue = new TreeMap<>();
+  final SmaDao smaDao;
+  final PriceDao priceDao;
+  double tiltBuy = 1;
+  double tiltSell = -1;
+  int length;
+  TimeFrame timeFrame;
+  LocalDateTime startDate;
+  LocalDateTime endDate;
+  List<? extends BaseSma> smaList;
+  String ticker;
+  List<? extends BasePrice> prices;
+  TreeMap<LocalDateTime, Double> dateToTiltValue = new TreeMap<>();
 
   public TiltStrategy(SmaDao smaDao, PriceDao priceDao) {
     this.smaDao = smaDao;
@@ -89,7 +89,7 @@ public class TiltStrategy implements Strategy {
 
   @Override
   public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
-                   LocalDateTime endDate) {
+                       LocalDateTime endDate) {
     this.timeFrame = timeFrame;
     this.ticker = ticker;
     this.startDate = startDate;

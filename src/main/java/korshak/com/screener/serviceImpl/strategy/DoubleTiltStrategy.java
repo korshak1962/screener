@@ -9,9 +9,9 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
-import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
+import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalTilt;
@@ -20,12 +20,12 @@ import org.springframework.stereotype.Service;
 
 @Service("DoubleTiltStrategy")
 public class DoubleTiltStrategy implements Strategy {
+  protected final SmaDao smaDao;
+  protected final PriceDao priceDao;
   protected List<SignalTilt> signals;
   protected List<SignalTilt> signalsShort;
   protected List<SignalTilt> signalsLong;
   protected TimeFrame timeFrame = TimeFrame.DAY;
-  protected final SmaDao smaDao;
-  protected final PriceDao priceDao;
   protected List<? extends BaseSma> smaShortList;
   protected List<? extends BaseSma> smaLongList;
   protected String ticker;
@@ -88,7 +88,7 @@ public class DoubleTiltStrategy implements Strategy {
   }
 
   private void makeDecision(BasePrice price, double shortTilt, double longTilt,
-                         LocalDateTime currentDate) {
+                            LocalDateTime currentDate) {
     // Long position logic
     if (shortTilt > tiltLongOpen && longTilt > tiltHigherTrendLong) {
       closeShortOpenLong(price, currentDate, shortTilt, longTilt);
@@ -136,7 +136,7 @@ public class DoubleTiltStrategy implements Strategy {
   }
 
   private void closeShort(BasePrice price, LocalDateTime currentDate, double shortTilt,
-                         double longTilt) {
+                          double longTilt) {
     if (!signalsShort.isEmpty() &&
         signalsShort.getLast().getSignalType() == SignalType.ShortOpen) {
       signalsShort.add(new SignalTilt(
@@ -190,7 +190,8 @@ public class DoubleTiltStrategy implements Strategy {
   }
 
   @Override
-  public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate) {
+  public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+                       LocalDateTime endDate) {
     this.ticker = ticker;
     this.timeFrame = timeFrame;
     this.startDate = startDate;

@@ -5,4 +5,5 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "rsi_hour")
-public class RsiHour extends BaseRsi{}
+public class RsiHour extends BaseRsi {
+}

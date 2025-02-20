@@ -5,4 +5,5 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "price_week")
-public class PriceWeek extends BasePrice {}
+public class PriceWeek extends BasePrice {
+}

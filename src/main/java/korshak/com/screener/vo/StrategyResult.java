@@ -19,8 +19,8 @@ public class StrategyResult {
   private final List<Trade> tradesLong;
   private final List<Trade> tradesShort;
   private final List<? extends Signal> signals;
-  private Map<String, NavigableMap<LocalDateTime, Double>> indicators;
-private Map<String, Double> optParams;
+  private final Map<String, NavigableMap<LocalDateTime, Double>> indicators;
+  private Map<String, Double> optParams;
 
   public StrategyResult(List<? extends BasePrice> prices, double longPnL, double shortPnL,
                         double totalPnL, Map<LocalDateTime, Double> minLongPnl,

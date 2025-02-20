@@ -46,8 +46,12 @@ public class RsiKey implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     RsiKey rsiKey = (RsiKey) o;
     return length == rsiKey.length &&
         Objects.equals(ticker, rsiKey.ticker) &&

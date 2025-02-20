@@ -26,6 +26,10 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
   String apiKey;
   String baseUrl;
   PriceDao priceDao;
+  String dbTicker;
+  @Autowired
+  private RestTemplate restTemplate;
+
 
   public AlphaVintageDownloader(PriceDao priceDao,
                                 @Value("${alpha.apiKey}") String apiKey,
@@ -34,10 +38,6 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
     this.baseUrl = baseUrl;
     this.priceDao = priceDao;
   }
-
-  @Autowired
-  private RestTemplate restTemplate;
-
 
   /*
       @Override
@@ -112,7 +112,8 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
       );
 
       if (!existingData.isEmpty()) {
-        System.out.println("Data for ticker " + ticker + " and month " + yearMonth + " already exists in DB");
+        System.out.println(
+            "Data for ticker " + ticker + " and month " + yearMonth + " already exists in DB");
         return 0;
       }
 
@@ -122,7 +123,8 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
       return fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
 
     } catch (NumberFormatException e) {
-      throw new IllegalArgumentException("Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
+      throw new IllegalArgumentException(
+          "Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
     }
   }
 
@@ -130,6 +132,4 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
   public String getDbTicker() {
     return dbTicker;
   }
-
-  String dbTicker;
 }

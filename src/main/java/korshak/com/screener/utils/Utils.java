@@ -10,13 +10,14 @@ import korshak.com.screener.dao.SmaDay;
 import korshak.com.screener.dao.SmaHour;
 import korshak.com.screener.dao.SmaMonth;
 import korshak.com.screener.dao.SmaWeek;
-import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.TiltableIndicator;
+import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
 
 public class Utils {
-  public static NavigableMap<LocalDateTime, Double> convertBaseSmaListToTreeMap(List<? extends BaseSma> sortedSmaList){
+  public static NavigableMap<LocalDateTime, Double> convertBaseSmaListToTreeMap(
+      List<? extends BaseSma> sortedSmaList) {
     NavigableMap<LocalDateTime, Double> map = new TreeMap<>();
     for (BaseSma sma : sortedSmaList) {
       map.put(sma.getId().getDate(), sma.getValue());
@@ -26,7 +27,7 @@ public class Utils {
 
   public static double calculateYield(TimeFrame timeFrame, double baseTilt) {
     // Convert to annual percentage based on timeframe
-    return baseTilt * switch(timeFrame) {
+    return baseTilt * switch (timeFrame) {
       case MIN5 -> 365.0 * 24 * 12;  // minutes per year
       case HOUR -> 365.0 * 24;       // hours per year
       case DAY -> 365.0;             // days per year
@@ -90,7 +91,8 @@ public class Utils {
     };
   }
 
-  public static Signal fillLongShortLists(Signal signal, Signal lastSignal, List<Signal> signalsShort,
+  public static Signal fillLongShortLists(Signal signal, Signal lastSignal,
+                                          List<Signal> signalsShort,
                                           List<Signal> signalsLong) {
     switch (signal.getSignalType()) {
       case SignalType.LongOpen:

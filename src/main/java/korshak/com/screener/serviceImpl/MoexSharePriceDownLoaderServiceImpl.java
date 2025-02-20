@@ -3,28 +3,40 @@ package korshak.com.screener.serviceImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.PriceDao;
-import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.PriceHour;
+import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-
 @Service("moexDownloader")
 public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoaderService {
-  private final String MOEX_BASE_URL = "https://iss.moex.com/iss/engines/stock/markets/shares/securities/";
+  /**
+   * Downloads and saves data from a given start date up to today
+   *
+   * @param ticker The ticker symbol
+   * @param startDate Start date in format "YYYY-MM-DD"
+   * @return Number of records saved
+   */
+  private static final int MAX_RECORDS = 500;
+  // Assuming trading hours 10:00-18:45, that's about 9 hours = 9 records per day
+  // So 500/9 ≈ 55 days would be safe for one request
+  private static final int DAYS_PER_CHUNK = 30;
+  private final String MOEX_BASE_URL =
+      "https://iss.moex.com/iss/engines/stock/markets/shares/securities/";
   private final PriceDao priceDao;
   private final RestTemplate restTemplate;
   private final ObjectMapper objectMapper;
+  String dbTicker;
 
   @Autowired
   public MoexSharePriceDownLoaderServiceImpl(PriceDao priceDao, RestTemplate restTemplate) {
@@ -34,7 +46,8 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
   }
 
   @Override
-  public int fetchAndSaveData(String timeSeriesLabel, String ticker, String interval, String yearMonth) {
+  public int fetchAndSaveData(String timeSeriesLabel, String ticker, String interval,
+                              String yearMonth) {
     return fetchAndSaveData(ticker, yearMonth);
   }
 
@@ -57,7 +70,8 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
       );
 
       if (!existingData.isEmpty()) {
-        System.out.println("Data for ticker " + ticker + " and month " + yearMonth + " already exists in DB");
+        System.out.println(
+            "Data for ticker " + ticker + " and month " + yearMonth + " already exists in DB");
         return 0;
       }
 
@@ -83,7 +97,8 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
       return saved.size();
 
     } catch (NumberFormatException e) {
-      throw new IllegalArgumentException("Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
+      throw new IllegalArgumentException(
+          "Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
     }
   }
 
@@ -111,6 +126,7 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
       return baseUrl + "&from=" + fromDate + "&till=" + tillDate;
     }
   }
+
   private JsonNode parseResponse(String response) {
     try {
       return objectMapper.readTree(response);
@@ -123,7 +139,6 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
     return dbTicker;
   }
 
-  String dbTicker;
   private List<PriceHour> extractPriceData(JsonNode root, String ticker) {
     dbTicker = ticker;
     List<PriceHour> priceDataList = new ArrayList<>();
@@ -176,16 +191,6 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
     throw new RuntimeException("Column " + columnName + " not found in MOEX response");
   }
 
-  /** Downloads and saves data from a given start date up to today
-     * @param ticker The ticker symbol
-     * @param startDate Start date in format "YYYY-MM-DD"
-      * @return Number of records saved
-     */
-  private static final int MAX_RECORDS = 500;
-  // Assuming trading hours 10:00-18:45, that's about 9 hours = 9 records per day
-  // So 500/9 ≈ 55 days would be safe for one request
-  private static final int DAYS_PER_CHUNK = 30;
-
   public int fetchAndSaveDataFromDate(String ticker, LocalDate startDate) {
     LocalDate currentDate = LocalDate.now();
     LocalDate chunkStart = startDate;
@@ -208,7 +213,7 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
         }
 
         JsonNode root = parseResponse(response);
-        List<PriceHour> priceDataList = extractPriceData(root, ticker+"_MOEX");
+        List<PriceHour> priceDataList = extractPriceData(root, ticker + "_MOEX");
 
         if (!priceDataList.isEmpty()) {
           System.out.println("Saving " + priceDataList.size() + " records for chunk");
@@ -219,7 +224,8 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
         // Add a small delay between requests to be nice to the API
         Thread.sleep(100);
       } catch (Exception e) {
-        System.err.println("Error processing chunk " + chunkStart + " to " + chunkEnd + ": " + e.getMessage());
+        System.err.println(
+            "Error processing chunk " + chunkStart + " to " + chunkEnd + ": " + e.getMessage());
         // Continue with next chunk despite error
       }
 

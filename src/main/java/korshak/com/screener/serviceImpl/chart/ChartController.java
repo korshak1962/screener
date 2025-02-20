@@ -1,13 +1,14 @@
 package korshak.com.screener.serviceImpl.chart;
 
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
-import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
-import org.jfree.chart.axis.ValueAxis;
 import java.util.List;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.XYPlot;
 
 public class ChartController {
   private static final double SCALE_FACTOR = 0.1; // For mouse wheel scaling
@@ -38,14 +39,14 @@ public class ChartController {
     Point2D p = chartPanel.translateScreenToJava2D(e.getPoint());
     Rectangle2D plotArea = chartPanel.getScreenDataArea();
 
-    if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot) {
-      CombinedDomainXYPlot combinedPlot = (CombinedDomainXYPlot) chartPanel.getChart().getPlot();
+    if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot combinedPlot) {
 
       // Handle time axis scaling when shift is held
       if (e.isShiftDown()) {
         ValueAxis domainAxis = combinedPlot.getDomainAxis();
         if (domainAxis != null) {
-          double centerX = domainAxis.java2DToValue(p.getX(), plotArea, combinedPlot.getDomainAxisEdge());
+          double centerX =
+              domainAxis.java2DToValue(p.getX(), plotArea, combinedPlot.getDomainAxisEdge());
           scaleAxisAroundValue(domainAxis, e.getWheelRotation(), centerX);
         }
         return;
@@ -84,7 +85,8 @@ public class ChartController {
 
       ValueAxis rangeAxis = targetPlot.getRangeAxis();
       if (rangeAxis != null) {
-        double centerY = rangeAxis.java2DToValue(p.getY(), targetArea, targetPlot.getRangeAxisEdge());
+        double centerY =
+            rangeAxis.java2DToValue(p.getY(), targetArea, targetPlot.getRangeAxisEdge());
         scaleAxisAroundValue(rangeAxis, e.getWheelRotation(), centerY);
       }
     } else {
@@ -122,8 +124,7 @@ public class ChartController {
 
   public void zoomIn() {
     if (chartPanel != null) {
-      if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot) {
-        CombinedDomainXYPlot combinedPlot = (CombinedDomainXYPlot) chartPanel.getChart().getPlot();
+      if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot combinedPlot) {
         ValueAxis domainAxis = combinedPlot.getDomainAxis();
         double domainCenter = (domainAxis.getLowerBound() + domainAxis.getUpperBound()) / 2;
         scaleAxisAroundValue(domainAxis, 1, domainCenter);
@@ -153,8 +154,7 @@ public class ChartController {
 
   public void zoomOut() {
     if (chartPanel != null) {
-      if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot) {
-        CombinedDomainXYPlot combinedPlot = (CombinedDomainXYPlot) chartPanel.getChart().getPlot();
+      if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot combinedPlot) {
         ValueAxis domainAxis = combinedPlot.getDomainAxis();
         double domainCenter = (domainAxis.getLowerBound() + domainAxis.getUpperBound()) / 2;
         scaleAxisAroundValue(domainAxis, -1, domainCenter);
@@ -184,8 +184,7 @@ public class ChartController {
 
   public void resetZoom() {
     if (chartPanel != null) {
-      if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot) {
-        CombinedDomainXYPlot combinedPlot = (CombinedDomainXYPlot) chartPanel.getChart().getPlot();
+      if (chartPanel.getChart().getPlot() instanceof CombinedDomainXYPlot combinedPlot) {
         combinedPlot.getDomainAxis().setAutoRange(true);
 
         @SuppressWarnings("unchecked")

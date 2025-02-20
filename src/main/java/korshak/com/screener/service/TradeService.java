@@ -8,7 +8,9 @@ import korshak.com.screener.vo.StrategyResult;
 public interface TradeService {
 
   StrategyResult calculateProfitAndDrawdownLong(Strategy strategy);
+
   StrategyResult calculateProfitAndDrawdownShort(Strategy strategy);
+
   StrategyResult calculateProfitAndDrawdownLong(Strategy strategy,
                                                 String ticker,
                                                 LocalDateTime startDate,

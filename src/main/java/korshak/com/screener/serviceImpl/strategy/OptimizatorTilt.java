@@ -24,16 +24,14 @@ public class OptimizatorTilt extends Optimizator {
   double minTiltSell = -0.03;
   double maxTiltSell = -0.01;
   double tiltSellStep = 0.01;
-
-  public OptimizatorTilt(@Qualifier("StrategyMerger") StrategyMerger strategyMerger,
-                         TradeService tradeService) {
-    super(strategyMerger, tradeService);
-  }
-
   @Autowired
   @Qualifier("TiltFromBaseStrategy")
   TiltFromBaseStrategy tiltFromBaseStrategy;
   Map<String, Double> optimumParameters;
+  public OptimizatorTilt(@Qualifier("StrategyMerger") StrategyMerger strategyMerger,
+                         TradeService tradeService) {
+    super(strategyMerger, tradeService);
+  }
 
   @Override
   public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
@@ -100,6 +98,6 @@ public class OptimizatorTilt extends Optimizator {
         }
       }
     }
- //   System.out.println("Optimized maxPnl = " + maxPnl);
+    //   System.out.println("Optimized maxPnl = " + maxPnl);
   }
 }

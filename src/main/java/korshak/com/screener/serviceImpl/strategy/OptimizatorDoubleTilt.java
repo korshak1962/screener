@@ -3,16 +3,10 @@ package korshak.com.screener.serviceImpl.strategy;
 import java.util.HashMap;
 import java.util.Map;
 import korshak.com.screener.service.TradeService;
-import korshak.com.screener.vo.StrategyResult;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service("OptimizatorDoubleTilt")
 public class OptimizatorDoubleTilt extends Optimizator {
-
-  public OptimizatorDoubleTilt( StrategyMerger strategy, TradeService tradeService) {
-    super(strategy, tradeService);
-  }
 
   int minShortLength = 1;
   int maxShortLength = 16;
@@ -23,6 +17,9 @@ public class OptimizatorDoubleTilt extends Optimizator {
   int minTiltShortSell = -1;
   int maxTiltShortSell = 0;
   int numStepsTiltShortSell = 10;
+  public OptimizatorDoubleTilt(StrategyMerger strategy, TradeService tradeService) {
+    super(strategy, tradeService);
+  }
 
   @Override
   public Map<String, Double> findOptimumParameters() {

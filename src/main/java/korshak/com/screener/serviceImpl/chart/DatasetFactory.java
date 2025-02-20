@@ -1,14 +1,18 @@
 package korshak.com.screener.serviceImpl.chart;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
 import korshak.com.screener.vo.Trade;
-import org.jfree.data.time.*;
-import org.jfree.data.time.ohlc.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import org.jfree.data.time.Millisecond;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.time.ohlc.OHLCSeries;
+import org.jfree.data.time.ohlc.OHLCSeriesCollection;
 import org.jfree.data.xy.OHLCDataset;
 
 public class DatasetFactory {

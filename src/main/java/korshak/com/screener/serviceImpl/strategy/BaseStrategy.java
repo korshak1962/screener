@@ -13,10 +13,10 @@ import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.Signal;
 
 public abstract class BaseStrategy implements Strategy {
+  final PriceDao priceDao;
   TimeFrame timeFrame;
   LocalDateTime startDate;
   LocalDateTime endDate;
-  final PriceDao priceDao;
   String ticker;
   List<? extends BasePrice> prices;
   List<Signal> signalsLong = new ArrayList<>();
@@ -27,9 +27,22 @@ public abstract class BaseStrategy implements Strategy {
     this.priceDao = priceDao;
   }
 
+  static BasePrice getPriceOfSignalDate(Iterator<? extends BasePrice> priceIterator,
+                                        Signal currentSignal) {
+    // Get to the first price that's not before current signal
+    BasePrice currentPrice = null;
+    while (priceIterator.hasNext()) {
+      currentPrice = priceIterator.next();
+      if (!currentPrice.getId().getDate().isBefore(currentSignal.getDate())) {
+        break;
+      }
+    }
+    return currentPrice;
+  }
+
   @Override
   public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
-                   LocalDateTime endDate) {
+                       LocalDateTime endDate) {
     this.timeFrame = timeFrame;
     this.ticker = ticker;
     this.startDate = startDate;
@@ -150,10 +163,12 @@ public abstract class BaseStrategy implements Strategy {
     while (currentPrice != null) {
       if (nextNextPriceOfBackupTimeframe != null
           &&
-          !currentPrice.getId().getDate().isBefore(nextNextPriceOfBackupTimeframe.getId().getDate())) {
+          !currentPrice.getId().getDate()
+              .isBefore(nextNextPriceOfBackupTimeframe.getId().getDate())) {
         priceOfBackupTimeframe = nextPriceOfBackupTimeframe;
         nextPriceOfBackupTimeframe = nextNextPriceOfBackupTimeframe;
-        nextNextPriceOfBackupTimeframe=  backupPriceIterator.hasNext() ? backupPriceIterator.next() : null;
+        nextNextPriceOfBackupTimeframe =
+            backupPriceIterator.hasNext() ? backupPriceIterator.next() : null;
       }
       Signal specialSignal = getSignal(priceOfBackupTimeframe, currentPrice);
       if (specialSignal != null) {
@@ -173,18 +188,5 @@ public abstract class BaseStrategy implements Strategy {
         signalTimeFrame
     );
     return (List<BasePrice>) specialPrices;
-  }
-
-  static BasePrice getPriceOfSignalDate(Iterator<? extends BasePrice> priceIterator,
-                                        Signal currentSignal) {
-    // Get to the first price that's not before current signal
-    BasePrice currentPrice = null;
-    while (priceIterator.hasNext()) {
-      currentPrice = priceIterator.next();
-      if (!currentPrice.getId().getDate().isBefore(currentSignal.getDate())) {
-        break;
-      }
-    }
-    return currentPrice;
   }
 }

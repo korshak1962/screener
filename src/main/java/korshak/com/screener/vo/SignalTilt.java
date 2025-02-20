@@ -2,16 +2,15 @@ package korshak.com.screener.vo;
 
 import java.time.LocalDateTime;
 
-public class SignalTilt extends Signal{
+public class SignalTilt extends Signal {
+  private final double tilt;
+  private final double trendTilt;
   public SignalTilt(LocalDateTime date, double price, SignalType action, double tilt,
                     double trendTilt) {
     super(date, price, action);
     this.tilt = tilt;
     this.trendTilt = trendTilt;
   }
-
-  private final double tilt;
-  private final double trendTilt;
 
   public double getTilt() {
     return tilt;

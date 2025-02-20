@@ -8,23 +8,24 @@ import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
 
 @Service("StopLossPercentStrategy")
-public class StopLossPercentStrategy extends BaseStrategy{
+public class StopLossPercentStrategy extends BaseStrategy {
+  BasePrice pricePrev;
+  double stopLossPercent = .03;
   public StopLossPercentStrategy(PriceDao priceDao) {
     super(priceDao);
   }
-  BasePrice pricePrev;
-  double stopLossPercent = .03;
+
   @Override
   public Signal getSignal(BasePrice price) {
     if (pricePrev == null) {
       pricePrev = price;
       return null;
     }
-    if ((price.getLow() - pricePrev.getLow()) < -stopLossPercent*pricePrev.getLow()) {
+    if ((price.getLow() - pricePrev.getLow()) < -stopLossPercent * pricePrev.getLow()) {
       pricePrev = price;
       return Utils.createSignal(price, SignalType.LongClose);
     }
-      return null;
+    return null;
   }
 
   @Override

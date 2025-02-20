@@ -1,8 +1,8 @@
 package korshak.com.screener.dao;
 
+import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import jakarta.persistence.*;
 import java.util.Objects;
 
 // Better approach using @EmbeddedId:
@@ -12,7 +12,8 @@ public class PriceKey implements Serializable {
   private LocalDateTime date; // or LocalDate for daily prices
 
   // Constructors
-  public PriceKey() {}
+  public PriceKey() {
+  }
 
   public PriceKey(String ticker, LocalDateTime date) {
     this.ticker = ticker;

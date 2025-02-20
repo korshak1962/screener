@@ -52,10 +52,16 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories("korshak.com.screener.dao")  // adjust to your package
 public class ScreenerApplication implements CommandLineRunner {
 
-  public static void main(String[] args) {
-    SpringApplication.run(ScreenerApplication.class, args);
-  }
-
+  @Autowired
+  @Qualifier("StopLossPercentStrategy")
+  StopLossPercentStrategy stopLossPercentStrategy;
+  @Autowired
+  @Qualifier("StopLossLessThanPrevMinExtremumStrategy")
+  StopLossLessThanPrevMinExtremumStrategy stopLossLessThanPrevMinExtremumStrategy;
+  @Autowired
+  RsiService rsiService;
+  @Autowired
+  Reporter reporter;
   @Autowired
   @Qualifier("AlphaVintageDownloader")
   private AlphaVintageDownloader alfaVintageDownloader;
@@ -78,12 +84,6 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("TiltFromBaseStrategy")
   private TiltFromBaseStrategy tiltFromBaseStrategy;
   @Autowired
-  @Qualifier("StopLossPercentStrategy")
-  StopLossPercentStrategy stopLossPercentStrategy;
-  @Autowired
-  @Qualifier("StopLossLessThanPrevMinExtremumStrategy")
-  StopLossLessThanPrevMinExtremumStrategy stopLossLessThanPrevMinExtremumStrategy;
-  @Autowired
   @Qualifier("BuyHigherPrevHigh")
   private BuyHigherPrevHigh buyHigherPrevHigh;
   @Autowired
@@ -98,29 +98,32 @@ public class ScreenerApplication implements CommandLineRunner {
   @Autowired
   @Qualifier("BuyAndHoldStrategy")
   private Strategy buyAndHoldStrategy;
-
   @Autowired
   @Qualifier("OptimizatorDoubleTilt")
   private OptimizatorDoubleTilt optimizatorDoubleTilt;
-
   @Autowired
   @Qualifier("OptimizatorTilt")
   private OptimizatorTilt optimizatorTilt;
-
   @Autowired
   private TrendService trendService;
   @Autowired
   private FuturePriceByTiltCalculator futurePriceByTiltCalculator;
-
   @Autowired
   @Qualifier("moexDownloader")
   private MoexSharePriceDownLoaderServiceImpl moexDownloader;
 
-  @Autowired
-  RsiService rsiService;
+  public static void main(String[] args) {
+    SpringApplication.run(ScreenerApplication.class, args);
+  }
 
-  @Autowired
-  Reporter reporter;
+  static void pause() {
+    try {
+      System.out.println("Press any key to continue...");
+      System.in.read();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 
   @Override
   public void run(String... args) throws Exception {
@@ -129,11 +132,12 @@ public class ScreenerApplication implements CommandLineRunner {
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
     String ticker = "SPY";
     tickers.add(ticker);
-    //reporter.createExcelReport(tickers,startDate, endDate,TimeFrame.DAY);
-    reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+    tickers.add("TLT");
+    reporter.createExcelReport(tickers, startDate, endDate, TimeFrame.DAY);
+    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-   // downloadSeries("LKOH", "2011-01-01");
-   // downloadSeries("LKOH", "2025-02-10");
+    // downloadSeries("LKOH", "2011-01-01");
+    // downloadSeries("LKOH", "2025-02-10");
     //downloadSeriesUnsafe("TLT", "2025-", 2, 2);
     //calcSMA("YMM", 2, 50);
     //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
@@ -142,8 +146,8 @@ public class ScreenerApplication implements CommandLineRunner {
     //downloadSeriesUnsafe("TLT", "2025-", 1, 2);
     //priceAggregationService.aggregateAllTickers();
     //priceAggregationService.aggregateAllTimeFrames("NVTK_MOEX");
-   // priceAggregationService.aggregateData("TMOS_MOEX", TimeFrame.DAY);
-     //calcSMA_incremental("NVTK_MOEX",2,100);
+    // priceAggregationService.aggregateData("TMOS_MOEX", TimeFrame.DAY);
+    //calcSMA_incremental("NVTK_MOEX",2,100);
     //calcSMA( 2, 50);
     //trendService.calculateAndStorePriceTrend("SPXL",TimeFrame.DAY);
     //calcRSI(3,50);
@@ -202,15 +206,6 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private DoubleTiltStrategy initStrategy(DoubleTiltStrategy doubleTiltStrategy) {
     return doubleTiltStrategy;
-  }
-
-   static void pause() {
-    try {
-      System.out.println("Press any key to continue...");
-      System.in.read();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 
   private Map<String, Double> optimazeStrategy(Optimizator optimizator, String ticker,
@@ -297,7 +292,7 @@ public class ScreenerApplication implements CommandLineRunner {
     Map<String, NavigableMap<LocalDateTime, Double>> indicators = new TreeMap<>();
     //   indicators.put("shortSmaTilt",((DoubleTiltStrategy) doubleTiltStrategy).getShortSmaTiltAsMap());
     indicators.put("trendSmaTilt",
-        ((DoubleTiltStrategy) buyAndHoldStrategyMinusDownTrend).getTrendSmaTiltAsMap());
+        buyAndHoldStrategyMinusDownTrend.getTrendSmaTiltAsMap());
 
     //((DoubleTiltStrategy) doubleTiltStrategy).getShortSmaTilt()
     chartService.drawChart(strategyResultDoubleTiltMinusDownTrendLong.getPrices(),
@@ -326,7 +321,7 @@ public class ScreenerApplication implements CommandLineRunner {
     //StrategyResult strategyResultDoubleTilt =
     //    tradeService.calculateProfitAndDrawdownLong(tiltStrategy, ticker, timeFrame);
     doubleTiltStrategy.init(ticker, timeFrame, startDate, endDate);
-    DoubleTiltStrategy fullDoubleTiltStrategy = (DoubleTiltStrategy) doubleTiltStrategy;
+    DoubleTiltStrategy fullDoubleTiltStrategy = doubleTiltStrategy;
     //===========================================
     // fullDoubleTiltStrategy.setTiltPeriod(5);
     fullDoubleTiltStrategy.setSmaLength(9);
@@ -378,7 +373,7 @@ public class ScreenerApplication implements CommandLineRunner {
     Map<String, NavigableMap<LocalDateTime, Double>> indicators = new TreeMap<>();
     //   indicators.put("shortSmaTilt",((DoubleTiltStrategy) doubleTiltStrategy).getShortSmaTiltAsMap());
     indicators.put("trendSmaTilt",
-        ((DoubleTiltStrategy) doubleTiltStrategy).getTrendSmaTiltAsMap());
+        doubleTiltStrategy.getTrendSmaTiltAsMap());
 
     //((DoubleTiltStrategy) doubleTiltStrategy).getShortSmaTilt()
     chartService.drawChart(strategyResultDoubleTiltLong.getPrices(),
@@ -435,6 +430,7 @@ public class ScreenerApplication implements CommandLineRunner {
     System.out.println("total in minutes= " + (System.currentTimeMillis() - start) / 60000);
     System.exit(0);
   }
+
   private void calcRSI(int startLength, int endLength) {
     int step = 1;
     long start = System.currentTimeMillis();
@@ -449,11 +445,12 @@ public class ScreenerApplication implements CommandLineRunner {
     int lengthMin = 2;
     int lengthMax = 50;
     int saved = moexDownloader.fetchAndSaveDataFromDate(ticker, startDate);
-      System.out.println("saved = " + saved);
+    System.out.println("saved = " + saved);
     if (saved > 0) {
       priceAggregationService.aggregateAllTimeFrames(moexDownloader.getDbTicker());
       for (int i = lengthMin; i <= lengthMax; i++) {
-        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(moexDownloader.getDbTicker(), i);
+        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(moexDownloader.getDbTicker(),
+            i);
       }
     }
     //System.exit(0);
@@ -482,7 +479,8 @@ public class ScreenerApplication implements CommandLineRunner {
     if (saved > 0) {
       priceAggregationService.aggregateAllTimeFrames(sharePriceDownLoaderService.getDbTicker());
       for (int i = lengthMin; i <= lengthMax; i++) {
-        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(sharePriceDownLoaderService.getDbTicker(), i);
+        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(
+            sharePriceDownLoaderService.getDbTicker(), i);
       }
     }
     System.exit(0);

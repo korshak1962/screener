@@ -23,14 +23,14 @@ import org.springframework.stereotype.Service;
 
 @Service("CombinedStrategy")
 public class TiltCombinedStrategy implements Strategy {
+  final SmaDao smaDao;
+  final PriceDao priceDao;
   double tiltBuy = 1;
   double tiltSell = -1;
   int length;
   TimeFrame timeFrame;
   LocalDateTime startDate;
   LocalDateTime endDate;
-  final SmaDao smaDao;
-  final PriceDao priceDao;
   List<? extends BaseSma> smaList;
   Map<LocalDateTime, BaseSma> smaMap;
   String ticker;
@@ -95,7 +95,7 @@ public class TiltCombinedStrategy implements Strategy {
 
   @Override
   public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
-                   LocalDateTime endDate) {
+                       LocalDateTime endDate) {
     this.timeFrame = timeFrame;
     this.ticker = ticker;
     this.startDate = startDate;
@@ -145,7 +145,9 @@ public class TiltCombinedStrategy implements Strategy {
           "Tilt buy threshold must be greater than tilt sell threshold");
     }
     this.tiltBuy = tiltBuy;
-   if(!allSignals.isEmpty()) {calcSignals();}
+    if (!allSignals.isEmpty()) {
+      calcSignals();
+    }
   }
 
   public double getTiltSell() {
@@ -158,7 +160,9 @@ public class TiltCombinedStrategy implements Strategy {
           "Tilt sell threshold must be less than tilt buy threshold");
     }
     this.tiltSell = tiltSell;
-    if(!allSignals.isEmpty()) {calcSignals();}
+    if (!allSignals.isEmpty()) {
+      calcSignals();
+    }
   }
 
   public int getLength() {
@@ -180,12 +184,14 @@ public class TiltCombinedStrategy implements Strategy {
     if (smaList.isEmpty() || prices.size() - smaList.size() > length) {
       throw new RuntimeException("No SMAs found");
     }
-     smaMap = smaList.stream()
+    smaMap = smaList.stream()
         .collect(Collectors.toMap(
             sma -> sma.getId().getDate(),
             sma -> sma
         ));
-    if(!allSignals.isEmpty()) {calcSignals();}
+    if (!allSignals.isEmpty()) {
+      calcSignals();
+    }
   }
 
   public TimeFrame getTimeFrame() {
