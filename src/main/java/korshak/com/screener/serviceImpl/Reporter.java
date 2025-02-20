@@ -125,7 +125,7 @@ public class Reporter {
         minTiltSell, maxTiltSell, tiltSellStep);
     double minStopLossPercent = .95;
     double maxStopLossPercent = .99;
-    double stepOfStopLoss = 0.01;
+    double stepOfStopLoss = 0.005;
     Map<String, Double> optParams =
         optimazeStrategy(optimizatorTilt, ticker, timeFrame, startDate, endDate,
             minStopLossPercent,
@@ -153,14 +153,18 @@ public class Reporter {
   }
 
   private void futurePriceCalc(String ticker, Map<String, Double> optParams) {
-    double priceToBuy = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
+    double priceToBuy = futurePriceByTiltCalculator.calculatePriceBinary(ticker, TimeFrame.DAY,
         optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_BUY));
-    double priceToSell = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
+    System.out.println("Binary Price to buy: " + priceToBuy);
+    priceToBuy = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
+        optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_BUY));
+    // System.out.println("Old Price to buy: " + priceToBuy);
+
+    double priceToSell = futurePriceByTiltCalculator.calculatePriceBinary(ticker, TimeFrame.DAY,
         optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_SELL));
+    System.out.println("Binary Price to sell: " + priceToSell);
     optParams.put(PRICE_TO_BUY, priceToBuy);
-    System.out.println("Price to buy: " + priceToBuy);
     optParams.put(PRICE_TO_SELL, priceToSell);
-    System.out.println("Price to sell: " + priceToSell);
   }
 
   private StrategyResult evaluateStrategy(Strategy strategy) throws IOException {
@@ -194,7 +198,8 @@ public class Reporter {
         , ((TiltStrategy) tiltStrategy).getSmaList()
         , strategyResultTilt.getTradesLong());
      */
-    //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignalsLong());
+    //chartService.drawChart(strategyResult.getPrices(),strategyResult.getSignalsLong());Google01@vs7f20
+
     return strategyResultTilt;
   }
 
@@ -204,6 +209,7 @@ public class Reporter {
     chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
         , strategy.getPriceIndicators()
         , strategyResultTilt.getTradesLong(), strategy.getIndicators());
+    pause();
   }
 
   private TiltFromBaseStrategy initStrategy(TiltFromBaseStrategy tiltStrategy, TimeFrame timeFrame,

@@ -124,17 +124,17 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
-
     List<String> tickers = new ArrayList<>();
-    String ticker = "YMM";
+    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
+    String ticker = "SPY";
     tickers.add(ticker);
-    reporter.createExcelReport(tickers,startDate, endDate,TimeFrame.DAY);
-    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+    //reporter.createExcelReport(tickers,startDate, endDate,TimeFrame.DAY);
+    reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
    // downloadSeries("LKOH", "2011-01-01");
    // downloadSeries("LKOH", "2025-02-10");
+    //downloadSeriesUnsafe("TLT", "2025-", 2, 2);
     //calcSMA("YMM", 2, 50);
     //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
     //downloadSeries("YMM", "2025-", 1, 2, alfaVintageDownloader);
