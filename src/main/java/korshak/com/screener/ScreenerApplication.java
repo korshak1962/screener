@@ -128,7 +128,7 @@ public class ScreenerApplication implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
     List<String> tickers = new ArrayList<>();
-    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
     String ticker = "SPY";
     tickers.add(ticker);

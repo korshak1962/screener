@@ -55,4 +55,13 @@ public class Trend {
   public void setTrend(int trend) {
     this.trend = trend;
   }
+
+  @Override
+  public String toString() {
+    return
+        id.getDate() +
+        ", " + maxExtremum +
+        ", " + minExtremum +
+        ", " + trend;
+  }
 }

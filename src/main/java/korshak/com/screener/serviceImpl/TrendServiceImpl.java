@@ -1,15 +1,8 @@
 package korshak.com.screener.serviceImpl;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.PriceDao;
-import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.dao.Trend;
-import korshak.com.screener.dao.TrendKey;
-import korshak.com.screener.dao.TrendRepository;
+import java.util.*;
+import korshak.com.screener.dao.*;
 import korshak.com.screener.service.TrendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,11 +20,19 @@ public class TrendServiceImpl implements TrendService {
   }
 
   @Override
+  public Trend findLatestTrendBeforeDate(String ticker, TimeFrame timeFrame, LocalDateTime date) {
+    return trendRepository.findTopByIdTickerAndIdTimeframeAndIdDateLessThanEqualOrderByIdDateDesc(
+        ticker, timeFrame.toString().trim(), date);
+  }
+
+  @Override
   @Transactional
-  public void calculateAndStorePriceTrendForAllTimeframes(String ticker) {
+  public void calculateAndStorePriceTrendForAllTimeframes(String ticker,
+                                                          LocalDateTime startDate, LocalDateTime endDate) {
     for (TimeFrame timeFrame : TimeFrame.values()) {
       if (timeFrame != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
-        calculateAndStorePriceTrend(ticker, timeFrame);
+        calculateAndStorePriceTrend(ticker, timeFrame,
+             startDate,  endDate);
       }
     }
   }
@@ -48,15 +49,89 @@ public class TrendServiceImpl implements TrendService {
     // Delete existing trends
     LocalDateTime startDate = prices.get(0).getId().getDate();
     LocalDateTime endDate = prices.get(prices.size() - 1).getId().getDate();
-    //  trendRepository.deleteByIdTickerAndIdTimeframeAndIdDateBetween(
-    //     ticker, timeFrame, startDate, endDate);
+    trendRepository.deleteByIdTickerAndIdTimeframeAndIdDateBetween(
+        ticker, timeFrame, startDate, endDate);
 
     List<Trend> trends = findExtremumsAndCalculateTrends(prices, ticker, timeFrame);
     return trendRepository.saveAll(trends);
   }
 
-  private List<Trend> findExtremumsAndCalculateTrends(List<? extends BasePrice> prices,
-                                                      String ticker, TimeFrame timeFrame) {
+  @Transactional
+  @Override
+  public List<Trend> calculateAndStorePriceTrend(String ticker, TimeFrame timeFrame,
+                                                 LocalDateTime startDate, LocalDateTime endDate) {
+    // First check if data already exists for the entire requested period
+    List<Trend> existingTrends = trendRepository.findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc(
+        ticker, timeFrame, startDate, endDate);
+    // Get all price data needed for the calculation
+    List<? extends BasePrice> prices = priceDao.findByDateRange(ticker, startDate, endDate, timeFrame);
+    if (prices.size() < 3) {
+      return Collections.emptyList();
+    }
+
+    // If there's existing trend data covering the entire period, return it
+    if (!existingTrends.isEmpty()) {
+      LocalDateTime firstTrendDate = existingTrends.get(0).getId().getDate();
+      LocalDateTime lastTrendDate = existingTrends.get(existingTrends.size() - 1).getId().getDate();
+
+      if (!firstTrendDate.isAfter(startDate) && !lastTrendDate.isBefore(endDate)) {
+        return existingTrends;
+      }
+    }
+
+    // Find the latest date for which trend data exists
+    LocalDateTime latestExistingTrendDate = null;
+    if (!existingTrends.isEmpty()) {
+      latestExistingTrendDate = existingTrends.get(existingTrends.size() - 1).getId().getDate();
+    }
+
+    // If we have existing trend data, we only need to calculate trends after the latest date
+    if (latestExistingTrendDate != null) {
+      // Filter prices to only include those after the latest trend date
+      List<? extends BasePrice> newPrices = new ArrayList<>();
+      for (BasePrice price : prices) {
+        if (price.getId().getDate().isAfter(latestExistingTrendDate)) {
+          ((List<BasePrice>)newPrices).add(price);
+        }
+      }
+
+      // Add a few prices before the cutoff to ensure proper trend calculation
+      int lookbackCount = 2; // Need at least 2 previous points for trend calculation
+      int startIndex = 0;
+      for (int i = 0; i < prices.size(); i++) {
+        if (prices.get(i).getId().getDate().isAfter(latestExistingTrendDate)) {
+          startIndex = Math.max(0, i - lookbackCount);
+          break;
+        }
+      }
+
+      List<? extends BasePrice> pricesToProcess = prices.subList(startIndex, prices.size());
+
+      // Calculate trends for new data
+      List<Trend> newTrends = findExtremumsAndCalculateTrends(pricesToProcess, ticker, timeFrame);
+
+      // Filter out trends with dates that already exist
+      List<Trend> trendsToSave = new ArrayList<>();
+      for (Trend trend : newTrends) {
+        if (trend.getId().getDate().isAfter(latestExistingTrendDate)) {
+          trendsToSave.add(trend);
+        }
+      }
+
+      // Save new trends
+      if (!trendsToSave.isEmpty()) {
+        return trendRepository.saveAll(trendsToSave);
+      } else {
+        return existingTrends;
+      }
+    } else {
+      // No existing trend data, calculate for the entire period
+      List<Trend> trends = findExtremumsAndCalculateTrends(prices, ticker, timeFrame);
+      return trendRepository.saveAll(trends);
+    }
+  }
+
+  private List<Trend> findExtremumsAndCalculateTrends(List<? extends BasePrice> prices, String ticker, TimeFrame timeFrame) {
     List<Trend> trends = new ArrayList<>();
 
     // Track last confirmed extremums
@@ -115,8 +190,7 @@ public class TrendServiceImpl implements TrendService {
     return trends;
   }
 
-  private int determineTrend(double currentMax, double previousMax, double currentMin,
-                             double previousMin) {
+  private int determineTrend(double currentMax, double previousMax, double currentMin, double previousMin) {
     // Uptrend: Both maximum and minimum are higher
     if (currentMax > previousMax && currentMin > previousMin) {
       return 1;
