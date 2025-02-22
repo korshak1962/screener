@@ -128,17 +128,18 @@ public class ScreenerApplication implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
     List<String> tickers = new ArrayList<>();
-    LocalDateTime startDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
     String ticker = "SPY";
     tickers.add(ticker);
     tickers.add("TLT");
+    tickers.add("VALE");
     reporter.createExcelReport(tickers, startDate, endDate, TimeFrame.DAY);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
     // downloadSeries("LKOH", "2011-01-01");
     // downloadSeries("LKOH", "2025-02-10");
-    //downloadSeriesUnsafe("TLT", "2025-", 2, 2);
+    //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
     //calcSMA("YMM", 2, 50);
     //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
     //downloadSeries("XLK", "2025-", 1, 2, alfaVintageDownloader);
@@ -149,7 +150,7 @@ public class ScreenerApplication implements CommandLineRunner {
     // priceAggregationService.aggregateData("TMOS_MOEX", TimeFrame.DAY);
     //calcSMA_incremental("NVTK_MOEX",2,100);
     //calcSMA( 2, 50);
-    //trendService.calculateAndStorePriceTrend("SPXL",TimeFrame.DAY);
+    //trendService.calculateAndStorePriceTrendForAllTimeframes("SPXL");
     //calcRSI(3,50);
     //calcRSI("SBER", 11, 50);
     System.exit(0);

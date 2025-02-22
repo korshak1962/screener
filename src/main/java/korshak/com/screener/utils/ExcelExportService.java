@@ -5,14 +5,18 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import korshak.com.screener.vo.SignalTilt;
 import korshak.com.screener.vo.Trade;
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -155,18 +159,8 @@ public class ExcelExportService {
     return style;
   }
 
-  /**
-   * Creates an Excel report from a map where keys become column names and values become cell values.
-   * Each column can have multiple values represented as a list.
-   *
-   * @param filePath     Path where the Excel file will be saved
-   * @param sheetName    Name for the worksheet
-   * @param nameToValues Map where keys are column names and values are lists of cell values
-   * @throws IOException If there's an error writing the file
-   */
-  public static void reportForMap(String filePath, String sheetName,
-                                  Map<String, List<String>> nameToValues) throws IOException {
-    if (nameToValues == null || nameToValues.isEmpty()) {
+  public static void reportForMap(String filePath, String sheetName, Map<String, List<String>> colNameToValues, Set<String> urlColumns) throws IOException {
+    if (colNameToValues == null || colNameToValues.isEmpty()) {
       throw new IllegalArgumentException("Results map cannot be empty");
     }
 
@@ -176,37 +170,44 @@ public class ExcelExportService {
       // Create header row
       Row headerRow = sheet.createRow(0);
       CellStyle headerStyle = createHeaderStyle(workbook);
-
-      // Add column headers
-      int colNum = 0;
-      for (String columnName : nameToValues.keySet()) {
-        Cell headerCell = headerRow.createCell(colNum++);
-        headerCell.setCellValue(columnName);
-        headerCell.setCellStyle(headerStyle);
-      }
-
-      // Determine maximum number of rows needed
-      int maxRowCount = 0;
-      for (List<String> values : nameToValues.values()) {
-        maxRowCount = Math.max(maxRowCount, values.size());
-      }
-
-      // Create data style
       CellStyle dataStyle = createDataStyle(workbook);
 
-      // Populate data rows
-      for (int rowIdx = 0; rowIdx < maxRowCount; rowIdx++) {
-        Row dataRow = sheet.createRow(rowIdx + 1); // +1 to account for header row
+      // Write headers and validate data lengths
+      int colNum = 0;
+      int maxRows = 0;
+      for (Map.Entry<String, List<String>> entry : colNameToValues.entrySet()) {
+        // Header cell
+        Cell headerCell = headerRow.createCell(colNum);
+        headerCell.setCellValue(entry.getKey());
+        headerCell.setCellStyle(headerStyle);
 
+        // Track maximum number of rows needed
+        maxRows = Math.max(maxRows, entry.getValue().size());
+        colNum++;
+      }
+
+      // Create data rows
+      for (int rowNum = 0; rowNum < maxRows; rowNum++) {
+        Row dataRow = sheet.createRow(rowNum + 1);
         colNum = 0;
-        for (Map.Entry<String, List<String>> entry : nameToValues.entrySet()) {
-          List<String> columnValues = entry.getValue();
 
-          // Only add a value if this column has enough values
-          if (rowIdx < columnValues.size()) {
-            Cell dataCell = dataRow.createCell(colNum);
-            dataCell.setCellValue(columnValues.get(rowIdx));
-            dataCell.setCellStyle(dataStyle);
+        for (Map.Entry<String, List<String>> entry : colNameToValues.entrySet()) {
+          String columnName = entry.getKey();
+          List<String> values = entry.getValue();
+
+          Cell dataCell = dataRow.createCell(colNum);
+
+          if (rowNum < values.size()) {
+            String value = values.get(rowNum);
+
+            if (urlColumns != null && urlColumns.contains(columnName)) {
+              // Format as URL if this column is in urlColumns
+              setUrlCell(workbook, dataCell, value);
+            } else {
+              // Regular cell formatting
+              dataCell.setCellValue(value);
+              dataCell.setCellStyle(dataStyle);
+            }
           }
 
           colNum++;
@@ -214,7 +215,7 @@ public class ExcelExportService {
       }
 
       // Auto-size columns
-      for (int i = 0; i < nameToValues.size(); i++) {
+      for (int i = 0; i < colNameToValues.size(); i++) {
         sheet.autoSizeColumn(i);
       }
 
@@ -223,6 +224,25 @@ public class ExcelExportService {
         workbook.write(fileOut);
       }
     }
+  }
+
+  private static CellStyle createUrlStyle(Workbook workbook) {
+    CellStyle linkStyle = workbook.createCellStyle();
+    Font linkFont = workbook.createFont();
+    linkFont.setUnderline(Font.U_SINGLE);
+    linkFont.setColor(IndexedColors.BLUE.getIndex());
+    linkStyle.setFont(linkFont);
+    return linkStyle;
+  }
+
+  private static void setUrlCell(Workbook workbook, Cell cell, String url) {
+    CreationHelper createHelper = workbook.getCreationHelper();
+    Hyperlink link = createHelper.createHyperlink(HyperlinkType.URL);
+    link.setAddress(url);
+
+    cell.setCellValue(url);
+    cell.setHyperlink(link);
+    cell.setCellStyle(createUrlStyle(workbook));
   }
 
   /**

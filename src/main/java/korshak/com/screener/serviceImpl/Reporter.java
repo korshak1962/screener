@@ -1,12 +1,15 @@
 package korshak.com.screener.serviceImpl;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.Trend;
 import korshak.com.screener.service.ChartService;
@@ -79,22 +82,25 @@ public class Reporter {
     Map<String, StrategyResult> res = reportForList(tickers, startDate,
         endDate, timeFrame);
 
-    Map<String, List<String>> nameToValue = new LinkedHashMap<>();
-    nameToValue.put(TICKER, new ArrayList<>());
-    nameToValue.put(CLOSE, new ArrayList<>());
-    nameToValue.put(PRICE_TO_BUY, new ArrayList<>());
-    nameToValue.put(PRICE_TO_SELL, new ArrayList<>());
+    Map<String, List<String>> colnameToValues = new LinkedHashMap<>();
+    colnameToValues.put(TICKER, new ArrayList<>());
+    colnameToValues.put(CLOSE, new ArrayList<>());
+    colnameToValues.put(PRICE_TO_BUY, new ArrayList<>());
+    colnameToValues.put(PRICE_TO_SELL, new ArrayList<>());
+    DecimalFormat df = new DecimalFormat("#.##");
     for (TimeFrame timeFrameTrend : TimeFrame.values()) {
       if (timeFrameTrend != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
-        nameToValue.put(timeFrameTrend + "_trend", new ArrayList<>());
+        colnameToValues.put(timeFrameTrend + "_trend", new ArrayList<>());
       }
     }
-    nameToValue.put(F_URL, new ArrayList<>());
+    colnameToValues.put(F_URL, new ArrayList<>());
+    Set<String> urlColumns = new HashSet<>();
+    urlColumns.add(F_URL);
     for (Map.Entry<String, StrategyResult> entry : res.entrySet()) {
       StrategyResult strategyResult = entry.getValue();
 
-      nameToValue.get(TICKER).add(entry.getKey());
-      nameToValue.get(CLOSE)
+      colnameToValues.get(TICKER).add(entry.getKey());
+      colnameToValues.get(CLOSE)
           .add(Double.valueOf(strategyResult.getPrices().getLast().getClose()).toString());
       for (TimeFrame timeFrameTrend : TimeFrame.values()) {
         if (timeFrameTrend != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
@@ -108,17 +114,19 @@ public class Reporter {
             // Handle the null case
             trendString = "No trend found";
           }
-          nameToValue.get(timeFrameTrend + "_trend").add(trendString);
+          colnameToValues.get(timeFrameTrend + "_trend").add(trendString);
         }
       }
 
-      nameToValue.get(PRICE_TO_BUY).add(strategyResult.getOptParams().get(PRICE_TO_BUY).toString());
-      nameToValue.get(PRICE_TO_SELL)
-          .add(strategyResult.getOptParams().get(PRICE_TO_SELL).toString());
-      nameToValue.get(F_URL).add(buildFinvizUrl(entry.getKey()));
+      colnameToValues.get(PRICE_TO_BUY)
+          .add(df.format(strategyResult.getOptParams().get(PRICE_TO_BUY)));
+      colnameToValues.get(PRICE_TO_SELL).add(
+          df.format(strategyResult.getOptParams().get(PRICE_TO_SELL)));
+      colnameToValues.get(F_URL).add(buildFinvizUrl(entry.getKey()));
     }
     try {
-      ExcelExportService.reportForMap("tiltStratRes.xlsx", "results", nameToValue);
+      ExcelExportService.reportForMap("tiltStratRes.xlsx", "results",
+          colnameToValues, urlColumns);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -129,7 +137,7 @@ public class Reporter {
                                                    LocalDateTime endDate, TimeFrame timeFrame) {
     for (String ticker : tickers) {
       try {
-        trendService.calculateAndStorePriceTrendForAllTimeframes(ticker, startDate, endDate);
+        trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
         tickerToResult.put(ticker, opt(ticker, startDate, endDate, timeFrame));
       } catch (IOException e) {
         e.printStackTrace();

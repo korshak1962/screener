@@ -1,8 +1,15 @@
 package korshak.com.screener.serviceImpl;
 
 import java.time.LocalDateTime;
-import java.util.*;
-import korshak.com.screener.dao.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.dao.Trend;
+import korshak.com.screener.dao.TrendKey;
+import korshak.com.screener.dao.TrendRepository;
 import korshak.com.screener.service.TrendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +27,7 @@ public class TrendServiceImpl implements TrendService {
   }
 
   @Override
+  @Transactional
   public Trend findLatestTrendBeforeDate(String ticker, TimeFrame timeFrame, LocalDateTime date) {
     return trendRepository.findTopByIdTickerAndIdTimeframeAndIdDateLessThanEqualOrderByIdDateDesc(
         ticker, timeFrame.toString().trim(), date);
@@ -28,11 +36,12 @@ public class TrendServiceImpl implements TrendService {
   @Override
   @Transactional
   public void calculateAndStorePriceTrendForAllTimeframes(String ticker,
-                                                          LocalDateTime startDate, LocalDateTime endDate) {
+                                                          LocalDateTime startDate,
+                                                          LocalDateTime endDate) {
     for (TimeFrame timeFrame : TimeFrame.values()) {
       if (timeFrame != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
         calculateAndStorePriceTrend(ticker, timeFrame,
-             startDate,  endDate);
+            startDate, endDate);
       }
     }
   }
@@ -56,15 +65,27 @@ public class TrendServiceImpl implements TrendService {
     return trendRepository.saveAll(trends);
   }
 
+  @Override
+  @Transactional
+  public void calculateAndStorePriceTrendForAllTimeframes(String ticker) {
+    for (TimeFrame timeFrame : TimeFrame.values()) {
+      if (timeFrame != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
+        calculateAndStorePriceTrend(ticker, timeFrame);
+      }
+    }
+  }
+
   @Transactional
   @Override
   public List<Trend> calculateAndStorePriceTrend(String ticker, TimeFrame timeFrame,
                                                  LocalDateTime startDate, LocalDateTime endDate) {
     // First check if data already exists for the entire requested period
-    List<Trend> existingTrends = trendRepository.findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc(
-        ticker, timeFrame, startDate, endDate);
+    List<Trend> existingTrends =
+        trendRepository.findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc(
+            ticker, timeFrame, startDate, endDate);
     // Get all price data needed for the calculation
-    List<? extends BasePrice> prices = priceDao.findByDateRange(ticker, startDate, endDate, timeFrame);
+    List<? extends BasePrice> prices =
+        priceDao.findByDateRange(ticker, startDate, endDate, timeFrame);
     if (prices.size() < 3) {
       return Collections.emptyList();
     }
@@ -91,7 +112,7 @@ public class TrendServiceImpl implements TrendService {
       List<? extends BasePrice> newPrices = new ArrayList<>();
       for (BasePrice price : prices) {
         if (price.getId().getDate().isAfter(latestExistingTrendDate)) {
-          ((List<BasePrice>)newPrices).add(price);
+          ((List<BasePrice>) newPrices).add(price);
         }
       }
 
@@ -131,12 +152,13 @@ public class TrendServiceImpl implements TrendService {
     }
   }
 
-  private List<Trend> findExtremumsAndCalculateTrends(List<? extends BasePrice> prices, String ticker, TimeFrame timeFrame) {
+  private List<Trend> findExtremumsAndCalculateTrends(List<? extends BasePrice> prices,
+                                                      String ticker, TimeFrame timeFrame) {
     List<Trend> trends = new ArrayList<>();
 
     // Track last confirmed extremums
-    Double lastConfirmedMax = null;
-    Double lastConfirmedMin = null;
+    double lastConfirmedMax = -Double.MAX_VALUE;
+    double lastConfirmedMin = Double.MAX_VALUE;
     LocalDateTime lastMaxDate = null;
     LocalDateTime lastMinDate = null;
 
@@ -170,10 +192,6 @@ public class TrendServiceImpl implements TrendService {
       }
 
       // If we found an extremum and have enough history, determine trend
-      if (extremumFound && prevMax != null && prevMin != null
-          && lastConfirmedMax != null && lastConfirmedMin != null) {
-        trend = determineTrend(lastConfirmedMax, prevMax, lastConfirmedMin, prevMin);
-      }
 
       // Create trend record if we found an extremum
       if (extremumFound) {
@@ -190,17 +208,16 @@ public class TrendServiceImpl implements TrendService {
     return trends;
   }
 
-  private int determineTrend(double currentMax, double previousMax, double currentMin, double previousMin) {
+  private int determineTrend(double currentMax, double previousMax, double currentMin,
+                             double previousMin) {
     // Uptrend: Both maximum and minimum are higher
     if (currentMax > previousMax && currentMin > previousMin) {
       return 1;
     }
-
     // Downtrend: Both maximum and minimum are lower
     if (currentMax < previousMax && currentMin < previousMin) {
       return -1;
     }
-
     return 0;
   }
 }

@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 public interface TrendService {
   List<Trend> calculateAndStorePriceTrend(String ticker, TimeFrame timeFrame);
 
+  void calculateAndStorePriceTrendForAllTimeframes(String ticker);
+
   Trend findLatestTrendBeforeDate(String ticker, TimeFrame timeFrame, LocalDateTime date);
 
   void calculateAndStorePriceTrendForAllTimeframes(String ticker,
