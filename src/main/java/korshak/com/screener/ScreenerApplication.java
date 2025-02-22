@@ -141,7 +141,7 @@ public class ScreenerApplication implements CommandLineRunner {
     //downloadSeriesUnsafe("TLT", "2025-", 2, 2);
     //calcSMA("YMM", 2, 50);
     //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
-    //downloadSeries("YMM", "2025-", 1, 2, alfaVintageDownloader);
+    //downloadSeries("XLK", "2025-", 1, 2, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("TLT", "2025-", 1, 2);
     //priceAggregationService.aggregateAllTickers();

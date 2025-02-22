@@ -3,6 +3,7 @@ package korshak.com.screener.dao;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import java.text.DecimalFormat;
 
 @Entity
 @Table(name = "trends")
@@ -58,10 +59,11 @@ public class Trend {
 
   @Override
   public String toString() {
+    DecimalFormat df = new DecimalFormat("#.##");
     return
-        id.getDate() +
-        ", " + maxExtremum +
-        ", " + minExtremum +
+        id.getDate().getDayOfMonth() +
+        ", " + df.format(maxExtremum) +
+        ", " + df.format(minExtremum) +
         ", " + trend;
   }
 }

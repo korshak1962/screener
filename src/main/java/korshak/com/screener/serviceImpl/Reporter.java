@@ -30,6 +30,7 @@ public class Reporter {
   private static final String PRICE_TO_SELL = "priceToSell";
   private static final String TICKER = "Ticker";
   private static final String CLOSE = "Close";
+  private static final String F_URL = "F_URL";
   public Map<String, StrategyResult> tickerToResult = new HashMap<>();
   private final OptimizatorTilt optimizatorTilt;
   private final StrategyMerger strategyMerger;
@@ -88,12 +89,13 @@ public class Reporter {
         nameToValue.put(timeFrameTrend + "_trend", new ArrayList<>());
       }
     }
-
+    nameToValue.put(F_URL, new ArrayList<>());
     for (Map.Entry<String, StrategyResult> entry : res.entrySet()) {
       StrategyResult strategyResult = entry.getValue();
 
       nameToValue.get(TICKER).add(entry.getKey());
-      nameToValue.get(CLOSE).add(Double.valueOf(strategyResult.getPrices().getLast().getClose()).toString());
+      nameToValue.get(CLOSE)
+          .add(Double.valueOf(strategyResult.getPrices().getLast().getClose()).toString());
       for (TimeFrame timeFrameTrend : TimeFrame.values()) {
         if (timeFrameTrend != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
           Trend trend =
@@ -113,6 +115,7 @@ public class Reporter {
       nameToValue.get(PRICE_TO_BUY).add(strategyResult.getOptParams().get(PRICE_TO_BUY).toString());
       nameToValue.get(PRICE_TO_SELL)
           .add(strategyResult.getOptParams().get(PRICE_TO_SELL).toString());
+      nameToValue.get(F_URL).add(buildFinvizUrl(entry.getKey()));
     }
     try {
       ExcelExportService.reportForMap("tiltStratRes.xlsx", "results", nameToValue);
@@ -271,5 +274,9 @@ public class Reporter {
     tiltStrategy.setTiltSell(params.get(OptimizatorTilt.TILT_SELL));
     tiltStrategy.calcSignals();
     return tiltStrategy;
+  }
+
+  public String buildFinvizUrl(String ticker) {
+    return String.format("https://finviz.com/quote.ashx?t=%s&ta=1&p=d&ty=ea", ticker.toUpperCase());
   }
 }
