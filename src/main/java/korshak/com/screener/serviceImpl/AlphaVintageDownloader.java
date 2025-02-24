@@ -3,6 +3,7 @@ package korshak.com.screener.serviceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -126,6 +127,11 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
       throw new IllegalArgumentException(
           "Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
     }
+  }
+
+  @Override
+  public int fetchAndSaveDataFromDate(String ticker, LocalDate startDate) {
+    return 0;
   }
 
   @Override

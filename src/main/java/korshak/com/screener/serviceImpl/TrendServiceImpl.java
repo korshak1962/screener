@@ -192,7 +192,9 @@ public class TrendServiceImpl implements TrendService {
       }
 
       // If we found an extremum and have enough history, determine trend
-
+      if (extremumFound && prevMax != null && prevMin != null) {
+        trend = determineTrend(lastConfirmedMax, prevMax, lastConfirmedMin, prevMin);
+      }
       // Create trend record if we found an extremum
       if (extremumFound) {
         Trend newTrend = new Trend(

@@ -1,6 +1,7 @@
 package korshak.com.screener;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
@@ -66,6 +67,9 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("AlphaVintageDownloader")
   private AlphaVintageDownloader alfaVintageDownloader;
   @Autowired
+  @Qualifier("yahooDownloader")
+  private SharePriceDownLoaderService yahooDownloader;
+  @Autowired
   private SmaCalculationService smaCalculationService;
   @Autowired
   private PriceAggregationService priceAggregationService;
@@ -127,22 +131,30 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    List<String> tickers = new ArrayList<>();
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.NOVEMBER, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
     String ticker = "SPY";
+    List<String> tickers = new ArrayList<>();
     tickers.add(ticker);
     tickers.add("TLT");
-    tickers.add("VALE");
-    reporter.createExcelReport(tickers, startDate, endDate, TimeFrame.DAY);
+  //  tickers.add("VALE");
+    //reporter.createExcelReport(tickers, startDate, endDate, TimeFrame.DAY);
+    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+    //reporter.createExcelReport(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), startDate, endDate, TimeFrame.DAY);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    // downloadSeries("LKOH", "2011-01-01");
+    //downloadSeries("LI", "2025-", 2, 2, alfaVintageDownloader);
+    //downloadSeries("MOMO", "2024-", 1, 12,alfaVintageDownloader);
+   // downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
+
+    //downloadSeries("IBIT", "2024-", 1, 2,yahooDownloader);
+    downloadSeries("MOMO", "2025-01-01", yahooDownloader);
+     //downloadSeries("LKOH", "2011-01-01", moexDownloader);
     // downloadSeries("LKOH", "2025-02-10");
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
     //calcSMA("YMM", 2, 50);
     //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
-    //downloadSeries("XLK", "2025-", 1, 2, alfaVintageDownloader);
+    //downloadSeries("T ", "2025-", 1, 2, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("TLT", "2025-", 1, 2);
     //priceAggregationService.aggregateAllTickers();
@@ -442,15 +454,16 @@ public class ScreenerApplication implements CommandLineRunner {
     System.exit(0);
   }
 
-  private void downloadSeries(final String ticker, final String startDate) {
+  private void downloadSeries(final String ticker, final String startDate,
+                              SharePriceDownLoaderService sharePriceDownLoaderService) {
     int lengthMin = 2;
     int lengthMax = 50;
-    int saved = moexDownloader.fetchAndSaveDataFromDate(ticker, startDate);
+    int saved = sharePriceDownLoaderService.fetchAndSaveDataFromDate(ticker, LocalDate.parse(startDate));
     System.out.println("saved = " + saved);
     if (saved > 0) {
-      priceAggregationService.aggregateAllTimeFrames(moexDownloader.getDbTicker());
+      priceAggregationService.aggregateAllTimeFrames(sharePriceDownLoaderService.getDbTicker());
       for (int i = lengthMin; i <= lengthMax; i++) {
-        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(moexDownloader.getDbTicker(),
+        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(sharePriceDownLoaderService.getDbTicker(),
             i);
       }
     }

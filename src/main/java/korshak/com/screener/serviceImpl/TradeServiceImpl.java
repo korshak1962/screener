@@ -13,7 +13,6 @@ import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.Signal;
-import korshak.com.screener.vo.SignalTilt;
 import korshak.com.screener.vo.SignalType;
 import korshak.com.screener.vo.StrategyResult;
 import korshak.com.screener.vo.Trade;
@@ -85,11 +84,9 @@ public class TradeServiceImpl implements TradeService {
     TreeMap<LocalDateTime, Double> currentPnL = new TreeMap<>();
     Map<LocalDateTime, Double> minLongPnl = new HashMap<>();
     //========================= temporary
-    if (strategy.getSignalsLong().getLast().getSignalType() == SignalType.LongOpen) {
-      SignalTilt signal = new SignalTilt(strategy.getPrices().getLast().getId().getDate(),
-          strategy.getPrices().getLast().getClose(), SignalType.LongClose,
-          0, 0);
-      ((List<SignalTilt>) strategy.getSignalsLong()).add(signal);
+    Signal last = strategy.getSignalsLong().getLast();
+    if (last.getSignalType() == SignalType.LongOpen) {
+      System.out.println("Last signal is LongOpen at price = " + last.getPrice());
     }
     //====================
     Iterator<? extends Signal> iteratorSignal = strategy.getSignalsLong().iterator();

@@ -33,7 +33,7 @@ public class Reporter {
   private static final String PRICE_TO_SELL = "priceToSell";
   private static final String TICKER = "Ticker";
   private static final String CLOSE = "Close";
-  private static final String F_URL = "F_URL";
+  private static final String FINVIZ_URL = "F_URL";
   public Map<String, StrategyResult> tickerToResult = new HashMap<>();
   private final OptimizatorTilt optimizatorTilt;
   private final StrategyMerger strategyMerger;
@@ -93,9 +93,9 @@ public class Reporter {
         colnameToValues.put(timeFrameTrend + "_trend", new ArrayList<>());
       }
     }
-    colnameToValues.put(F_URL, new ArrayList<>());
+    colnameToValues.put(FINVIZ_URL, new ArrayList<>());
     Set<String> urlColumns = new HashSet<>();
-    urlColumns.add(F_URL);
+    urlColumns.add(FINVIZ_URL);
     for (Map.Entry<String, StrategyResult> entry : res.entrySet()) {
       StrategyResult strategyResult = entry.getValue();
 
@@ -114,15 +114,15 @@ public class Reporter {
             // Handle the null case
             trendString = "No trend found";
           }
+
           colnameToValues.get(timeFrameTrend + "_trend").add(trendString);
         }
       }
-
-      colnameToValues.get(PRICE_TO_BUY)
-          .add(df.format(strategyResult.getOptParams().get(PRICE_TO_BUY)));
-      colnameToValues.get(PRICE_TO_SELL).add(
-          df.format(strategyResult.getOptParams().get(PRICE_TO_SELL)));
-      colnameToValues.get(F_URL).add(buildFinvizUrl(entry.getKey()));
+      colnameToValues.get(PRICE_TO_BUY).add(df.format(
+          strategyResult.getOptParams().get(PRICE_TO_BUY)));
+      colnameToValues.get(PRICE_TO_SELL).add(df.format(
+          strategyResult.getOptParams().get(PRICE_TO_SELL)));
+      colnameToValues.get(FINVIZ_URL).add(buildFinvizUrl(entry.getKey()));
     }
     try {
       ExcelExportService.reportForMap("tiltStratRes.xlsx", "results",

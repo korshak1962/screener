@@ -86,8 +86,8 @@ class TrendServiceTest {
 
     // Verify the sequence of trends is correct
     results.forEach(t -> System.out.println(
-        String.format("Date: %s, Value: %.2f, Trend: %d",
-            t.getId().getDate(), t.getExtremum(), t.getTrend())
+        String.format("Date: %s, ValueMax: %.2f, Trend: %d",
+            t.getId().getDate(), t.getMaxExtremum(), t.getTrend())
     ));
   }
 
@@ -114,8 +114,8 @@ class TrendServiceTest {
         "Should identify at least one downtrend");
 
     results.forEach(t -> System.out.println(
-        String.format("Date: %s, Value: %.2f, Trend: %d",
-            t.getId().getDate(), t.getExtremum(), t.getTrend())
+        String.format("Date: %s, ValueMax: %.2f, Trend: %d",
+            t.getId().getDate(), t.getMaxExtremum(), t.getTrend())
     ));
   }
 
@@ -142,8 +142,8 @@ class TrendServiceTest {
         "Should identify some periods with no trend");
 
     results.forEach(t -> System.out.println(
-        String.format("Date: %s, Value: %.2f, Trend: %d",
-            t.getId().getDate(), t.getExtremum(), t.getTrend())
+        String.format("Date: %s, ValueMax: %.2f, Trend: %d",
+            t.getId().getDate(), t.getMaxExtremum(), t.getTrend())
     ));
   }
 

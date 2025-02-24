@@ -24,9 +24,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class PriceAggregationServiceImpl implements PriceAggregationService {
 
-  private static final LocalTime MARKET_OPEN = LocalTime.of(9, 30);  // ET
-  private static final LocalTime MARKET_CLOSE = LocalTime.of(16, 0); // ET
-
   private final PriceDao priceDao;
 
   public PriceAggregationServiceImpl(
