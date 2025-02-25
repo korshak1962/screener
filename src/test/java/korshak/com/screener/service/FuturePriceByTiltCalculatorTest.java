@@ -22,16 +22,15 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 class FuturePriceByTiltCalculatorTest {
+  private final int SMA_LENGTH = 3;
+  private final double TARGET_TILT = .02;
   @Mock
   private PriceDao priceDao;
   @Mock
   private SmaDao smaDao;
-
   private FuturePriceByTiltCalculator calculator;
   private List<BasePrice> prices;
   private List<BaseSma> smas;
-  private final int SMA_LENGTH = 3;
-  private final double TARGET_TILT = .02;
 
   @BeforeEach
   void setUp() {

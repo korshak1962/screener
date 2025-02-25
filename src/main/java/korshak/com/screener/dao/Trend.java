@@ -5,7 +5,6 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import java.text.DecimalFormat;
-import java.util.Optional;
 
 @Entity
 @Table(name = "trends")
@@ -70,8 +69,8 @@ public class Trend {
     DecimalFormat df = new DecimalFormat("#.##");
     return
         id.getDate().getDayOfMonth() +
-        ", " + df.format(maxExtremum) +
-        ", " + df.format(minExtremum) +
-        ", " + trend;
+            ", " + df.format(maxExtremum) +
+            ", " + df.format(minExtremum) +
+            ", " + trend;
   }
 }

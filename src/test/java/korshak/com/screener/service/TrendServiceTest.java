@@ -1,17 +1,26 @@
 package korshak.com.screener.service;
 
-import korshak.com.screener.dao.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.PriceKey;
+import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.dao.Trend;
+import korshak.com.screener.dao.TrendRepository;
 import korshak.com.screener.serviceImpl.TrendServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 class TrendServiceTest {
   @Mock
@@ -21,14 +30,6 @@ class TrendServiceTest {
   private TrendRepository trendRepository;
 
   private TrendService trendService;
-
-  private static class TestPrice extends BasePrice {
-    public TestPrice(String ticker, LocalDateTime date, double high, double low) {
-      setId(new PriceKey(ticker, date));
-      setHigh(high);
-      setLow(low);
-    }
-  }
 
   @BeforeEach
   void setUp() {
@@ -43,7 +44,8 @@ class TrendServiceTest {
     List<Trend> result = trendService.calculateAndStorePriceTrend("TEST", TimeFrame.DAY);
 
     assertTrue(result.isEmpty());
-    verify(trendRepository, never()).deleteByIdTickerAndIdTimeframeAndIdDateBetween(any(), any(), any(), any());
+    verify(trendRepository, never()).deleteByIdTickerAndIdTimeframeAndIdDateBetween(any(), any(),
+        any(), any());
     verify(trendRepository, never()).saveAll(any());
   }
 
@@ -85,10 +87,8 @@ class TrendServiceTest {
         "Should identify at least one uptrend");
 
     // Verify the sequence of trends is correct
-    results.forEach(t -> System.out.println(
-        String.format("Date: %s, ValueMax: %.2f, Trend: %d",
-            t.getId().getDate(), t.getMaxExtremum(), t.getTrend())
-    ));
+    results.forEach(t -> System.out.printf("Date: %s, ValueMax: %.2f, Trend: %d%n",
+        t.getId().getDate(), t.getMaxExtremum(), t.getTrend()));
   }
 
   @Test
@@ -113,10 +113,8 @@ class TrendServiceTest {
     assertTrue(results.stream().anyMatch(t -> t.getTrend() == -1),
         "Should identify at least one downtrend");
 
-    results.forEach(t -> System.out.println(
-        String.format("Date: %s, ValueMax: %.2f, Trend: %d",
-            t.getId().getDate(), t.getMaxExtremum(), t.getTrend())
-    ));
+    results.forEach(t -> System.out.printf("Date: %s, ValueMax: %.2f, Trend: %d%n",
+        t.getId().getDate(), t.getMaxExtremum(), t.getTrend()));
   }
 
   @Test
@@ -141,10 +139,8 @@ class TrendServiceTest {
     assertTrue(results.stream().anyMatch(t -> t.getTrend() == 0),
         "Should identify some periods with no trend");
 
-    results.forEach(t -> System.out.println(
-        String.format("Date: %s, ValueMax: %.2f, Trend: %d",
-            t.getId().getDate(), t.getMaxExtremum(), t.getTrend())
-    ));
+    results.forEach(t -> System.out.printf("Date: %s, ValueMax: %.2f, Trend: %d%n",
+        t.getId().getDate(), t.getMaxExtremum(), t.getTrend()));
   }
 
   @Test
@@ -170,6 +166,14 @@ class TrendServiceTest {
             "Trends should be in chronological order");
       }
       previousDate = trend.getId().getDate();
+    }
+  }
+
+  private static class TestPrice extends BasePrice {
+    public TestPrice(String ticker, LocalDateTime date, double high, double low) {
+      setId(new PriceKey(ticker, date));
+      setHigh(high);
+      setLow(low);
     }
   }
 }

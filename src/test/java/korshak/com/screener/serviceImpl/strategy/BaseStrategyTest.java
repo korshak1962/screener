@@ -1,7 +1,13 @@
 package korshak.com.screener.serviceImpl.strategy;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,13 +26,12 @@ import org.mockito.MockitoAnnotations;
 
 class BaseStrategyTest {
 
-  @Mock
-  private PriceDao priceDao;
-
-  private TestStrategy strategy;
   private final String TEST_TICKER = "TEST";
   private final LocalDateTime START_DATE = LocalDateTime.of(2024, 1, 1, 0, 0);
   private final LocalDateTime END_DATE = LocalDateTime.of(2024, 1, 2, 0, 0);
+  @Mock
+  private PriceDao priceDao;
+  private TestStrategy strategy;
 
   @BeforeEach
   void setUp() {
@@ -71,8 +76,10 @@ class BaseStrategyTest {
     // Create 5-minute prices with clear price increases
     List<BasePrice> min5Prices = new ArrayList<>();
     min5Prices.add(createPrice(time1, 100.0, 102.0, 99.0, 100.0, 1000));  // Closes at 100
-    min5Prices.add(createPrice(time2, 100.0, 106.0, 100.0, 105.0, 1200)); // Closes at 105 (increase)
-    min5Prices.add(createPrice(time3, 105.0, 110.0, 104.0, 108.0, 1100)); // Closes at 108 (increase)
+    min5Prices.add(
+        createPrice(time2, 100.0, 106.0, 100.0, 105.0, 1200)); // Closes at 105 (increase)
+    min5Prices.add(
+        createPrice(time3, 105.0, 110.0, 104.0, 108.0, 1100)); // Closes at 108 (increase)
 
     System.out.println("Test prices created:");
     for (BasePrice price : min5Prices) {
@@ -123,7 +130,8 @@ class BaseStrategyTest {
     assertTrue(result.isEmpty());
   }
 
-  private PriceMin5 createPrice(LocalDateTime dateTime, double open, double high, double low, double close, long volume) {
+  private PriceMin5 createPrice(LocalDateTime dateTime, double open, double high, double low,
+                                double close, long volume) {
     return new PriceMin5(
         new PriceKey(TEST_TICKER, dateTime),
         open, high, low, close, volume
@@ -133,6 +141,7 @@ class BaseStrategyTest {
   // Test implementation of BaseStrategy
   private static class TestStrategy extends BaseStrategy {
     public List<Signal> allSignals = new ArrayList<>();
+    private final BasePrice lastProcessedPrice = null;
 
     public TestStrategy(PriceDao priceDao) {
       super(priceDao);
@@ -143,9 +152,6 @@ class BaseStrategyTest {
       // Simple implementation for testing
       return new Signal(price.getId().getDate(), price.getClose(), SignalType.LongOpen);
     }
-
-
-    private BasePrice lastProcessedPrice = null;
 
     @Override
     public Signal getSignal(BasePrice prevPrice, BasePrice price) {

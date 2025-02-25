@@ -28,6 +28,7 @@ public class OptimizatorTilt extends Optimizator {
   @Qualifier("TiltFromBaseStrategy")
   TiltFromBaseStrategy tiltFromBaseStrategy;
   Map<String, Double> optimumParameters;
+
   public OptimizatorTilt(@Qualifier("StrategyMerger") StrategyMerger strategyMerger,
                          TradeService tradeService) {
     super(strategyMerger, tradeService);

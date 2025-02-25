@@ -159,7 +159,9 @@ public class ExcelExportService {
     return style;
   }
 
-  public static void reportForMap(String filePath, String sheetName, Map<String, List<String>> colNameToValues, Set<String> urlColumns) throws IOException {
+  public static void reportForMap(String filePath, String sheetName,
+                                  Map<String, List<String>> colNameToValues, Set<String> urlColumns)
+      throws IOException {
     if (colNameToValues == null || colNameToValues.isEmpty()) {
       throw new IllegalArgumentException("Results map cannot be empty");
     }

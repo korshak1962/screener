@@ -10,6 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.Trend;
 import korshak.com.screener.service.ChartService;
@@ -34,7 +36,6 @@ public class Reporter {
   private static final String TICKER = "Ticker";
   private static final String CLOSE = "Close";
   private static final String FINVIZ_URL = "F_URL";
-  public Map<String, StrategyResult> tickerToResult = new HashMap<>();
   private final OptimizatorTilt optimizatorTilt;
   private final StrategyMerger strategyMerger;
   private final FuturePriceByTiltCalculator futurePriceByTiltCalculator;
@@ -42,6 +43,8 @@ public class Reporter {
   private final TiltFromBaseStrategy tiltFromBaseStrategy;
   private final Strategy buyAndHoldStrategy;
   private final TrendService trendService;
+  private final OptParamDao optParamDao;
+  public Map<String, StrategyResult> tickerToResult = new HashMap<>();
 
   public Reporter(@Qualifier("OptimizatorTilt") OptimizatorTilt optimizatorTilt,
                   @Qualifier("StrategyMerger") StrategyMerger strategyMerger,
@@ -49,7 +52,8 @@ public class Reporter {
                   TradeService tradeService,
                   @Qualifier("TiltFromBaseStrategy") TiltFromBaseStrategy tiltFromBaseStrategy,
                   @Qualifier("BuyAndHoldStrategy") Strategy buyAndHoldStrategy,
-                  TrendService trendService) {
+                  TrendService trendService,
+                  OptParamDao optParamDao) {
     this.optimizatorTilt = optimizatorTilt;
     this.strategyMerger = strategyMerger;
     this.futurePriceByTiltCalculator = futurePriceByTiltCalculator;
@@ -57,6 +61,7 @@ public class Reporter {
     this.tiltFromBaseStrategy = tiltFromBaseStrategy;
     this.buyAndHoldStrategy = buyAndHoldStrategy;
     this.trendService = trendService;
+    this.optParamDao = optParamDao;
   }
 
   private static void show(Strategy strategy, StrategyResult strategyResultTilt) {
@@ -75,6 +80,15 @@ public class Reporter {
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private static List<OptParam> getOptParamsAsList(String ticker, TimeFrame timeFrame,
+                                                   Map<String, Double> optParams) {
+    List<OptParam> optParamsList = new ArrayList<>();
+    for (Map.Entry<String, Double> entry : optParams.entrySet()) {
+      optParamsList.add(new OptParam(ticker, entry.getKey(), timeFrame, entry.getValue()));
+    }
+    return optParamsList;
   }
 
   public void createExcelReport(List<String> tickers, LocalDateTime startDate,
@@ -150,6 +164,17 @@ public class Reporter {
                             TimeFrame timeFrame) throws IOException {
 
     Map<String, Double> optParams = getOptParams(ticker, startDate, endDate, timeFrame);
+    optParamDao.saveAll(getOptParamsAsList(ticker, timeFrame, optParams));
+    StrategyResult strategyResult =
+        getStrategyResult(ticker, startDate, endDate, timeFrame, optParams);
+    futurePriceCalc(ticker, optParams);
+    strategyResult.setOptParams(optParams);
+    return strategyResult;
+  }
+
+  private StrategyResult getStrategyResult(String ticker, LocalDateTime startDate,
+                                           LocalDateTime endDate, TimeFrame timeFrame,
+                                           Map<String, Double> optParams) throws IOException {
     strategyMerger
         .setStopLossPercent(optParams.get(Optimizator.STOP_LOSS))
         .init(ticker, timeFrame, startDate, endDate)
@@ -160,9 +185,25 @@ public class Reporter {
         )
         .mergeSignals()
     ;
-    futurePriceCalc(ticker, optParams);
     StrategyResult strategyResult = evaluateStrategy(strategyMerger);
-    strategyResult.setOptParams(optParams);
+    return strategyResult;
+  }
+
+  Map<String, Double> getOptParamsAsMap(List<OptParam> optParamList) {
+    Map<String, Double> optParams = new HashMap<>();
+    for (OptParam optParam : optParamList) {
+      optParams.put(optParam.getParam(), optParam.getValue());
+    }
+    return optParams;
+  }
+
+
+  public StrategyResult readAndShow(String ticker, LocalDateTime startDate, LocalDateTime endDate,
+                                    TimeFrame timeFrame) throws IOException {
+    Map<String, Double> optParams = readOptParams(ticker, timeFrame);
+    StrategyResult strategyResult =
+        getStrategyResult(ticker, startDate, endDate, timeFrame, optParams);
+    show(strategyMerger, strategyResult);
     return strategyResult;
   }
 
@@ -171,6 +212,12 @@ public class Reporter {
     StrategyResult strategyResult = opt(ticker, startDate, endDate, timeFrame);
     show(strategyMerger, strategyResult);
     return strategyResult;
+  }
+
+  private Map<String, Double> readOptParams(String ticker, TimeFrame timeFrame) {
+    List<OptParam> optParamList = optParamDao.getAllForTickerAndTimeframe(ticker, timeFrame);
+    Map<String, Double> optParams = getOptParamsAsMap(optParamList);
+    return optParams;
   }
 
   private Map<String, Double> getOptParams(String ticker, LocalDateTime startDate,

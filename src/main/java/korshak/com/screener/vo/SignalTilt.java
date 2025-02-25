@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 public class SignalTilt extends Signal {
   private final double tilt;
   private final double trendTilt;
+
   public SignalTilt(LocalDateTime date, double price, SignalType action, double tilt,
                     double trendTilt) {
     super(date, price, action);

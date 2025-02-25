@@ -17,6 +17,7 @@ public class OptimizatorDoubleTilt extends Optimizator {
   int minTiltShortSell = -1;
   int maxTiltShortSell = 0;
   int numStepsTiltShortSell = 10;
+
   public OptimizatorDoubleTilt(StrategyMerger strategy, TradeService tradeService) {
     super(strategy, tradeService);
   }

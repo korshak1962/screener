@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 public class StopLossPercentStrategy extends BaseStrategy {
   BasePrice pricePrev;
   double stopLossPercent = .03;
+
   public StopLossPercentStrategy(PriceDao priceDao) {
     super(priceDao);
   }

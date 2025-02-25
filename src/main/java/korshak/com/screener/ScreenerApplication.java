@@ -131,25 +131,28 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.NOVEMBER, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     String ticker = "SPY";
     List<String> tickers = new ArrayList<>();
     tickers.add(ticker);
     tickers.add("TLT");
-  //  tickers.add("VALE");
+    //  tickers.add("VALE");
     //reporter.createExcelReport(tickers, startDate, endDate, TimeFrame.DAY);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+    LocalDateTime startDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
+    reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
     //reporter.createExcelReport(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), startDate, endDate, TimeFrame.DAY);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
     //downloadSeries("LI", "2025-", 2, 2, alfaVintageDownloader);
     //downloadSeries("MOMO", "2024-", 1, 12,alfaVintageDownloader);
-   // downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
+    // downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
 
-    //downloadSeries("IBIT", "2024-", 1, 2,yahooDownloader);
-    downloadSeries("MOMO", "2025-01-01", yahooDownloader);
-     //downloadSeries("LKOH", "2011-01-01", moexDownloader);
+    //downloadSeries("SPY", "2025-", 2, 2,yahooDownloader);
+    //downloadSeries("SPY", "2025-02-23", yahooDownloader);
+    //downloadSeries("LKOH", "2011-01-01", moexDownloader);
     // downloadSeries("LKOH", "2025-02-10");
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
     //calcSMA("YMM", 2, 50);
@@ -458,12 +461,14 @@ public class ScreenerApplication implements CommandLineRunner {
                               SharePriceDownLoaderService sharePriceDownLoaderService) {
     int lengthMin = 2;
     int lengthMax = 50;
-    int saved = sharePriceDownLoaderService.fetchAndSaveDataFromDate(ticker, LocalDate.parse(startDate));
+    int saved =
+        sharePriceDownLoaderService.fetchAndSaveDataFromDate(ticker, LocalDate.parse(startDate));
     System.out.println("saved = " + saved);
     if (saved > 0) {
       priceAggregationService.aggregateAllTimeFrames(sharePriceDownLoaderService.getDbTicker());
       for (int i = lengthMin; i <= lengthMax; i++) {
-        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(sharePriceDownLoaderService.getDbTicker(),
+        smaCalculationService.calculateIncrementalSMAForAllTimeFrames(
+            sharePriceDownLoaderService.getDbTicker(),
             i);
       }
     }

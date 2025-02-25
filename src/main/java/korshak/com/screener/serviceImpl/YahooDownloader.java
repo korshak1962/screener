@@ -2,6 +2,10 @@ package korshak.com.screener.serviceImpl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,21 +13,14 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.zip.GZIPInputStream;
-import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.PriceMin5;
-import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.SharePriceDownLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +73,8 @@ public class YahooDownloader implements SharePriceDownLoaderService {
   @jakarta.annotation.PostConstruct
   public void logTimeZoneInfo() {
     logger.info("YahooDownloader initialized with FORCED timezone correction");
-    logger.info("We're now explicitly constructing times from components and adding post-save verification");
+    logger.info(
+        "We're now explicitly constructing times from components and adding post-save verification");
     logger.info("Market hours filter: {} to {}", MARKET_OPEN, MARKET_CLOSE);
 
     // Create a sample time to demonstrate what we're getting vs storing
@@ -110,6 +108,7 @@ public class YahooDownloader implements SharePriceDownLoaderService {
       LocalDateTime endDate = startDate.plusDays(10);
 
       // Check for existing data
+      /*
       List<? extends BasePrice> existingData = priceDao.findByDateRange(
           ticker,
           startDate,
@@ -121,7 +120,9 @@ public class YahooDownloader implements SharePriceDownLoaderService {
         logger.info("Data for ticker {} and month {} already exists in DB", ticker, yearMonth);
         return 0;
       }
+       */
 
+      //dbTicker = "Yahoo_"+ticker;
       dbTicker = ticker;
       return downloadDataInChunks(ticker, YearMonth.of(year, month));
 
@@ -167,7 +168,8 @@ public class YahooDownloader implements SharePriceDownLoaderService {
       } catch (Exception e) {
         // Check if this is a "Data doesn't exist" error, which is expected for new securities
         if (e.getMessage() != null && e.getMessage().contains("Data doesn't exist")) {
-          logger.info("No data available for {} from {} to {} (security may not have been trading yet)",
+          logger.info(
+              "No data available for {} from {} to {} (security may not have been trading yet)",
               ticker, startDate, chunkEnd);
           // This is not a failure, just no data for this period - continue with next chunk
         } else {
@@ -184,7 +186,7 @@ public class YahooDownloader implements SharePriceDownLoaderService {
           }
 
           // Longer delay after failure
-          long delayMs = INITIAL_RETRY_DELAY_MS * (long)Math.pow(2, consecutiveFailures - 1);
+          long delayMs = INITIAL_RETRY_DELAY_MS * (long) Math.pow(2, consecutiveFailures - 1);
           randomDelay(delayMs, delayMs + 5000);
         }
       }
@@ -230,7 +232,9 @@ public class YahooDownloader implements SharePriceDownLoaderService {
         // Check if this is a "Data doesn't exist" error from Yahoo API
         if (e.getMessage() != null && e.getMessage().contains("Data doesn't exist")) {
           // This is an expected error for new securities - just return empty list
-          logger.info("No data exists for {} in this date range (security may not have been trading yet)", ticker);
+          logger.info(
+              "No data exists for {} in this date range (security may not have been trading yet)",
+              ticker);
           return new ArrayList<>();
         }
 
@@ -276,7 +280,8 @@ public class YahooDownloader implements SharePriceDownLoaderService {
             outputStream.write(buffer, 0, len);
           }
           String decompressed = outputStream.toString(StandardCharsets.UTF_8);
-          return new ResponseEntity<>(decompressed, response.getHeaders(), response.getStatusCode());
+          return new ResponseEntity<>(decompressed, response.getHeaders(),
+              response.getStatusCode());
         }
       }
       // Not gzipped, just convert to string
@@ -322,26 +327,22 @@ public class YahooDownloader implements SharePriceDownLoaderService {
       long timestamp_seconds = timestamp.get(i).asLong();
 
       // Get the UTC datetime for this timestamp
-      LocalDateTime etDateTime =  LocalDateTime.ofInstant(
+      LocalDateTime etDateTime = LocalDateTime.ofInstant(
           Instant.ofEpochSecond(timestamp_seconds),
           ZoneId.of("America/New_York") // EST (Eastern Time)
       );
 
-        LocalTime etTime = etDateTime.toLocalTime();
+      LocalTime etTime = etDateTime.toLocalTime();
 
-        // Log to understand what times we're getting and keeping
-        logger.debug("EST time: {}, ET time: {}", etDateTime, etTime);
+      // Log to understand what times we're getting and keeping
+      logger.debug("EST time: {}, ET time: {}", etDateTime, etTime);
 
-        // Use strict market hours filter as requested
-        if (!etTime.isAfter(MARKET_OPEN.minusMinutes(1)) || !etTime.isBefore(MARKET_CLOSE)) {
-          // Skip this record, it's outside market hours
-          logger.debug("Filtering out record at ET time: {}", etTime);
-          continue;
-        }
-
-
-
-
+      // Use strict market hours filter as requested
+      if (!etTime.isAfter(MARKET_OPEN.minusMinutes(1)) || !etTime.isBefore(MARKET_CLOSE)) {
+        // Skip this record, it's outside market hours
+        logger.debug("Filtering out record at ET time: {}", etTime);
+        continue;
+      }
 
 
       // IMPORTANT: Store using the explicitly created Eastern Time

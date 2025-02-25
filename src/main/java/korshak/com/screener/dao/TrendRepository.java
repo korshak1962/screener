@@ -26,9 +26,9 @@ public interface TrendRepository extends JpaRepository<Trend, TrendKey> {
   /**
    * Finds the latest trend for a ticker and timeframe before or at a specific date
    *
-   * @param ticker The ticker symbol
+   * @param ticker    The ticker symbol
    * @param timeframe The timeframe
-   * @param date The reference date
+   * @param date      The reference date
    * @return The latest trend before or at the reference date, or null if none exists
    */
   @Query(value = "SELECT * FROM trends t WHERE t.ticker = :ticker AND t.timeframe = :timeframe " +
