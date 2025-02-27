@@ -138,4 +138,9 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
   public String getDbTicker() {
     return dbTicker;
   }
+
+  @Override
+  public int downloadFromToTomorrow(String ticker, LocalDate startDate) {
+    return 0;
+  }
 }

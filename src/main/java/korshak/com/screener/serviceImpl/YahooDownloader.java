@@ -38,7 +38,7 @@ public class YahooDownloader implements SharePriceDownLoaderService {
 
   private static final Logger logger = LoggerFactory.getLogger(YahooDownloader.class);
   private static final String YAHOO_BASE_URL = "https://query2.finance.yahoo.com/v8/finance/chart/";
-  private static final int DAYS_PER_CHUNK = 5; // Reduced from 7 to be more conservative
+  private static final int DAYS_PER_CHUNK = 8;
   private static final int MAX_RETRIES = 5; // Increased from 3
   private static final long INITIAL_RETRY_DELAY_MS = 10000; // 10 seconds initial delay
   private static final int MAX_CONSECUTIVE_FAILURES = 5; // Increased from 3
@@ -135,6 +135,14 @@ public class YahooDownloader implements SharePriceDownLoaderService {
   private int downloadDataInChunks(String ticker, YearMonth yearMonth) {
     LocalDate startDate = yearMonth.atDay(1);
     LocalDate endDate = yearMonth.atEndOfMonth();
+    return downloadForExactDates(ticker, startDate, endDate);
+  }
+
+  public int downloadFromToTomorrow(String ticker, LocalDate startDate){
+   return downloadForExactDates( ticker,  startDate, LocalDate.now().plusDays(1));
+  }
+  private int downloadForExactDates(String ticker, LocalDate startDate, LocalDate endDate) {
+    dbTicker = ticker;
     int totalSaved = 0;
     int consecutiveFailures = 0;
 

@@ -139,6 +139,11 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
     return dbTicker;
   }
 
+  @Override
+  public int downloadFromToTomorrow(String ticker, LocalDate startDate) {
+    return 0;
+  }
+
   private List<PriceHour> extractPriceData(JsonNode root, String ticker) {
     dbTicker = ticker;
     List<PriceHour> priceDataList = new ArrayList<>();

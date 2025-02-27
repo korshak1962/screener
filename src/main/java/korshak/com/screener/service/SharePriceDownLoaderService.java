@@ -10,4 +10,6 @@ public interface SharePriceDownLoaderService {
   int fetchAndSaveDataFromDate(String ticker, LocalDate startDate);
 
   String getDbTicker();
+
+  public int downloadFromToTomorrow(String ticker, LocalDate startDate);
 }

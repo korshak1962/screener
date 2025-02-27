@@ -145,19 +145,20 @@ public class ScreenerApplication implements CommandLineRunner {
     LocalDateTime endDateEval = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
     //reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
     //reporter.createExcelReport(tickers, startDateEval, endDateEval, TimeFrame.DAY);
-    reporter.createExcelReport(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), startDateEval, endDateEval, TimeFrame.DAY);
+
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 2, 2, yahooDownloader);
+    downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), LocalDate.now().minusDays(7), yahooDownloader);
+    //reporter.createExcelReport(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), startDateEval, endDateEval, TimeFrame.DAY);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    //downloadSeries("LI", "2025-", 2, 2, alfaVintageDownloader);
-
-    //downloadSeries("AAPL", "2024-", 1, 12,alfaVintageDownloader);
+    //downloadSeries("NVIDIA", "2024-", 1, 12,alfaVintageDownloader);
     // downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
-   // downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 2, 2,yahooDownloader);
-    //downloadSeries("MOMO", "2025-01-01", yahooDownloader);
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 2, 2, yahooDownloader);
+    //downloadSeries("AAPL", "2025-01-01", yahooDownloader);
     //downloadSeries("LKOH", "2011-01-01", moexDownloader);
     // downloadSeries("LKOH", "2025-02-10");
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
-    //calcSMA("IBIT", 2, 50);
+    //calcSMA("T", 2, 50);
     //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
     //downloadSeries("T ", "2025-", 1, 2, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
@@ -475,6 +476,23 @@ public class ScreenerApplication implements CommandLineRunner {
       }
     }
     //System.exit(0);
+  }
+
+  private void downloadSeriesFromToTomorrow(final List<String> tickers, LocalDate startDate,
+                                            SharePriceDownLoaderService sharePriceDownLoaderService) {
+    int lengthMin = 2;
+    int lengthMax = 50;
+    int saved = 0;
+    for (String ticker : tickers) {
+      saved = sharePriceDownLoaderService.downloadFromToTomorrow(ticker, startDate);
+      if (saved > 0) {
+        priceAggregationService.aggregateAllTimeFrames(sharePriceDownLoaderService.getDbTicker());
+        for (int i = lengthMin; i <= lengthMax; i++) {
+          smaCalculationService.calculateIncrementalSMAForAllTimeFrames(
+              sharePriceDownLoaderService.getDbTicker(), i);
+        }
+      }
+    }
   }
 
   private void downloadSeries(final List<String> tickers, String year, int startMonth,
