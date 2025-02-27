@@ -47,6 +47,26 @@ public class TrendServiceImpl implements TrendService {
   }
 
   @Override
+  public Trend findLatestTrendChangeBefore(String ticker, TimeFrame timeFrame, Trend latestTrend) {
+
+    if (latestTrend == null) {
+      return null; // No trend found before the date
+    }
+
+    // Get the trend value of the latest trend
+    int latestTrendValue = latestTrend.getTrend();
+
+    // Query for the most recent trend with a different trend value
+    // This requires a custom query in the repository
+    return trendRepository.findLatestTrendChange(
+        ticker,
+        timeFrame.toString(),
+        latestTrend.getId().getDate(),
+        latestTrendValue
+    );
+  }
+
+  @Override
   @Transactional
   public List<Trend> calculateAndStorePriceTrend(String ticker, TimeFrame timeFrame) {
     List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);

@@ -38,6 +38,7 @@ import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
 import korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.TiltStrategy;
 import korshak.com.screener.utils.ExcelExportService;
+import korshak.com.screener.utils.Portfolios;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,31 +132,32 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.OCTOBER, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     String ticker = "SPY";
     List<String> tickers = new ArrayList<>();
     tickers.add(ticker);
-    tickers.add("TLT");
+    //tickers.add("TLT");
     //  tickers.add("VALE");
     //reporter.createExcelReport(tickers, startDate, endDate, TimeFrame.DAY);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
-    LocalDateTime startDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDateEval = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
-    reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
-    //reporter.createExcelReport(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), startDate, endDate, TimeFrame.DAY);
+    //reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
+    //reporter.createExcelReport(tickers, startDateEval, endDateEval, TimeFrame.DAY);
+    reporter.createExcelReport(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), startDateEval, endDateEval, TimeFrame.DAY);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
     //downloadSeries("LI", "2025-", 2, 2, alfaVintageDownloader);
-    //downloadSeries("MOMO", "2024-", 1, 12,alfaVintageDownloader);
-    // downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
 
-    //downloadSeries("SPY", "2025-", 2, 2,yahooDownloader);
-    //downloadSeries("SPY", "2025-02-23", yahooDownloader);
+    //downloadSeries("AAPL", "2024-", 1, 12,alfaVintageDownloader);
+    // downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
+   // downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 2, 2,yahooDownloader);
+    //downloadSeries("MOMO", "2025-01-01", yahooDownloader);
     //downloadSeries("LKOH", "2011-01-01", moexDownloader);
     // downloadSeries("LKOH", "2025-02-10");
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
-    //calcSMA("YMM", 2, 50);
+    //calcSMA("IBIT", 2, 50);
     //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
     //downloadSeries("T ", "2025-", 1, 2, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
@@ -475,6 +477,14 @@ public class ScreenerApplication implements CommandLineRunner {
     //System.exit(0);
   }
 
+  private void downloadSeries(final List<String> tickers, String year, int startMonth,
+                              int finalMonth,
+                              SharePriceDownLoaderService sharePriceDownLoaderService) {
+    for (String ticker : tickers) {
+      downloadSeries(ticker, year, startMonth, finalMonth, sharePriceDownLoaderService);
+    }
+  }
+
   private void downloadSeries(final String ticker, String year, int startMonth, int finalMonth,
                               SharePriceDownLoaderService sharePriceDownLoaderService) {
     // final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
@@ -502,7 +512,6 @@ public class ScreenerApplication implements CommandLineRunner {
             sharePriceDownLoaderService.getDbTicker(), i);
       }
     }
-    System.exit(0);
   }
 
   private void downloadSeriesUnsafe(final String ticker, String year, int startMonth,

@@ -36,6 +36,8 @@ public class Reporter {
   private static final String TICKER = "Ticker";
   private static final String CLOSE = "Close";
   private static final String FINVIZ_URL = "F_URL";
+  private static final String TREND = "_trend";
+  private static final String PREVIOUS = "_Previous";
   private final OptimizatorTilt optimizatorTilt;
   private final StrategyMerger strategyMerger;
   private final FuturePriceByTiltCalculator futurePriceByTiltCalculator;
@@ -104,7 +106,8 @@ public class Reporter {
     DecimalFormat df = new DecimalFormat("#.##");
     for (TimeFrame timeFrameTrend : TimeFrame.values()) {
       if (timeFrameTrend != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
-        colnameToValues.put(timeFrameTrend + "_trend", new ArrayList<>());
+        colnameToValues.put(timeFrameTrend + TREND, new ArrayList<>());
+        colnameToValues.put(timeFrameTrend + PREVIOUS, new ArrayList<>());
       }
     }
     colnameToValues.put(FINVIZ_URL, new ArrayList<>());
@@ -120,16 +123,27 @@ public class Reporter {
         if (timeFrameTrend != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
           Trend trend =
               trendService.findLatestTrendBeforeDate(entry.getKey(), timeFrameTrend, endDate);
+          Trend trendChange =
+              trendService.findLatestTrendChangeBefore(entry.getKey(), timeFrameTrend, trend);
           String trendString;
+          int closeTrend;
           if (trend != null) {
             trendString = trend.toString();
-            // Do something with trendString
+            closeTrend = (strategyResult.getPrices().getLast().getClose() >
+                strategyResult.getPrices().get(strategyResult.getPrices().size() - 2).getClose()) ?
+                1 : -1;
+            trendString += "," + closeTrend;
           } else {
-            // Handle the null case
             trendString = "No trend found";
           }
-
-          colnameToValues.get(timeFrameTrend + "_trend").add(trendString);
+          String trendChangeString;
+          if (trendChange != null) {
+            trendChangeString = trendChange.toString();
+          } else {
+            trendChangeString = "No change found";
+          }
+          colnameToValues.get(timeFrameTrend + TREND).add(trendString);
+          colnameToValues.get(timeFrameTrend + PREVIOUS).add(trendChangeString);
         }
       }
       colnameToValues.get(PRICE_TO_BUY).add(df.format(
@@ -222,10 +236,10 @@ public class Reporter {
 
   private Map<String, Double> getOptParams(String ticker, LocalDateTime startDate,
                                            LocalDateTime endDate, TimeFrame timeFrame) {
-    int minLength = 3;
+    int minLength = 4;
     int maxLength = 10;
     int stepLength = 1;
-    double minTiltBuy = -0.01;
+    double minTiltBuy = -0.02;
     double maxTiltBuy = 0.02;
     double tiltBuyStep = 0.01;
     double minTiltSell = -0.05;
@@ -233,7 +247,7 @@ public class Reporter {
     double tiltSellStep = 0.01;
     optimizatorTilt.configure(minLength, maxLength, stepLength, minTiltBuy, maxTiltBuy, tiltBuyStep,
         minTiltSell, maxTiltSell, tiltSellStep);
-    double minStopLossPercent = .95;
+    double minStopLossPercent = .92;
     double maxStopLossPercent = .99;
     double stepOfStopLoss = 0.005;
     Map<String, Double> optParams =

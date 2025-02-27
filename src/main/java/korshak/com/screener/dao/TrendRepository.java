@@ -38,4 +38,13 @@ public interface TrendRepository extends JpaRepository<Trend, TrendKey> {
       @Param("timeframe") String timeframe,
       @Param("date") LocalDateTime date
   );
+
+  @Query(value = "SELECT t.* FROM trends t WHERE t.ticker = :ticker AND t.timeframe = :timeframe " +
+      "AND t.date < :date AND t.trend != :trendValue " +
+      "ORDER BY t.date DESC LIMIT 1", nativeQuery = true)
+  Trend findLatestTrendChange(
+      @Param("ticker") String ticker,
+      @Param("timeframe") String timeframe,
+      @Param("date") LocalDateTime date,
+      @Param("trendValue") int trendValue);
 }

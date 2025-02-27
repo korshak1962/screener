@@ -68,7 +68,7 @@ public class Trend {
   public String toString() {
     DecimalFormat df = new DecimalFormat("#.##");
     return
-        id.getDate().getDayOfMonth() +
+        id.getDate().getMonth().toString() + "." + id.getDate().getDayOfMonth() +
             ", " + df.format(maxExtremum) +
             ", " + df.format(minExtremum) +
             ", " + trend;

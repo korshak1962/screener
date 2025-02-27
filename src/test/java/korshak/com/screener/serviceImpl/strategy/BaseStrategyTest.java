@@ -140,8 +140,8 @@ class BaseStrategyTest {
 
   // Test implementation of BaseStrategy
   private static class TestStrategy extends BaseStrategy {
-    public List<Signal> allSignals = new ArrayList<>();
     private final BasePrice lastProcessedPrice = null;
+    public List<Signal> allSignals = new ArrayList<>();
 
     public TestStrategy(PriceDao priceDao) {
       super(priceDao);
