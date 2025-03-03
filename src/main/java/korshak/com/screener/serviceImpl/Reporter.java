@@ -94,10 +94,9 @@ public class Reporter {
   }
 
   public void createExcelReport(List<String> tickers, LocalDateTime startDate,
-                                LocalDateTime endDate, TimeFrame timeFrame) {
+                                LocalDateTime endDate, TimeFrame timeFrame, String fileName) {
     Map<String, StrategyResult> res = reportForList(tickers, startDate,
         endDate, timeFrame);
-
     Map<String, List<String>> colnameToValues = new LinkedHashMap<>();
     colnameToValues.put(TICKER, new ArrayList<>());
     colnameToValues.put(CLOSE, new ArrayList<>());
@@ -146,6 +145,10 @@ public class Reporter {
           colnameToValues.get(timeFrameTrend + PREVIOUS).add(trendChangeString);
         }
       }
+      if (strategyResult.getOptParams() == null) {
+        System.out.println("==== Opt params not found for " + entry.getKey());
+        continue;
+      }
       colnameToValues.get(PRICE_TO_BUY).add(df.format(
           strategyResult.getOptParams().get(PRICE_TO_BUY)));
       colnameToValues.get(PRICE_TO_SELL).add(df.format(
@@ -153,7 +156,7 @@ public class Reporter {
       colnameToValues.get(FINVIZ_URL).add(buildFinvizUrl(entry.getKey()));
     }
     try {
-      ExcelExportService.reportForMap("tiltStratRes.xlsx", "results",
+      ExcelExportService.reportForMap(fileName + ".xlsx", "results",
           colnameToValues, urlColumns);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -166,7 +169,8 @@ public class Reporter {
     for (String ticker : tickers) {
       try {
         trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
-        tickerToResult.put(ticker, opt(ticker, startDate, endDate, timeFrame));
+        tickerToResult.put(ticker,
+            readParamsGetStrategyResult(ticker, startDate, endDate, timeFrame));
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -189,6 +193,10 @@ public class Reporter {
   private StrategyResult getStrategyResult(String ticker, LocalDateTime startDate,
                                            LocalDateTime endDate, TimeFrame timeFrame,
                                            Map<String, Double> optParams) throws IOException {
+    if (optParams == null || optParams.get(Optimizator.STOP_LOSS) == null) {
+      System.out.println("====Opt params NOT FOUND for " + ticker);
+      System.out.println(-1);
+    }
     strategyMerger
         .setStopLossPercent(optParams.get(Optimizator.STOP_LOSS))
         .init(ticker, timeFrame, startDate, endDate)
@@ -214,10 +222,25 @@ public class Reporter {
 
   public StrategyResult readAndShow(String ticker, LocalDateTime startDate, LocalDateTime endDate,
                                     TimeFrame timeFrame) throws IOException {
+    StrategyResult strategyResult =
+        readParamsGetStrategyResult(ticker, startDate, endDate, timeFrame);
+    show(strategyMerger, strategyResult);
+    return strategyResult;
+  }
+
+  private StrategyResult readParamsGetStrategyResult(String ticker, LocalDateTime startDate,
+                                                     LocalDateTime endDate, TimeFrame timeFrame)
+      throws IOException {
     Map<String, Double> optParams = readOptParams(ticker, timeFrame);
+    if (optParams == null) {
+      System.out.println("====Opt params NOT FOUND for " + ticker);
+      System.exit(-1);
+      return null;
+    }
     StrategyResult strategyResult =
         getStrategyResult(ticker, startDate, endDate, timeFrame, optParams);
-    show(strategyMerger, strategyResult);
+    strategyResult.setOptParams(optParams);
+    futurePriceCalc(ticker, optParams);
     return strategyResult;
   }
 

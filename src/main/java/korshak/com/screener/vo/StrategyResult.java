@@ -1,5 +1,6 @@
 package korshak.com.screener.vo;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -43,19 +44,19 @@ public class StrategyResult {
     this.worstLongTrade = worstLongTrade;
   }
 
+  DecimalFormat df = new DecimalFormat("#.##");
   @Override
   public String toString() {
-    return "StrategyResult{" +
-        "  longPnL=" + longPnL +
-        ", shortPnL=" + shortPnL +
-        ", totalPnL=" + totalPnL +
+    return prices.getFirst().getId().getTicker() +
+        "  longPnL=" + df.format(longPnL) +
+        ", shortPnL=" + df.format(shortPnL) +
+        ", totalPnL=" + df.format(totalPnL) +
 
         ", minLongPnl=" + minLongPnl +
         ", worstLongTrade=" + worstLongTrade +
         ", minShortPnl=" + minShortPnl +
-        ", AnnualPercentageReturnLong =" + getAnnualPercentageReturnLong() +
-        ", maxPossibleLossIfBuyAndHold=" + maxPossibleLoss +
-        '}';
+        ", AnnualPercentageReturnLong =" + df.format(getAnnualPercentageReturnLong()) +
+        ", maxPossibleLossIfBuyAndHold=" + df.format(maxPossibleLoss);
   }
 
   public double getAnnualPercentageReturnLong() {

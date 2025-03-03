@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,34 +131,34 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.OCTOBER, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
-    String ticker = "SPY";
-    List<String> tickers = new ArrayList<>();
-    tickers.add(ticker);
-    //tickers.add("TLT");
-    //  tickers.add("VALE");
-    //reporter.createExcelReport(tickers, startDate, endDate, TimeFrame.DAY);
-    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
-    LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    String ticker = "SNGS_MOEX";
+   // reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+
+    LocalDateTime startDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDateEval = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
     //reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
+    reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+        "_MOEX"),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.MOEX);
     //reporter.createExcelReport(tickers, startDateEval, endDateEval, TimeFrame.DAY);
 
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 2, 2, yahooDownloader);
-    downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), LocalDate.now().minusDays(7), yahooDownloader);
-    //reporter.createExcelReport(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), startDateEval, endDateEval, TimeFrame.DAY);
-    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), "2025-", 1, 2, yahooDownloader);
+    //downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), LocalDate.now().minusDays(7), yahooDownloader);
+     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
     //downloadSeries("NVIDIA", "2024-", 1, 12,alfaVintageDownloader);
-    // downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
+    //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 2, 2, yahooDownloader);
-    //downloadSeries("AAPL", "2025-01-01", yahooDownloader);
-    //downloadSeries("LKOH", "2011-01-01", moexDownloader);
-    // downloadSeries("LKOH", "2025-02-10");
+    //downloadSeries("QQQ", "2025-01-01", yahooDownloader);
+//    downloadSeries("SNGS", "2018-01-01", moexDownloader);
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX), "2025-", 2, 2, moexDownloader);
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX), "2025-", 2, 2, moexDownloader);
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
-    //calcSMA("T", 2, 50);
-    //downloadSeries("NVTK", "2025-", 1, 12, moexDownloader);
+
+    //calcSMA("Т_MOEX",2,50);
+    //calcSMA(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), 2, 50);
     //downloadSeries("T ", "2025-", 1, 2, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);
     //downloadSeriesUnsafe("TLT", "2025-", 1, 2);
@@ -418,6 +417,12 @@ public class ScreenerApplication implements CommandLineRunner {
     System.exit(0);
   }
 
+  private void calcSMA(List<String> tickers, int startLength, int endLength){
+    for (String ticker : tickers){
+      calcSMA(ticker,startLength,endLength);
+    }
+  }
+
   private void calcSMA(String ticker, int startLength, int endLength) {
     int step = 1;
     long start = System.currentTimeMillis();
@@ -458,6 +463,13 @@ public class ScreenerApplication implements CommandLineRunner {
     }
     System.out.println("total in minutes= " + (System.currentTimeMillis() - start) / 60000);
     System.exit(0);
+  }
+
+  private void downloadSeries(final List<String> tickers, final String startDate,
+                              SharePriceDownLoaderService sharePriceDownLoaderService){
+    for (String ticker : tickers) {
+      downloadSeries(ticker, startDate, sharePriceDownLoaderService);
+    }
   }
 
   private void downloadSeries(final String ticker, final String startDate,

@@ -85,7 +85,7 @@ public class TiltFromBaseStrategy extends BaseStrategy {
     );
     if (smaList.isEmpty() || prices.size() - smaList.size() > length) {
       throw new RuntimeException(
-          "No SMAs found for ticker = " + ticker + " length = " + length
+          "No SMAs found for ticker = " + ticker + " length = " + length+" timeframe = "+timeFrame
               + " startDate = " + startDate + " endDate = " + endDate);
     }
     smaMap = smaList.stream()

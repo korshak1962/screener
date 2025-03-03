@@ -160,4 +160,8 @@ public class Utils {
         longOpen);
   }
 
+  public static List<String> addSuffix(List<String> tickers, String suffix) {
+    return tickers.stream().map(ticker -> ticker + suffix).toList();
+  }
+
 }

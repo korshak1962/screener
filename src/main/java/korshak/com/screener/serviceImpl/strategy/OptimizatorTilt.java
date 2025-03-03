@@ -79,6 +79,9 @@ public class OptimizatorTilt extends Optimizator {
           //System.out.println("====currentTiltSell =" + currentTiltSell);
           merger.mergeSignals();
           strategyResultLong = tradeService.calculateProfitAndDrawdownLong(merger);
+          if (strategyResultLong == null) {
+            return;
+          }
           double longPnL = strategyResultLong.getLongPnL();
           //System.out.println("maxPnl= " + maxPnl + " longPnL= " + longPnL + " tiltLength=" +
           //    tiltLength);

@@ -305,7 +305,8 @@ public class SmaCalculationServiceImpl implements SmaCalculationService {
   public void calculateSMA(String ticker, int length, TimeFrame timeFrame) {
     List<? extends BasePrice> prices = priceDao.findAllByTicker(ticker, timeFrame);
     if (prices.isEmpty()) {
-      throw new RuntimeException("prices for timeframe." + timeFrame + " not found");
+      throw new RuntimeException(
+          "prices for timeframe = " + timeFrame + " for ticker = " + ticker + " not found");
     }
     calculateAndSaveSMA(prices, ticker, length, timeFrame);
   }

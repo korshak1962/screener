@@ -79,6 +79,12 @@ public class TradeServiceImpl implements TradeService {
 
   @Override
   public StrategyResult calculateProfitAndDrawdownLong(Strategy strategy) {
+    if (strategy.getSignalsLong() == null || strategy.getSignalsLong().isEmpty()) {
+      System.out.println("No signals found for ticker = " + strategy.getTicker()
+          + " timeframe = " + strategy.getTimeFrame() + " startDate = " + strategy.getStartDate() +
+          " endDate = " + strategy.getEndDate());
+      return null;
+    }
     tradesLong = new ArrayList<>();
     double longPnL = 0;
     TreeMap<LocalDateTime, Double> currentPnL = new TreeMap<>();
