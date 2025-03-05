@@ -19,6 +19,7 @@ import korshak.com.screener.service.TradeService;
 import korshak.com.screener.service.TrendService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
+import korshak.com.screener.serviceImpl.strategy.BaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.Optimizator;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
@@ -178,10 +179,13 @@ public class Reporter {
     return tickerToResult;
   }
 
+
   public StrategyResult opt(String ticker, LocalDateTime startDate, LocalDateTime endDate,
                             TimeFrame timeFrame) throws IOException {
 
     Map<String, Double> optParams = getOptParams(ticker, startDate, endDate, timeFrame);
+    optParams.put(startDate.toString(),-1D);
+    optParams.put(endDate.toString(),1D);
     optParamDao.saveAll(getOptParamsAsList(ticker, timeFrame, optParams));
     StrategyResult strategyResult =
         getStrategyResult(ticker, startDate, endDate, timeFrame, optParams);
@@ -190,7 +194,27 @@ public class Reporter {
     return strategyResult;
   }
 
-  private StrategyResult getStrategyResult(String ticker, LocalDateTime startDate,
+  public StrategyResult getStrategyResult(BaseStrategy baseStrategy, String ticker, LocalDateTime startDate,
+                                          LocalDateTime endDate, TimeFrame timeFrame,
+                                          Map<String, Double> optParams) throws IOException {
+    if (optParams == null || optParams.get(Optimizator.STOP_LOSS) == null) {
+      System.out.println("====Opt params NOT FOUND for " + ticker);
+      System.out.println(-1);
+    }
+    strategyMerger
+        .setStopLossPercent(optParams.get(Optimizator.STOP_LOSS))
+        .init(ticker, timeFrame, startDate, endDate)
+        //  .addStrategy(
+        //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
+        .addStrategy(
+            baseStrategy
+        )
+        .mergeSignals()
+    ;
+    return evaluateStrategy(strategyMerger);
+  }
+
+  public StrategyResult getStrategyResult(String ticker, LocalDateTime startDate,
                                            LocalDateTime endDate, TimeFrame timeFrame,
                                            Map<String, Double> optParams) throws IOException {
     if (optParams == null || optParams.get(Optimizator.STOP_LOSS) == null) {
@@ -207,8 +231,7 @@ public class Reporter {
         )
         .mergeSignals()
     ;
-    StrategyResult strategyResult = evaluateStrategy(strategyMerger);
-    return strategyResult;
+    return evaluateStrategy(strategyMerger);
   }
 
   Map<String, Double> getOptParamsAsMap(List<OptParam> optParamList) {
@@ -224,6 +247,15 @@ public class Reporter {
                                     TimeFrame timeFrame) throws IOException {
     StrategyResult strategyResult =
         readParamsGetStrategyResult(ticker, startDate, endDate, timeFrame);
+    show(strategyMerger, strategyResult);
+    return strategyResult;
+  }
+
+  public StrategyResult evaluateAndShow(BaseStrategy baseStrategy,Map<String, Double> optParams,String ticker, LocalDateTime startDate, LocalDateTime endDate,
+                                    TimeFrame timeFrame) throws IOException {
+    baseStrategy.init(ticker, timeFrame, startDate, endDate);
+    StrategyResult strategyResult =
+        getStrategyResult(baseStrategy,ticker, startDate, endDate, timeFrame,optParams);
     show(strategyMerger, strategyResult);
     return strategyResult;
   }

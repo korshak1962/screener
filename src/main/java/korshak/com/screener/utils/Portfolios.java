@@ -19,10 +19,11 @@ public class Portfolios {
         "FXI", "MOMO", "MCHI", "LYFT", "YY","AAPL");
     NAME_TO_TICKERS.put(Portfolios.US, US);
 
-    List<String> US_WATCH = List.of("GLD", "IBIT","GOOG");//,"NVIDIA","TSLA","AMZN");
+    List<String> US_WATCH = List.of("GLD", "IBIT","GOOG","TMDX");//,"NVIDIA","TSLA","AMZN");
     NAME_TO_TICKERS.put(Portfolios.US_WATCH, US_WATCH);
 
-    List<String> MOEX = List.of("TMOS","LKOH","NVTK","SBER","SIBN","MGNT","MRKP","T","FLOT","SNGS","TRNFP");
+    List<String> MOEX = List.of("TMOS","LKOH","NVTK","SBER","SIBN","MGNT","MRKP","T",
+        "FLOT","SNGS","TRNFP");
     NAME_TO_TICKERS.put(Portfolios.MOEX, MOEX);
   }
 }

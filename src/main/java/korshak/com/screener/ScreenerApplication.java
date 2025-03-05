@@ -131,33 +131,42 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
-    String ticker = "SNGS_MOEX";
-   // reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+    //TMOS LKOH SBER MGNT  TINKOFF
+    String ticker = "MCHI";
+    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
     LocalDateTime startDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.MARCH, 1, 0, 0);
-    //reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
-    reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
-        "_MOEX"),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.MOEX);
+    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
+    Map<String, Double> optParams = new HashMap<>();
+    //optParams.put(Optimizator.STOP_LOSS,.98);
+//    reporter.evaluateAndShow(buyCloseHigherPrevClose,optParams,ticker, startDateEval, endDateEval, TimeFrame.WEEK);
+
+    reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
+   // reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+     //   "_MOEX"),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.MOEX);
+    //reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
+      //""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
     //reporter.createExcelReport(tickers, startDateEval, endDateEval, TimeFrame.DAY);
 
 
     //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), "2025-", 1, 2, yahooDownloader);
-    //downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), LocalDate.now().minusDays(7), yahooDownloader);
+    //downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
+      //  LocalDate.now().minusDays(1), yahooDownloader);
      //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    //downloadSeries("NVIDIA", "2024-", 1, 12,alfaVintageDownloader);
+    //downloadSeries("XME", "2024-", 1, 12,alfaVintageDownloader);
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 2, 2, yahooDownloader);
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 3, 3, yahooDownloader);
     //downloadSeries("QQQ", "2025-01-01", yahooDownloader);
 //    downloadSeries("SNGS", "2018-01-01", moexDownloader);
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX), "2025-", 2, 2, moexDownloader);
+   // downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+     //   "2025-", 3, 3, moexDownloader);
     //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX), "2025-", 2, 2, moexDownloader);
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
 
-    //calcSMA("Т_MOEX",2,50);
+    //calcSMA(ticker,2,50);
     //calcSMA(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), 2, 50);
     //downloadSeries("T ", "2025-", 1, 2, alfaVintageDownloader);
     //downloadSeries("TQQQ", "2024-", 1, 12);

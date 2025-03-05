@@ -216,17 +216,35 @@ public class TrendServiceImpl implements TrendService {
         trend = determineTrend(lastConfirmedMax, prevMax, lastConfirmedMin, prevMin);
       }
       // Create trend record if we found an extremum
+      Trend newTrend = null;
       if (extremumFound) {
-        Trend newTrend = new Trend(
+        newTrend = new Trend(
             new TrendKey(ticker, current.getId().getDate(), timeFrame),
             lastConfirmedMax,  // Always store the last confirmed maximum
             lastConfirmedMin,  // Always store the last confirmed minimum
             trend
         );
+      }
+      if (trend == -1 && current.getClose() > lastConfirmedMax) {
+        newTrend = new Trend(
+            new TrendKey(ticker, current.getId().getDate(), timeFrame),
+            current.getClose(),  // Always store the last confirmed maximum
+            lastConfirmedMin,  // Always store the last confirmed minimum
+            0
+        );
+      }
+      if (trend == 1 && current.getClose() < lastConfirmedMin) {
+        newTrend = new Trend(
+            new TrendKey(ticker, current.getId().getDate(), timeFrame),
+            lastConfirmedMax,  // Always store the last confirmed maximum
+            current.getClose(),  // Always store the last confirmed minimum
+            0
+        );
+      }
+      if (newTrend != null) {
         trends.add(newTrend);
       }
     }
-
     return trends;
   }
 

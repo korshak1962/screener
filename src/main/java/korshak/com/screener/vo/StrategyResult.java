@@ -22,6 +22,11 @@ public class StrategyResult {
   private final List<? extends Signal> signals;
   private final Map<String, NavigableMap<LocalDateTime, Double>> indicators;
   private Map<String, Double> optParams;
+  private int profitLongTradesQnty;
+  private int lostLongTradesQnty;
+  private double sumOfProfitTrades;
+  private double sumOfLostTrades;
+  private double profitToLostRatio;
 
   public StrategyResult(List<? extends BasePrice> prices, double longPnL, double shortPnL,
                         double totalPnL, Map<LocalDateTime, Double> minLongPnl,
@@ -42,21 +47,27 @@ public class StrategyResult {
     this.signals = signals;
     this.indicators = indicators;
     this.worstLongTrade = worstLongTrade;
+    calcProfitAndLostRationLong();
   }
 
   DecimalFormat df = new DecimalFormat("#.##");
+
   @Override
   public String toString() {
     return prices.getFirst().getId().getTicker() +
-        "  longPnL=" + df.format(longPnL) +
-        ", shortPnL=" + df.format(shortPnL) +
-        ", totalPnL=" + df.format(totalPnL) +
-
-        ", minLongPnl=" + minLongPnl +
-        ", worstLongTrade=" + worstLongTrade +
-        ", minShortPnl=" + minShortPnl +
-        ", AnnualPercentageReturnLong =" + df.format(getAnnualPercentageReturnLong()) +
-        ", maxPossibleLossIfBuyAndHold=" + df.format(maxPossibleLoss);
+        " \n longPnL=" + df.format(longPnL) +
+        // ", shortPnL=" + df.format(shortPnL) +
+        //  ", totalPnL=" + df.format(totalPnL) +
+        ", profitToLostRatio=" + df.format(profitToLostRatio) +
+        ", profitLongTradesQnty=" + profitLongTradesQnty +
+        ", lostLongTradesQnty=" + lostLongTradesQnty +
+        //   ", totalPnL=" + df.format(totalPnL) +
+        //  ", minLongPnl=" + minLongPnl +
+        // ", worstLongTrade=" + worstLongTrade +
+        //   ", minShortPnl=" + minShortPnl +
+        ", AnnualPercentageReturnLong =" + df.format(getAnnualPercentageReturnLong())
+        // ", maxPossibleLossIfBuyAndHold=" + df.format(maxPossibleLoss)
+        ;
   }
 
   public double getAnnualPercentageReturnLong() {
@@ -120,5 +131,20 @@ public class StrategyResult {
 
   public void setOptParams(Map<String, Double> optParams) {
     this.optParams = optParams;
+  }
+
+  private void calcProfitAndLostRationLong() {
+    for (Trade trade : tradesLong) {
+      if (trade.getPnl() > 0) {
+        profitLongTradesQnty++;
+        sumOfProfitTrades += trade.getPnl();
+      } else {
+        lostLongTradesQnty++;
+        sumOfLostTrades += trade.getPnl();
+      }
+    }
+    if (sumOfLostTrades > 0) {
+      profitToLostRatio = -(sumOfProfitTrades / sumOfLostTrades);
+    }
   }
 }

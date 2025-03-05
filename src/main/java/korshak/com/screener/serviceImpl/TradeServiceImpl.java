@@ -92,12 +92,11 @@ public class TradeServiceImpl implements TradeService {
     //========================= temporary
     Signal last = strategy.getSignalsLong().getLast();
     if (last.getSignalType() == SignalType.LongOpen) {
-      System.out.println("Last signal is LongOpen at price = " + last.getPrice());
+      System.out.println("===== Last signal is LongOpen at price = " + last.getPrice());
     }
     //====================
     Iterator<? extends Signal> iteratorSignal = strategy.getSignalsLong().iterator();
     Signal prevSignal = iteratorSignal.next();
-    double prevPnl;
     Map<LocalDateTime, Double> worstLongTrade = new HashMap<>();
     worstLongTrade.put(strategy.getSignalsLong().getFirst().getDate(), Double.MIN_VALUE);
     while (iteratorSignal.hasNext()) {
