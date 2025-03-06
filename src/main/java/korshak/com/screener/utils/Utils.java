@@ -164,4 +164,13 @@ public class Utils {
     return tickers.stream().map(ticker -> ticker + suffix).toList();
   }
 
+  public static LocalDateTime getDateBeforeTimeFrames(LocalDateTime startDate, TimeFrame timeFrame, int numberOfTimeFrames) {
+    return switch (timeFrame) {
+      case MIN5 -> startDate.minusMinutes(5 * numberOfTimeFrames);
+      case HOUR -> startDate.minusHours(numberOfTimeFrames);
+      case DAY -> startDate.minusDays(numberOfTimeFrames);
+      case WEEK -> startDate.minusWeeks(numberOfTimeFrames);
+      case MONTH -> startDate.minusMonths(numberOfTimeFrames);
+    };
+  }
 }

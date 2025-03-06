@@ -140,11 +140,11 @@ public class StrategyResult {
         sumOfProfitTrades += trade.getPnl();
       } else {
         lostLongTradesQnty++;
-        sumOfLostTrades += trade.getPnl();
+        sumOfLostTrades -= trade.getPnl();
       }
     }
     if (sumOfLostTrades > 0) {
-      profitToLostRatio = -(sumOfProfitTrades / sumOfLostTrades);
+      profitToLostRatio = sumOfProfitTrades / sumOfLostTrades;
     }
   }
 }

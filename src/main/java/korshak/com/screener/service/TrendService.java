@@ -31,4 +31,10 @@ public interface TrendService {
   @Transactional
   List<Trend> calculateAndStorePriceTrend(String ticker, TimeFrame timeFrame,
                                           LocalDateTime startDate, LocalDateTime endDate);
+
+  @Transactional
+  List<Trend> findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc( String ticker,
+                                                                TimeFrame timeframe,
+                                                                LocalDateTime startDate,
+                                                                LocalDateTime endDate);
 }

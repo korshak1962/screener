@@ -172,6 +172,17 @@ public class TrendServiceImpl implements TrendService {
     }
   }
 
+  @Override
+  public List<Trend> findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc(String ticker,
+                                                                                  TimeFrame timeframe,
+                                                                                  LocalDateTime startDate,
+                                                                                  LocalDateTime endDate) {
+    return trendRepository.findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc(ticker,
+        timeframe,
+        startDate,
+        endDate);
+  }
+
   private List<Trend> findExtremumsAndCalculateTrends(List<? extends BasePrice> prices,
                                                       String ticker, TimeFrame timeFrame) {
     List<Trend> trends = new ArrayList<>();

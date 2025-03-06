@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,16 +135,18 @@ public class ScreenerApplication implements CommandLineRunner {
     LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
-    String ticker = "MCHI";
+    String ticker = "SPY";
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    LocalDateTime startDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDateEval = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
     Map<String, Double> optParams = new HashMap<>();
     //optParams.put(Optimizator.STOP_LOSS,.98);
 //    reporter.evaluateAndShow(buyCloseHigherPrevClose,optParams,ticker, startDateEval, endDateEval, TimeFrame.WEEK);
+    List<String> strategyNames = List.of("TrendChangeStrategy");
+    reporter.readAndShow(strategyNames,ticker, startDateEval, endDateEval, TimeFrame.HOUR);
 
-    reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
+   // reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
    // reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
      //   "_MOEX"),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.MOEX);
     //reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
