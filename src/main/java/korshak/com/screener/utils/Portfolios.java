@@ -8,6 +8,7 @@ public class Portfolios {
 
   public static final String US = "US";
   public static final String US_WATCH = "US_WATCH";
+  public static final String US_SECTOR_ETF = "US_SECTOR_ETF";
   public static final String MOEX ="MOEX";
 
 
@@ -21,6 +22,10 @@ public class Portfolios {
 
     List<String> US_WATCH = List.of("GLD", "IBIT","GOOG","TMDX");//,"NVIDIA","TSLA","AMZN");
     NAME_TO_TICKERS.put(Portfolios.US_WATCH, US_WATCH);
+
+    List<String> US_SECTOR_ETF = List.of("XLB", "XLU","XLI","XLC","XLK","XLE","XLP","XLF","XLV",
+        "XME","XLY","XLRE","SOXL");
+    NAME_TO_TICKERS.put(Portfolios.US_SECTOR_ETF, US_SECTOR_ETF);
 
     List<String> MOEX = List.of("TMOS","LKOH","NVTK","SBER","SIBN","MGNT","MRKP","T",
         "FLOT","SNGS","TRNFP");

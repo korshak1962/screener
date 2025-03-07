@@ -40,6 +40,7 @@ public class Reporter {
   private static final String FINVIZ_URL = "F_URL";
   private static final String TREND = "_trend";
   private static final String PREVIOUS = "_Previous";
+  private final StrategyProvider strategyProvider;
   private final OptimizatorTilt optimizatorTilt;
   private final StrategyMerger strategyMerger;
   private final FuturePriceByTiltCalculator futurePriceByTiltCalculator;
@@ -51,7 +52,7 @@ public class Reporter {
   private final TrendChangeStrategy trendChangeStrategy;
   public Map<String, StrategyResult> tickerToResult = new HashMap<>();
 
-  public Reporter(@Qualifier("OptimizatorTilt") OptimizatorTilt optimizatorTilt,
+  public Reporter(StrategyProvider strategyProvider, @Qualifier("OptimizatorTilt") OptimizatorTilt optimizatorTilt,
                   @Qualifier("StrategyMerger") StrategyMerger strategyMerger,
                   FuturePriceByTiltCalculator futurePriceByTiltCalculator,
                   TradeService tradeService,
@@ -60,6 +61,7 @@ public class Reporter {
                   TrendService trendService,
                   OptParamDao optParamDao,
                   @Qualifier("TrendChangeStrategy") TrendChangeStrategy trendChangeStrategy) {
+    this.strategyProvider = strategyProvider;
     this.optimizatorTilt = optimizatorTilt;
     this.strategyMerger = strategyMerger;
     this.futurePriceByTiltCalculator = futurePriceByTiltCalculator;
@@ -255,18 +257,17 @@ public class Reporter {
     return optParams;
   }
 
-  Map<String, Strategy> nameToStrategy = new HashMap<>();
-
-  public StrategyResult readAndShow(List<String> strNames, String ticker, LocalDateTime startDate,
+  public StrategyResult readAndShow(List<String> strategyNames, String ticker, LocalDateTime startDate,
                                     LocalDateTime endDate,
-                                    TimeFrame timeFrame) throws IOException {
-    nameToStrategy.put("TrendChangeStrategy", trendChangeStrategy);
+                                    TimeFrame timeFrame) {
+    strategyProvider.init(ticker,startDate,endDate,timeFrame);
     Map<String, Double> optParams = new HashMap<>();
     optParams.put(Optimizator.STOP_LOSS, .97);
-    Strategy strategy =
-        trendChangeStrategy.init(ticker, timeFrame, startDate, endDate);
     List<Strategy> strategies = new ArrayList<>();
-    strategies.add(strategy);
+    for (String strategyName : strategyNames) {
+      Strategy strategy = strategyProvider.getStrategy(strategyName);
+      strategies.add(strategy);
+    }
     StrategyResult strategyResult =
         getStrategyResult(ticker, startDate, endDate, timeFrame, optParams, strategies);
     show(strategyMerger, strategyResult);

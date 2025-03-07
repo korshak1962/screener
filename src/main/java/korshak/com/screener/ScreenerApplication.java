@@ -159,14 +159,14 @@ public class ScreenerApplication implements CommandLineRunner {
       //  LocalDate.now().minusDays(1), yahooDownloader);
      //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    //downloadSeries("XME", "2024-", 1, 12,alfaVintageDownloader);
+    //downloadSeries("SOXL", "2024-", 1, 12,alfaVintageDownloader);
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 3, 3, yahooDownloader);
     //downloadSeries("QQQ", "2025-01-01", yahooDownloader);
 //    downloadSeries("SNGS", "2018-01-01", moexDownloader);
    // downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
      //   "2025-", 3, 3, moexDownloader);
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX), "2025-", 2, 2, moexDownloader);
+
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
 
     //calcSMA(ticker,2,50);
