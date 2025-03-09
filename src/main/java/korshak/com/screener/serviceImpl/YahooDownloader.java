@@ -138,9 +138,10 @@ public class YahooDownloader implements SharePriceDownLoaderService {
     return downloadForExactDates(ticker, startDate, endDate);
   }
 
-  public int downloadFromToTomorrow(String ticker, LocalDate startDate){
-   return downloadForExactDates( ticker,  startDate, LocalDate.now().plusDays(1));
+  public int downloadFromToTomorrow(String ticker, LocalDate startDate) {
+    return downloadForExactDates(ticker, startDate, LocalDate.now().plusDays(1));
   }
+
   private int downloadForExactDates(String ticker, LocalDate startDate, LocalDate endDate) {
     dbTicker = ticker;
     int totalSaved = 0;

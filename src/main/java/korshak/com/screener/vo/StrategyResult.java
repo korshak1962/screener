@@ -21,6 +21,7 @@ public class StrategyResult {
   private final List<Trade> tradesShort;
   private final List<? extends Signal> signals;
   private final Map<String, NavigableMap<LocalDateTime, Double>> indicators;
+  DecimalFormat df = new DecimalFormat("#.##");
   private Map<String, Double> optParams;
   private int profitLongTradesQnty;
   private int lostLongTradesQnty;
@@ -49,8 +50,6 @@ public class StrategyResult {
     this.worstLongTrade = worstLongTrade;
     calcProfitAndLostRationLong();
   }
-
-  DecimalFormat df = new DecimalFormat("#.##");
 
   @Override
   public String toString() {

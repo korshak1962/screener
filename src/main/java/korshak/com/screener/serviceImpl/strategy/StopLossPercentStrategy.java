@@ -1,6 +1,7 @@
 package korshak.com.screener.serviceImpl.strategy;
 
 import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
@@ -12,8 +13,8 @@ public class StopLossPercentStrategy extends BaseStrategy {
   BasePrice pricePrev;
   double stopLossPercent = .03;
 
-  public StopLossPercentStrategy(PriceDao priceDao) {
-    super(priceDao);
+  public StopLossPercentStrategy(PriceDao priceDao, OptParamDao optParamDao) {
+    super(priceDao, optParamDao);
   }
 
   @Override
@@ -24,7 +25,7 @@ public class StopLossPercentStrategy extends BaseStrategy {
     }
     if ((price.getLow() - pricePrev.getLow()) < -stopLossPercent * pricePrev.getLow()) {
       pricePrev = price;
-      return Utils.createSignal(price, SignalType.LongClose);
+      return Utils.createSignal(price, SignalType.LongClose, "stop loss");
     }
     return null;
   }

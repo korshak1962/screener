@@ -1,9 +1,12 @@
 package korshak.com.screener.serviceImpl;
 
+import static korshak.com.screener.utils.Utils.getOptParamsAsMap;
+
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -52,7 +55,8 @@ public class Reporter {
   private final TrendChangeStrategy trendChangeStrategy;
   public Map<String, StrategyResult> tickerToResult = new HashMap<>();
 
-  public Reporter(StrategyProvider strategyProvider, @Qualifier("OptimizatorTilt") OptimizatorTilt optimizatorTilt,
+  public Reporter(StrategyProvider strategyProvider,
+                  @Qualifier("OptimizatorTilt") OptimizatorTilt optimizatorTilt,
                   @Qualifier("StrategyMerger") StrategyMerger strategyMerger,
                   FuturePriceByTiltCalculator futurePriceByTiltCalculator,
                   TradeService tradeService,
@@ -189,10 +193,7 @@ public class Reporter {
   public StrategyResult opt(String ticker, LocalDateTime startDate, LocalDateTime endDate,
                             TimeFrame timeFrame) throws IOException {
 
-    Map<String, Double> optParams = getOptParams(ticker, startDate, endDate, timeFrame);
-    optParams.put(startDate.toString(), -1D);
-    optParams.put(endDate.toString(), 1D);
-    optParamDao.saveAll(getOptParamsAsList(ticker, timeFrame, optParams));
+    Map<String, Double> optParams = findSaveOptParams(ticker, startDate, endDate, timeFrame);
     StrategyResult strategyResult =
         getStrategyResult(ticker, startDate, endDate, timeFrame, optParams);
     futurePriceCalc(ticker, optParams);
@@ -228,19 +229,21 @@ public class Reporter {
       System.out.println("====Opt params NOT FOUND for " + ticker);
       System.out.println(-1);
     }
+
     BaseStrategy baseStrategy =
         initStrategy(tiltFromBaseStrategy, timeFrame, ticker, startDate, endDate, optParams);
     List<Strategy> strategies = new ArrayList<>();
     strategies.add(baseStrategy);
-    return getStrategyResult(ticker, startDate, endDate, timeFrame, optParams, strategies);
+    return getStrategyResult(ticker, startDate, endDate, timeFrame,
+        optParams.get(Optimizator.STOP_LOSS), strategies);
   }
 
   private StrategyResult getStrategyResult(String ticker, LocalDateTime startDate,
                                            LocalDateTime endDate, TimeFrame timeFrame,
-                                           Map<String, Double> optParams,
+                                           double stopLossMaxPercent,
                                            List<Strategy> strategies) {
     strategyMerger
-        .setStopLossPercent(optParams.get(Optimizator.STOP_LOSS))
+        .setStopLossPercent(stopLossMaxPercent)
         .init(ticker, timeFrame, startDate, endDate);
     for (Strategy strategy : strategies) {
       strategyMerger.addStrategy(strategy);
@@ -249,27 +252,20 @@ public class Reporter {
     return evaluateStrategy(strategyMerger);
   }
 
-  Map<String, Double> getOptParamsAsMap(List<OptParam> optParamList) {
-    Map<String, Double> optParams = new HashMap<>();
-    for (OptParam optParam : optParamList) {
-      optParams.put(optParam.getParam(), optParam.getValue());
-    }
-    return optParams;
-  }
-
-  public StrategyResult readAndShow(List<String> strategyNames, String ticker, LocalDateTime startDate,
-                                    LocalDateTime endDate,
-                                    TimeFrame timeFrame) {
-    strategyProvider.init(ticker,startDate,endDate,timeFrame);
-    Map<String, Double> optParams = new HashMap<>();
-    optParams.put(Optimizator.STOP_LOSS, .97);
+  public StrategyResult readAndShow(Map<TimeFrame, List<String>> timeFrameToStrategyNames,
+                                    String ticker, LocalDateTime startDate,
+                                    LocalDateTime endDate) {
     List<Strategy> strategies = new ArrayList<>();
-    for (String strategyName : strategyNames) {
-      Strategy strategy = strategyProvider.getStrategy(strategyName);
-      strategies.add(strategy);
+    for (Map.Entry<TimeFrame, List<String>> entry : timeFrameToStrategyNames.entrySet()) {
+      strategyProvider.init(ticker, startDate, endDate, entry.getKey());
+      for (String strategyName : entry.getValue()) {
+        Strategy strategy = strategyProvider.getStrategy(strategyName);
+        strategies.add(strategy);
+      }
     }
+    TimeFrame signalTimeFrame = Collections.min(timeFrameToStrategyNames.keySet());
     StrategyResult strategyResult =
-        getStrategyResult(ticker, startDate, endDate, timeFrame, optParams, strategies);
+        getStrategyResult(ticker, startDate, endDate, signalTimeFrame, .97, strategies);
     show(strategyMerger, strategyResult);
     return strategyResult;
   }
@@ -322,8 +318,8 @@ public class Reporter {
     return optParams;
   }
 
-  private Map<String, Double> getOptParams(String ticker, LocalDateTime startDate,
-                                           LocalDateTime endDate, TimeFrame timeFrame) {
+  private Map<String, Double> findSaveOptParams(String ticker, LocalDateTime startDate,
+                                                LocalDateTime endDate, TimeFrame timeFrame) {
     int minLength = 4;
     int maxLength = 10;
     int stepLength = 1;
@@ -342,6 +338,9 @@ public class Reporter {
         optimazeStrategy(optimizatorTilt, ticker, timeFrame, startDate, endDate,
             minStopLossPercent,
             maxStopLossPercent, stepOfStopLoss);
+    optParams.put(startDate.toString(), -1D);
+    optParams.put(endDate.toString(), 1D);
+    optParamDao.saveAll(getOptParamsAsList(ticker, timeFrame, optParams));
     return optParams;
   }
 
@@ -380,6 +379,8 @@ public class Reporter {
   }
 
   private StrategyResult evaluateStrategy(Strategy strategy) {
+    buyAndHoldStrategy.init(strategy.getTicker(), strategy.getTimeFrame(),
+        strategy.getStartDate(), strategy.getEndDate());
     StrategyResult buyAndHoldstrategyResult =
         tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, strategy.getTicker(),
             strategy.getStartDate(),

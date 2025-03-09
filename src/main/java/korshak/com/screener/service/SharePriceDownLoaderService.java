@@ -11,5 +11,5 @@ public interface SharePriceDownLoaderService {
 
   String getDbTicker();
 
-  public int downloadFromToTomorrow(String ticker, LocalDate startDate);
+  int downloadFromToTomorrow(String ticker, LocalDate startDate);
 }

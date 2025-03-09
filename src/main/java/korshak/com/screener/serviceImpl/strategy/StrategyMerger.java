@@ -137,7 +137,7 @@ public class StrategyMerger implements Strategy {
   }
 
   public StrategyMerger addStrategy(Strategy strategy) {
-    nameToStrategy.put(strategy.getStrategyName(), strategy);
+    nameToStrategy.put(strategy.getStrategyName() + strategy.getTimeFrame(), strategy);
     return this;
   }
 
@@ -178,7 +178,7 @@ public class StrategyMerger implements Strategy {
     if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen &&
         price.getLow() < stopLossMaxPercent * lastSignal.getPrice()) {
       signalStopLoss = Utils.createSignal(price, SignalType.LongClose,
-          stopLossMaxPercent * lastSignal.getPrice());
+          stopLossMaxPercent * lastSignal.getPrice(), "stop loss");
     }
     List<Signal> signalsForPrice = dateToSignals.get(price.getId().getDate());
     if (signalStopLoss != null) {

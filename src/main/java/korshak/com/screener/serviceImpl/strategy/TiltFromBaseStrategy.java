@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
+import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.TimeFrame;
@@ -24,8 +25,8 @@ public class TiltFromBaseStrategy extends BaseStrategy {
   int length;
   List<? extends BaseSma> smaList;
 
-  public TiltFromBaseStrategy(SmaDao smaDao, PriceDao priceDao) {
-    super(priceDao);
+  public TiltFromBaseStrategy(SmaDao smaDao, PriceDao priceDao, OptParamDao optParamDao) {
+    super(priceDao, optParamDao);
     this.smaDao = smaDao;
   }
 
@@ -37,11 +38,11 @@ public class TiltFromBaseStrategy extends BaseStrategy {
       return signalToAdd;
     }
     if (currentSma.getTilt() > tiltBuy) {
-      signalToAdd = Utils.createSignal(price, SignalType.LongOpen);
-      signalToAdd.setComment("TiltBuy = " + currentSma.getTilt());
+      signalToAdd =
+          Utils.createSignal(price, SignalType.LongOpen, "TiltBuy = " + currentSma.getTilt());
     } else if (currentSma.getTilt() < tiltSell) {
-      signalToAdd = Utils.createSignal(price, SignalType.LongClose);
-      signalToAdd.setComment("tiltSell = " + currentSma.getTilt());
+      signalToAdd =
+          Utils.createSignal(price, SignalType.LongClose, "tiltSell = " + currentSma.getTilt());
     }
     return signalToAdd;
   }
@@ -87,7 +88,8 @@ public class TiltFromBaseStrategy extends BaseStrategy {
     );
     if (smaList.isEmpty() || prices.size() - smaList.size() > length) {
       throw new RuntimeException(
-          "No SMAs found for ticker = " + ticker + " length = " + length+" timeframe = "+timeFrame
+          "No SMAs found for ticker = " + ticker + " length = " + length + " timeframe = " +
+              timeFrame
               + " startDate = " + startDate + " endDate = " + endDate);
     }
     smaMap = smaList.stream()
@@ -103,5 +105,9 @@ public class TiltFromBaseStrategy extends BaseStrategy {
       return getAllSignals();
     }
     throw new IllegalArgumentException("Wrong time frame for signal");
+  }
+
+  public void setOptParams() {
+    super.setOptParams();
   }
 }

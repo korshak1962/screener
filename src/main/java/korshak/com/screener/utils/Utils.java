@@ -1,11 +1,14 @@
 package korshak.com.screener.utils;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
+import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.dao.SmaDay;
 import korshak.com.screener.dao.SmaHour;
 import korshak.com.screener.dao.SmaMonth;
@@ -139,38 +142,42 @@ public class Utils {
     return lastSignal;
   }
 
-  public static Signal createSignal(Signal signal, SignalType longOpen) {
+  public static Signal createSignal(Signal signal, SignalType signalType) {
     return new Signal(
         signal.getDate(),
         signal.getPrice(),
-        longOpen);
+        signalType, signal.getComment());
   }
 
-  public static Signal createSignal(BasePrice price, SignalType longOpen) {
-    return new Signal(
-        price.getId().getDate(),
-        price.getClose(),
-        longOpen);
+  public static Signal createSignal(BasePrice price, SignalType signalType, String comment) {
+    return new Signal(price.getId().getDate(), price.getClose(), signalType, comment);
   }
 
-  public static Signal createSignal(BasePrice price, SignalType longOpen, double precizePrice) {
-    return new Signal(
-        price.getId().getDate(),
-        precizePrice,
-        longOpen);
+  public static Signal createSignal(BasePrice price, SignalType signalType, double precizePrice,
+                                    String comment) {
+    return new Signal(price.getId().getDate(), precizePrice, signalType, comment);
   }
 
   public static List<String> addSuffix(List<String> tickers, String suffix) {
     return tickers.stream().map(ticker -> ticker + suffix).toList();
   }
 
-  public static LocalDateTime getDateBeforeTimeFrames(LocalDateTime startDate, TimeFrame timeFrame, int numberOfTimeFrames) {
+  public static LocalDateTime getDateBeforeTimeFrames(LocalDateTime startDate, TimeFrame timeFrame,
+                                                      int numberOfTimeFrames) {
     return switch (timeFrame) {
-      case MIN5 -> startDate.minusMinutes(5 * numberOfTimeFrames);
+      case MIN5 -> startDate.minusMinutes(5L * numberOfTimeFrames);
       case HOUR -> startDate.minusHours(numberOfTimeFrames);
       case DAY -> startDate.minusDays(numberOfTimeFrames);
       case WEEK -> startDate.minusWeeks(numberOfTimeFrames);
       case MONTH -> startDate.minusMonths(numberOfTimeFrames);
     };
+  }
+
+  public static Map<String, Double> getOptParamsAsMap(List<OptParam> optParamList) {
+    Map<String, Double> optParams = new HashMap<>();
+    for (OptParam optParam : optParamList) {
+      optParams.put(optParam.getParam(), optParam.getValue());
+    }
+    return optParams;
   }
 }

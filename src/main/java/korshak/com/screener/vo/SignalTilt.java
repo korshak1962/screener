@@ -6,9 +6,9 @@ public class SignalTilt extends Signal {
   private final double tilt;
   private final double trendTilt;
 
-  public SignalTilt(LocalDateTime date, double price, SignalType action, double tilt,
-                    double trendTilt) {
-    super(date, price, action);
+  public SignalTilt(LocalDateTime date, double price, SignalType signalType, double tilt,
+                    double trendTilt, String comment) {
+    super(date, price, signalType, comment);
     this.tilt = tilt;
     this.trendTilt = trendTilt;
   }

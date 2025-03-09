@@ -51,9 +51,9 @@ public class BuyAndHoldStrategy implements Strategy {
     );
     signals.clear();
     signals.add(new Signal(prices.getFirst().getId().getDate(), prices.getFirst().getClose(),
-        SignalType.LongOpen));
+        SignalType.LongOpen, "buy in buyAndHold"));
     signals.add(new Signal(prices.getLast().getId().getDate(), prices.getLast().getClose(),
-        SignalType.LongClose));
+        SignalType.LongClose, "sell in buyAndHold"));
     return this;
   }
 

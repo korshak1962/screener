@@ -7,13 +7,14 @@ public class Signal {
   final LocalDateTime date;
   final double price;
   final SignalType signalType;  // -1 sell ;1 buy
-  String comment;
+  final String comment;
 
 
-  public Signal(LocalDateTime date, double price, SignalType action) {
+  public Signal(LocalDateTime date, double price, SignalType action, String comment) {
     this.date = date;
     this.price = price;
     this.signalType = action;
+    this.comment = comment;
   }
 
   public LocalDateTime getDate() {
@@ -32,7 +33,4 @@ public class Signal {
     return comment;
   }
 
-  public void setComment(String comment) {
-    this.comment = comment;
-  }
 }

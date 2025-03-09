@@ -37,14 +37,14 @@ public class BuyAndHoldStrategyMinusDownTrend extends DoubleTiltStrategy {
           signalsShort.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
-              SignalType.ShortClose, shortTilt, longTilt));
+              SignalType.ShortClose, shortTilt, longTilt, "B&H minusDownTrend"));
         }
         // then open long
         if (signalsLong.isEmpty() || signalsLong.getLast().getSignalType() != SignalType.LongOpen) {
           signalsLong.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
-              SignalType.LongOpen, shortTilt, longTilt));
+              SignalType.LongOpen, shortTilt, longTilt, "B&H minusDownTrend"));
         }
       }
 
@@ -55,7 +55,7 @@ public class BuyAndHoldStrategyMinusDownTrend extends DoubleTiltStrategy {
           signalsShort.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
-              SignalType.ShortClose, shortTilt, longTilt));
+              SignalType.ShortClose, shortTilt, longTilt, "B&H minusDownTrend"));
         }
       }
 
@@ -66,7 +66,7 @@ public class BuyAndHoldStrategyMinusDownTrend extends DoubleTiltStrategy {
           signalsLong.add(new SignalTilt(
               prices.get(i).getId().getDate(),
               prices.get(i).getClose(),
-              SignalType.LongClose, shortTilt, longTilt));
+              SignalType.LongClose, shortTilt, longTilt, "B&H minusDownTrend"));
         }
 
         if (shortTilt < tiltShortOpen && longTilt < tiltHigherTrendShort) {
@@ -76,7 +76,7 @@ public class BuyAndHoldStrategyMinusDownTrend extends DoubleTiltStrategy {
             signalsShort.add(new SignalTilt(
                 prices.get(i).getId().getDate(),
                 prices.get(i).getClose(),
-                SignalType.ShortOpen, shortTilt, longTilt));
+                SignalType.ShortOpen, shortTilt, longTilt, "B&H minusDownTrend"));
           }
         }
       }

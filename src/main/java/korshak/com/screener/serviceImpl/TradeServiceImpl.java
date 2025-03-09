@@ -73,7 +73,7 @@ public class TradeServiceImpl implements TradeService {
                                                        LocalDateTime startDate,
                                                        LocalDateTime endDate,
                                                        TimeFrame timeFrame) {
-    strategy.init(ticker, timeFrame, startDate, endDate);
+    //strategy.init(ticker, timeFrame, startDate, endDate);
     return calculateProfitAndDrawdownLong(strategy);
   }
 
@@ -92,7 +92,8 @@ public class TradeServiceImpl implements TradeService {
     //========================= temporary
     Signal last = strategy.getSignalsLong().getLast();
     if (last.getSignalType() == SignalType.LongOpen) {
-      System.out.println("===== Last signal is LongOpen at price = " + last.getPrice());
+      System.out.println("===== Last signal is LongOpen at price = " + last.getPrice()
+          + " at " + last.getDate() + " cause " + last.getComment());
     }
     //====================
     Iterator<? extends Signal> iteratorSignal = strategy.getSignalsLong().iterator();

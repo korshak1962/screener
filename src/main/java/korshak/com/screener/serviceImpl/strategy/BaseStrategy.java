@@ -1,5 +1,7 @@
 package korshak.com.screener.serviceImpl.strategy;
 
+import static korshak.com.screener.utils.Utils.getOptParamsAsMap;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
@@ -14,17 +18,20 @@ import korshak.com.screener.vo.Signal;
 
 public abstract class BaseStrategy implements Strategy {
   final PriceDao priceDao;
+  private final OptParamDao optParamDao;
   TimeFrame timeFrame;
   LocalDateTime startDate;
   LocalDateTime endDate;
   String ticker;
+  List<OptParam> optParams;
   List<? extends BasePrice> prices;
   List<Signal> signalsLong = new ArrayList<>();
   List<Signal> signalsShort = new ArrayList<>();
   List<Signal> allSignals = new ArrayList<>();
 
-  public BaseStrategy(PriceDao priceDao) {
+  public BaseStrategy(PriceDao priceDao, OptParamDao optParamDao) {
     this.priceDao = priceDao;
+    this.optParamDao = optParamDao;
   }
 
   static BasePrice getPriceOfSignalDate(Iterator<? extends BasePrice> priceIterator,
@@ -122,6 +129,10 @@ public abstract class BaseStrategy implements Strategy {
     return allSignals;
   }
 
+  public void setOptParams() {
+    optParams = optParamDao.getAllForTickerAndTimeframe(ticker, timeFrame);
+  }
+
   @Override
   public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
     return Map.of();
@@ -188,5 +199,10 @@ public abstract class BaseStrategy implements Strategy {
         signalTimeFrame
     );
     return (List<BasePrice>) specialPrices;
+  }
+
+  private Map<String, Double> readOptParams(String ticker, TimeFrame timeFrame) {
+    List<OptParam> optParamList = optParamDao.getAllForTickerAndTimeframe(ticker, timeFrame);
+    return getOptParamsAsMap(optParamList);
   }
 }

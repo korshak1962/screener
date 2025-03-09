@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.Trend;
@@ -24,8 +25,9 @@ public class StopLossLessThanPrevMinExtremumStrategy extends BaseStrategy {
   int iTrends = 0;
 
   public StopLossLessThanPrevMinExtremumStrategy(PriceDao priceDao,
-                                                 TrendRepository trendRepository) {
-    super(priceDao);
+                                                 TrendRepository trendRepository,
+                                                 OptParamDao optParamDao) {
+    super(priceDao, optParamDao);
     this.trendRepository = trendRepository;
   }
 
@@ -52,12 +54,10 @@ public class StopLossLessThanPrevMinExtremumStrategy extends BaseStrategy {
     }
     Double prevLow = Collections.min(recentExtremes);
     if (price.getLow() < prevLow) {
-      Signal signal = Utils.createSignal(price, SignalType.LongClose, prevLow);
-      signal.setComment("close cause less than prevLow = " + prevLow);
-      //  iterateOverTrend();
+      Signal signal = Utils.createSignal(price, SignalType.LongClose, prevLow,
+          "close cause less than prevLow = " + prevLow);
       return signal;
     }
-    //iterateOverTrend();
     return null;
   }
 

@@ -66,14 +66,14 @@ public class TiltStrategy implements Strategy {
         signals.add(new Signal(
             currentDate,
             price.getClose(),
-            SignalType.LongOpen
+            SignalType.LongOpen, "currentTilt = " + currentTilt + " > tiltBuy =" + tiltBuy
         ));
         inPosition = true;
       } else if (inPosition && currentTilt < tiltSell && previousTilt >= tiltSell) {
         signals.add(new Signal(
             currentDate,
             price.getClose(),
-            SignalType.LongClose
+            SignalType.LongClose, "currentTilt = " + currentTilt + " < tiltSell =" + tiltSell
         ));
         inPosition = false;
       }

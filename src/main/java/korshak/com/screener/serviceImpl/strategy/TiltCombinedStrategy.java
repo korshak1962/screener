@@ -76,9 +76,9 @@ public class TiltCombinedStrategy implements Strategy {
       return signalToAdd;
     }
     if (currentSma.getTilt() > tiltBuy) {
-      signalToAdd = Utils.createSignal(price, SignalType.LongOpen);
+      signalToAdd = Utils.createSignal(price, SignalType.LongOpen, "tilt >" + tiltBuy);
     } else if (currentSma.getTilt() < tiltSell) {
-      signalToAdd = Utils.createSignal(price, SignalType.LongClose);
+      signalToAdd = Utils.createSignal(price, SignalType.LongClose, "tilt < " + tiltSell);
     }
     return signalToAdd;
   }

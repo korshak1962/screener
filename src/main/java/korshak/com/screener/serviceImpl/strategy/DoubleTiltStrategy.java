@@ -116,7 +116,7 @@ public class DoubleTiltStrategy implements Strategy {
           price.getClose(),
           SignalType.ShortOpen,
           shortTilt,
-          longTilt
+          longTilt, "double tilt"
       ));
     }
   }
@@ -130,7 +130,7 @@ public class DoubleTiltStrategy implements Strategy {
           price.getClose(),
           SignalType.LongClose,
           shortTilt,
-          longTilt
+          longTilt, "double tilt"
       ));
     }
   }
@@ -144,7 +144,7 @@ public class DoubleTiltStrategy implements Strategy {
           price.getClose(),
           SignalType.ShortClose,
           shortTilt,
-          longTilt
+          longTilt, "double tilt"
       ));
     }
   }
@@ -161,7 +161,7 @@ public class DoubleTiltStrategy implements Strategy {
           price.getClose(),
           SignalType.LongOpen,
           shortTilt,
-          longTilt
+          longTilt, "double tilt"
       ));
     }
   }

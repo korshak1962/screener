@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class StrategyProvider {
+  private final ApplicationContext applicationContext;
   String ticker;
   LocalDateTime startDate;
   LocalDateTime endDate;
   TimeFrame timeFrame;
-  private final ApplicationContext applicationContext;
 
   @Autowired
   public StrategyProvider(ApplicationContext applicationContext) {
@@ -53,7 +53,7 @@ public class StrategyProvider {
 
   // Overload to accept Class directly
   public Strategy getStrategy(Class<Strategy> strategyClass) {
-    Strategy strategy = (Strategy) applicationContext.getBean(strategyClass);
+    Strategy strategy = applicationContext.getBean(strategyClass);
     strategy.init(ticker, timeFrame, startDate, endDate);
     return strategy;
   }

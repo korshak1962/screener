@@ -33,8 +33,8 @@ public interface TrendService {
                                           LocalDateTime startDate, LocalDateTime endDate);
 
   @Transactional
-  List<Trend> findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc( String ticker,
-                                                                TimeFrame timeframe,
-                                                                LocalDateTime startDate,
-                                                                LocalDateTime endDate);
+  List<Trend> findByIdTickerAndIdTimeframeAndIdDateBetweenOrderByIdDateAsc(String ticker,
+                                                                           TimeFrame timeframe,
+                                                                           LocalDateTime startDate,
+                                                                           LocalDateTime endDate);
 }

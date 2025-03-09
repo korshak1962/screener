@@ -1,6 +1,7 @@
 package korshak.com.screener.serviceImpl.strategy;
 
 import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
@@ -11,8 +12,8 @@ import org.springframework.stereotype.Service;
 public class BuyCloseHigherPrevClose extends BaseStrategy {
   BasePrice pricePrev;
 
-  public BuyCloseHigherPrevClose(PriceDao priceDao) {
-    super(priceDao);
+  public BuyCloseHigherPrevClose(PriceDao priceDao, OptParamDao optParamDao) {
+    super(priceDao, optParamDao);
   }
 
   @Override
@@ -30,10 +31,12 @@ public class BuyCloseHigherPrevClose extends BaseStrategy {
   public Signal getSignal(BasePrice priceOfBackupTimeframe, BasePrice price) {
     Signal signal = null;
     if (price.getClose() > priceOfBackupTimeframe.getClose()) {
-      signal = Utils.createSignal(price, SignalType.LongOpen);
+      signal = Utils.createSignal(price, SignalType.LongOpen,
+          "close > " + priceOfBackupTimeframe.getClose());
     }
     if (price.getClose() < priceOfBackupTimeframe.getClose()) {
-      signal = Utils.createSignal(price, SignalType.LongClose);
+      signal = Utils.createSignal(price, SignalType.LongClose,
+          "close<" + priceOfBackupTimeframe.getClose());
     }
     return signal;
   }
