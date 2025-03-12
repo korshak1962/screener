@@ -176,7 +176,7 @@ public class Utils {
   public static Map<String, Double> getOptParamsAsMap(List<OptParam> optParamList) {
     Map<String, Double> optParams = new HashMap<>();
     for (OptParam optParam : optParamList) {
-      optParams.put(optParam.getParam(), optParam.getValue());
+      optParams.put(optParam.getId().getParam(), optParam.getValue());
     }
     return optParams;
   }

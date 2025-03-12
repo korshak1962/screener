@@ -95,11 +95,11 @@ public class Reporter {
     }
   }
 
-  private static List<OptParam> getOptParamsAsList(String ticker, TimeFrame timeFrame,
+  private static List<OptParam> getOptParamsAsList(String ticker, TimeFrame timeFrame,String strategy,
                                                    Map<String, Double> optParams) {
     List<OptParam> optParamsList = new ArrayList<>();
     for (Map.Entry<String, Double> entry : optParams.entrySet()) {
-      optParamsList.add(new OptParam(ticker, entry.getKey(), timeFrame, entry.getValue()));
+      optParamsList.add(new OptParam(ticker, entry.getKey(),strategy, timeFrame, entry.getValue(),""));
     }
     return optParamsList;
   }
@@ -195,7 +195,7 @@ public class Reporter {
 
     Map<String, Double> optParams = findSaveOptParams(ticker, startDate, endDate, timeFrame);
     StrategyResult strategyResult =
-        getStrategyResult(ticker, startDate, endDate, timeFrame, optParams);
+        getStrategyResult(ticker, startDate, endDate, timeFrame);
     futurePriceCalc(ticker, optParams);
     strategyResult.setOptParams(optParams);
     return strategyResult;
@@ -203,14 +203,9 @@ public class Reporter {
 
   public StrategyResult getStrategyResult(BaseStrategy baseStrategy, String ticker,
                                           LocalDateTime startDate,
-                                          LocalDateTime endDate, TimeFrame timeFrame,
-                                          Map<String, Double> optParams) throws IOException {
-    if (optParams == null || optParams.get(Optimizator.STOP_LOSS) == null) {
-      System.out.println("====Opt params NOT FOUND for " + ticker);
-      System.out.println(-1);
-    }
+                                          LocalDateTime endDate, TimeFrame timeFrame) throws IOException {
     strategyMerger
-        .setStopLossPercent(optParams.get(Optimizator.STOP_LOSS))
+        .setStopLossPercent(.97)
         .init(ticker, timeFrame, startDate, endDate)
         //  .addStrategy(
         //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
@@ -223,19 +218,14 @@ public class Reporter {
   }
 
   public StrategyResult getStrategyResult(String ticker, LocalDateTime startDate,
-                                          LocalDateTime endDate, TimeFrame timeFrame,
-                                          Map<String, Double> optParams) throws IOException {
-    if (optParams == null || optParams.get(Optimizator.STOP_LOSS) == null) {
-      System.out.println("====Opt params NOT FOUND for " + ticker);
-      System.out.println(-1);
-    }
+                                          LocalDateTime endDate, TimeFrame timeFrame) throws IOException {
 
     BaseStrategy baseStrategy =
-        initStrategy(tiltFromBaseStrategy, timeFrame, ticker, startDate, endDate, optParams);
+        initStrategy(tiltFromBaseStrategy, timeFrame, ticker, startDate, endDate);
     List<Strategy> strategies = new ArrayList<>();
     strategies.add(baseStrategy);
     return getStrategyResult(ticker, startDate, endDate, timeFrame,
-        optParams.get(Optimizator.STOP_LOSS), strategies);
+        .97, strategies);
   }
 
   private StrategyResult getStrategyResult(String ticker, LocalDateTime startDate,
@@ -245,11 +235,15 @@ public class Reporter {
     strategyMerger
         .setStopLossPercent(stopLossMaxPercent)
         .init(ticker, timeFrame, startDate, endDate);
+    Map<String, Double> optParams = new HashMap<>();
     for (Strategy strategy : strategies) {
       strategyMerger.addStrategy(strategy);
+      optParams.putAll(((BaseStrategy)strategy).getOptParams());
     }
     strategyMerger.mergeSignals();
-    return evaluateStrategy(strategyMerger);
+    StrategyResult strategyResult = evaluateStrategy(strategyMerger);
+    strategyResult.setOptParams(optParams);
+    return strategyResult;
   }
 
   public StrategyResult readAndShow(Map<TimeFrame, List<String>> timeFrameToStrategyNames,
@@ -284,7 +278,7 @@ public class Reporter {
                                         TimeFrame timeFrame) throws IOException {
     baseStrategy.init(ticker, timeFrame, startDate, endDate);
     StrategyResult strategyResult =
-        getStrategyResult(baseStrategy, ticker, startDate, endDate, timeFrame, optParams);
+        getStrategyResult(baseStrategy, ticker, startDate, endDate, timeFrame);
     show(strategyMerger, strategyResult);
     return strategyResult;
   }
@@ -292,16 +286,9 @@ public class Reporter {
   private StrategyResult readParamsGetStrategyResult(String ticker, LocalDateTime startDate,
                                                      LocalDateTime endDate, TimeFrame timeFrame)
       throws IOException {
-    Map<String, Double> optParams = readOptParams(ticker, timeFrame);
-    if (optParams == null) {
-      System.out.println("====Opt params NOT FOUND for " + ticker);
-      System.exit(-1);
-      return null;
-    }
     StrategyResult strategyResult =
-        getStrategyResult(ticker, startDate, endDate, timeFrame, optParams);
-    strategyResult.setOptParams(optParams);
-    futurePriceCalc(ticker, optParams);
+        getStrategyResult(ticker, startDate, endDate, timeFrame);
+    futurePriceCalc(ticker, strategyResult.getOptParams());
     return strategyResult;
   }
 
@@ -313,8 +300,7 @@ public class Reporter {
   }
 
   private Map<String, Double> readOptParams(String ticker, TimeFrame timeFrame) {
-    List<OptParam> optParamList = optParamDao.getAllForTickerAndTimeframe(ticker, timeFrame);
-    Map<String, Double> optParams = getOptParamsAsMap(optParamList);
+    Map<String, Double> optParams = optParamDao.findValuesByTickerAndTimeframe(ticker, timeFrame);
     return optParams;
   }
 
@@ -340,7 +326,8 @@ public class Reporter {
             maxStopLossPercent, stepOfStopLoss);
     optParams.put(startDate.toString(), -1D);
     optParams.put(endDate.toString(), 1D);
-    optParamDao.saveAll(getOptParamsAsList(ticker, timeFrame, optParams));
+    List<OptParam> optParamList = getOptParamsAsList(ticker, timeFrame, "TiltFromBaseStrategy", optParams);
+    optParamDao.saveAll(optParamList);
     return optParams;
   }
 
@@ -353,6 +340,7 @@ public class Reporter {
     Map<String, Double> params =
         optimizator.findOptimumParametersWithStopLoss(minPercent, maxPercent, step);
     System.out.println(" " + ticker + " " + params.remove(Optimizator.MAX_PNL) + " " + params);
+    buyAndHoldStrategy.init(ticker,timeFrame,startDate,endDate);
     StrategyResult buyAndHoldstrategyResult =
         tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, ticker,
             startDate,
@@ -416,17 +404,16 @@ public class Reporter {
   private TiltFromBaseStrategy initStrategy(TiltFromBaseStrategy tiltStrategy, TimeFrame timeFrame,
                                             String ticker,
                                             LocalDateTime startDate,
-                                            LocalDateTime endDate,
-                                            Map<String, Double> params
+                                            LocalDateTime endDate
   ) {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
     //{Length=44.0, TiltBuy=0.01, TiltSell=-0.05}
     //tiltStrategy.setLength(9);
-    tiltStrategy.setLength(params.get(OptimizatorTilt.LENGTH).intValue());
+    //tiltStrategy.setLength(params.get(OptimizatorTilt.LENGTH).intValue());
     //tiltStrategy.setTiltBuy(0.02);
-    tiltStrategy.setTiltBuy(params.get(OptimizatorTilt.TILT_BUY));
+    //tiltStrategy.setTiltBuy(params.get(OptimizatorTilt.TILT_BUY));
     //tiltStrategy.setTiltSell(-0.02);
-    tiltStrategy.setTiltSell(params.get(OptimizatorTilt.TILT_SELL));
+    //tiltStrategy.setTiltSell(params.get(OptimizatorTilt.TILT_SELL));
     tiltStrategy.calcSignals();
     return tiltStrategy;
   }

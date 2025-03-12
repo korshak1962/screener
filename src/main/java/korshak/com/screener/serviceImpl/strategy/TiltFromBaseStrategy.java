@@ -108,6 +108,12 @@ public class TiltFromBaseStrategy extends BaseStrategy {
   }
 
   public void setOptParams() {
-    super.setOptParams();
+    optParams = optParamDao.findValuesByTickerAndTimeframeAndStrategy(ticker, timeFrame,
+        this.getClass().getSimpleName());
+    if (optParams != null && optParams.get("Length") != null) {
+      setLength(optParams.get("Length").intValue());
+      tiltBuy = optParams.get("TiltBuy");
+      tiltSell = optParams.get("TiltSell");
+    }
   }
 }

@@ -1,24 +1,19 @@
 package korshak.com.screener.dao;
 
-import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 
 @Repository
-public interface OptParamRepository extends JpaRepository<OptParam, OptParamKey> {
+public interface OptParamRepository extends JpaRepository<OptParam, OptParam.OptParamKey> {
+  // Update query methods to use the embedded key
+  void deleteById_TickerAndTimeframe(String ticker, TimeFrame timeframe);
 
-  // Find by ticker, param, and timeframe
-  OptParam findByTickerAndParamAndTimeframe(String ticker, String param, TimeFrame timeframe);
+  List<OptParam> findById_Ticker(String ticker);
 
-  // Find all by ticker
-  List<OptParam> findByTicker(String ticker);
+  List<OptParam> findById_TickerAndTimeframe(String ticker, TimeFrame timeframe);
 
-  // Find all by ticker and timeframe
-  List<OptParam> findByTickerAndTimeframe(String ticker, TimeFrame timeframe);
+  List<OptParam> findById_TickerAndId_Strategy(String ticker, String strategy);
 
-  // Delete by ticker
-  void deleteByTicker(String ticker);
-
-  // Delete by ticker and timeframe
-  void deleteByTickerAndTimeframe(String ticker, TimeFrame timeframe);
+  List<OptParam> findById_TickerAndTimeframeAndId_Strategy(String ticker, TimeFrame timeframe, String strategy);
 }

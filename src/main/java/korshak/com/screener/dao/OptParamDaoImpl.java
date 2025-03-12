@@ -1,16 +1,14 @@
 package korshak.com.screener.dao;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OptParamDaoImpl implements OptParamDao {
-
   private final OptParamRepository optParamRepository;
 
   @Autowired
@@ -19,65 +17,83 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public OptParam save(OptParam optParam) {
-    return optParamRepository.save(optParam);
+  public void deleteByTickerAndTimeframe(String ticker, TimeFrame timeframe) {
+    optParamRepository.deleteById_TickerAndTimeframe(ticker, timeframe);
   }
 
   @Override
-  public List<OptParam> saveAll(List<OptParam> optParams) {
-    return optParamRepository.saveAll(optParams);
+  public void saveAll(List<OptParam> optParams) {
+    optParamRepository.saveAll(optParams);
   }
 
   @Override
-  public OptParam get(String ticker, String param, TimeFrame timeframe) {
-    return optParamRepository.findByTickerAndParamAndTimeframe(ticker, param, timeframe);
+  public void save(OptParam optParam) {
+    optParamRepository.save(optParam);
   }
 
   @Override
-  public List<OptParam> getAllForTicker(String ticker) {
-    return optParamRepository.findByTicker(ticker);
+  public List<OptParam> findByTicker(String ticker) {
+    return optParamRepository.findById_Ticker(ticker);
   }
 
   @Override
-  public List<OptParam> getAllForTickerAndTimeframe(String ticker, TimeFrame timeframe) {
-    return optParamRepository.findByTickerAndTimeframe(ticker, timeframe);
+  public Map<String, Double> findValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe) {
+    List<OptParam> params = optParamRepository.findById_TickerAndTimeframe(ticker, timeframe);
+    return params.stream()
+        .filter(param -> param.getValue() != null)
+        .collect(Collectors.toMap(
+            param -> param.getId().getParam(),
+            OptParam::getValue
+        ));
   }
 
   @Override
-  @Transactional
-  public List<OptParam> saveParamsFromMap(String ticker, TimeFrame timeframe,
-                                          Map<String, Double> params) {
-    List<OptParam> optParams = new ArrayList<>();
-
-    for (Map.Entry<String, Double> entry : params.entrySet()) {
-      OptParam optParam = new OptParam(ticker, entry.getKey(), timeframe, entry.getValue());
-      optParams.add(optParam);
-    }
-
-    return optParamRepository.saveAll(optParams);
+  public Map<String, String> findStringValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe) {
+    List<OptParam> params = optParamRepository.findById_TickerAndTimeframe(ticker, timeframe);
+    return params.stream()
+        .filter(param -> param.getValueString() != null)
+        .collect(Collectors.toMap(
+            param -> param.getId().getParam(),
+            OptParam::getValueString
+        ));
   }
 
   @Override
-  public Map<String, Double> getParamsAsMap(String ticker, TimeFrame timeframe) {
-    List<OptParam> params = optParamRepository.findByTickerAndTimeframe(ticker, timeframe);
-    Map<String, Double> result = new HashMap<>();
+  public Map<String, Object> findAllValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe) {
+    List<OptParam> params = optParamRepository.findById_TickerAndTimeframe(ticker, timeframe);
+    Map<String, Object> result = new HashMap<>();
 
     for (OptParam param : params) {
-      result.put(param.getParam(), param.getValue());
+      String paramName = param.getId().getParam();
+      if (param.getValue() != null) {
+        result.put(paramName, param.getValue());
+      } else if (param.getValueString() != null) {
+        result.put(paramName, param.getValueString());
+      }
     }
 
     return result;
   }
 
   @Override
-  @Transactional
-  public void deleteForTicker(String ticker) {
-    optParamRepository.deleteByTicker(ticker);
+  public Map<String, Double> findValuesByTickerAndStrategy(String ticker, String strategy) {
+    List<OptParam> params = optParamRepository.findById_TickerAndId_Strategy(ticker, strategy);
+    return params.stream()
+        .filter(param -> param.getValue() != null)
+        .collect(Collectors.toMap(
+            param -> param.getId().getParam(),
+            OptParam::getValue
+        ));
   }
 
   @Override
-  @Transactional
-  public void deleteForTickerAndTimeframe(String ticker, TimeFrame timeframe) {
-    optParamRepository.deleteByTickerAndTimeframe(ticker, timeframe);
+  public Map<String, Double> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe, String strategy) {
+    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndId_Strategy(ticker, timeframe, strategy);
+    return params.stream()
+        .filter(param -> param.getValue() != null)
+        .collect(Collectors.toMap(
+            param -> param.getId().getParam(),
+            OptParam::getValue
+        ));
   }
 }

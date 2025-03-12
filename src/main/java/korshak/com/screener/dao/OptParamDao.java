@@ -4,31 +4,22 @@ import java.util.List;
 import java.util.Map;
 
 public interface OptParamDao {
+  void deleteByTickerAndTimeframe(String ticker, TimeFrame timeframe);
 
-  // Save a single OptParam
-  OptParam save(OptParam optParam);
+  void saveAll(List<OptParam> optParams);
 
-  // Save a list of OptParams
-  List<OptParam> saveAll(List<OptParam> optParams);
+  void save(OptParam optParam);
 
-  // Get a specific parameter value
-  OptParam get(String ticker, String param, TimeFrame timeframe);
+  List<OptParam> findByTicker(String ticker);
 
-  // Get all parameters for a ticker
-  List<OptParam> getAllForTicker(String ticker);
+  Map<String, Double> findValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe);
 
-  // Get all parameters for a ticker and timeframe
-  List<OptParam> getAllForTickerAndTimeframe(String ticker, TimeFrame timeframe);
+  Map<String, String> findStringValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe);
 
-  // Convert a map of parameters to OptParam entities and save them
-  List<OptParam> saveParamsFromMap(String ticker, TimeFrame timeframe, Map<String, Double> params);
+  Map<String, Object> findAllValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe);
 
-  // Get all parameters for a ticker and timeframe as a map
-  Map<String, Double> getParamsAsMap(String ticker, TimeFrame timeframe);
+  Map<String, Double> findValuesByTickerAndStrategy(String ticker, String strategy);
 
-  // Delete all parameters for a ticker
-  void deleteForTicker(String ticker);
-
-  // Delete all parameters for a ticker and timeframe
-  void deleteForTickerAndTimeframe(String ticker, TimeFrame timeframe);
+  Map<String, Double> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe,
+                                                                String strategy);
 }

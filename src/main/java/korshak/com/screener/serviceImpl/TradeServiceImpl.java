@@ -83,7 +83,9 @@ public class TradeServiceImpl implements TradeService {
       System.out.println("No signals found for ticker = " + strategy.getTicker()
           + " timeframe = " + strategy.getTimeFrame() + " startDate = " + strategy.getStartDate() +
           " endDate = " + strategy.getEndDate());
-      return null;
+      return new StrategyResult(strategy.getPrices(), 0, 0,
+          0, Map.of(), Map.of(), tradesLong,
+          List.of(), strategy.getSignalsLong(), 0, indicators, Map.of());
     }
     tradesLong = new ArrayList<>();
     double longPnL = 0;

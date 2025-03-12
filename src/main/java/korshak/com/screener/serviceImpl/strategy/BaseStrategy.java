@@ -4,6 +4,7 @@ import static korshak.com.screener.utils.Utils.getOptParamsAsMap;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -18,12 +19,12 @@ import korshak.com.screener.vo.Signal;
 
 public abstract class BaseStrategy implements Strategy {
   final PriceDao priceDao;
-  private final OptParamDao optParamDao;
+  final OptParamDao optParamDao;
   TimeFrame timeFrame;
   LocalDateTime startDate;
   LocalDateTime endDate;
   String ticker;
-  List<OptParam> optParams;
+  Map<String, Double> optParams = new HashMap<>();
   List<? extends BasePrice> prices;
   List<Signal> signalsLong = new ArrayList<>();
   List<Signal> signalsShort = new ArrayList<>();
@@ -60,6 +61,7 @@ public abstract class BaseStrategy implements Strategy {
         endDate,
         timeFrame
     );
+    setOptParams();
     return this;
   }
 
@@ -130,7 +132,7 @@ public abstract class BaseStrategy implements Strategy {
   }
 
   public void setOptParams() {
-    optParams = optParamDao.getAllForTickerAndTimeframe(ticker, timeFrame);
+
   }
 
   @Override
@@ -201,8 +203,7 @@ public abstract class BaseStrategy implements Strategy {
     return (List<BasePrice>) specialPrices;
   }
 
-  private Map<String, Double> readOptParams(String ticker, TimeFrame timeFrame) {
-    List<OptParam> optParamList = optParamDao.getAllForTickerAndTimeframe(ticker, timeFrame);
-    return getOptParamsAsMap(optParamList);
+  public Map<String, Double> getOptParams() {
+    return optParams;
   }
 }

@@ -37,6 +37,7 @@ import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
 import korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.TiltStrategy;
 import korshak.com.screener.utils.ExcelExportService;
+import korshak.com.screener.utils.Portfolios;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,44 +131,48 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
-    String ticker = "SPY";
-    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+    String ticker = "EEMV";
+    reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 30, 0, 0);
-    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.FEBRUARY, 10, 0, 0);
+    LocalDateTime startDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.MARCH, 10, 0, 0);
+    //reporter.createExcelReport(List.of(ticker), startDateEval, endDateEval, TimeFrame.DAY,ticker);
     Map<String, Double> optParams = new HashMap<>();
     //optParams.put(Optimizator.STOP_LOSS,.98);
 //    reporter.evaluateAndShow(buyCloseHigherPrevClose,optParams,ticker, startDateEval, endDateEval, TimeFrame.WEEK);
     Map<TimeFrame, List<String>> timeFrameToStrategyNames = new HashMap<>();
-    List<String> strategyNames = List.of("TrendChangeStrategy");
+/*    List<String> strategyNames = List.of("TrendChangeStrategy");
     timeFrameToStrategyNames.put(TimeFrame.DAY, strategyNames);
     List<String> strategyNamesDay = List.of("TrendChangeStrategy");
     timeFrameToStrategyNames.put(TimeFrame.WEEK, strategyNamesDay);
-    reporter.readAndShow(timeFrameToStrategyNames, ticker, startDateEval, endDateEval);
+
+ */
+    timeFrameToStrategyNames.put(TimeFrame.DAY, List.of("TiltFromBaseStrategy"));
+   // reporter.readAndShow(timeFrameToStrategyNames, ticker, startDateEval, endDateEval);
 
     //reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
-    // reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
-    //   "_MOEX"),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.MOEX);
+//     reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+//       "_MOEX"),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.MOEX);
     //reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
     //""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
-    //reporter.createExcelReport(tickers, startDateEval, endDateEval, TimeFrame.DAY);
+
 
 
     //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), "2025-", 1, 2, yahooDownloader);
-    // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
-    //    LocalDate.now().minusDays(1), yahooDownloader);
+   //  downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
+     //   LocalDate.now().minusDays(4), yahooDownloader);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    //downloadSeries("SOXL", "2024-", 1, 12,alfaVintageDownloader);
+    //downloadSeries("EWW", "2024-", 1, 12,alfaVintageDownloader);
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 3, 3, yahooDownloader);
     //downloadSeries("QQQ", "2025-01-01", yahooDownloader);
 //    downloadSeries("SNGS", "2018-01-01", moexDownloader);
-    // downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
-    //   "2025-", 3, 3, moexDownloader);
+     //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+      // "2025-", 3, 3, moexDownloader);
 
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
 

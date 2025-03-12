@@ -10,6 +10,7 @@ public class Portfolios {
   public static final String US_WATCH = "US_WATCH";
   public static final String US_SECTOR_ETF = "US_SECTOR_ETF";
   public static final String MOEX = "MOEX";
+  public static final String EM = "EM";
 
 
   public static Map<String, List<String>> NAME_TO_TICKERS = new HashMap();
@@ -31,5 +32,8 @@ public class Portfolios {
     List<String> MOEX = List.of("TMOS", "LKOH", "NVTK", "SBER", "SIBN", "MGNT", "MRKP", "T",
         "FLOT", "SNGS", "TRNFP");
     NAME_TO_TICKERS.put(Portfolios.MOEX, MOEX);
+
+    List<String> EM = List.of("EEMV","IEMG","EWZ","ARGT","");
+    NAME_TO_TICKERS.put(Portfolios.EM, EM);
   }
 }
