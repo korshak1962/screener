@@ -42,7 +42,7 @@ public class TiltFromBaseStrategy extends BaseStrategy {
           Utils.createSignal(price, SignalType.LongOpen, "TiltBuy = " + currentSma.getTilt());
     } else if (currentSma.getTilt() < tiltSell) {
       signalToAdd =
-          Utils.createSignal(price, SignalType.LongClose, "tiltSell = " + currentSma.getTilt());
+          Utils.createSignal(price, SignalType.ShortOpen, "tiltSell = " + currentSma.getTilt());
     }
     return signalToAdd;
   }

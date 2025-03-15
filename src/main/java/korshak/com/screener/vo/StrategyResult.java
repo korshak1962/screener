@@ -11,7 +11,8 @@ import korshak.com.screener.dao.BasePrice;
 public class StrategyResult {
   private final List<? extends BasePrice> prices;
   private final double longPnL;
-  private final double shortPnL;
+  private double shortPnL;
+  private double buyAndHoldPnL;
   private final double totalPnL;
   private final double maxPossibleLoss;
   private final Map<LocalDateTime, Double> minLongPnl; // the minimum profit or max loss
@@ -51,11 +52,19 @@ public class StrategyResult {
     calcProfitAndLostRationLong();
   }
 
+  public String toExcelString() {
+    return "PnL=" + df.format(longPnL) +
+      //  ", sPnL=" + df.format(shortPnL) +
+        ", BHPnL=" + df.format(buyAndHoldPnL) +
+        ", P/L= " + df.format(profitToLostRatio);
+  }
+
   @Override
   public String toString() {
     return prices.getFirst().getId().getTicker() +
         " \n longPnL=" + df.format(longPnL) +
-        // ", shortPnL=" + df.format(shortPnL) +
+        ", BHPnL=" + df.format(buyAndHoldPnL) +
+         ", shortPnL=" + df.format(shortPnL) +
         //  ", totalPnL=" + df.format(totalPnL) +
         ", profitToLostRatio=" + df.format(profitToLostRatio) +
         ", profitLongTradesQnty=" + profitLongTradesQnty +
@@ -145,5 +154,17 @@ public class StrategyResult {
     if (sumOfLostTrades > 0) {
       profitToLostRatio = sumOfProfitTrades / sumOfLostTrades;
     }
+  }
+
+  public void setShortPnL(double shortPnL) {
+    this.shortPnL = shortPnL;
+  }
+
+  public double getBuyAndHoldPnL() {
+    return buyAndHoldPnL;
+  }
+
+  public void setBuyAndHoldPnL(double buyAndHoldPnL) {
+    this.buyAndHoldPnL = buyAndHoldPnL;
   }
 }

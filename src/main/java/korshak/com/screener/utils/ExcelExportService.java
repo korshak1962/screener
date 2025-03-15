@@ -162,62 +162,120 @@ public class ExcelExportService {
   public static void reportForMap(String filePath, String sheetName,
                                   Map<String, List<String>> colNameToValues, Set<String> urlColumns)
       throws IOException {
-    if (colNameToValues == null || colNameToValues.isEmpty()) {
-      throw new IllegalArgumentException("Results map cannot be empty");
-    }
-
-    try (Workbook workbook = new XSSFWorkbook()) {
+    try (XSSFWorkbook workbook = new XSSFWorkbook()) {
       Sheet sheet = workbook.createSheet(sheetName);
+      CreationHelper createHelper = workbook.getCreationHelper();
+
+      // Get column names and find indices for CLOSE and priceToSell
+      String[] columnNames = colNameToValues.keySet().toArray(new String[0]);
+      int closeIndex = -1;
+      int priceToSellIndex = -1;
+
+      for (int i = 0; i < columnNames.length; i++) {
+        if ("CLOSE".equals(columnNames[i])) {
+          closeIndex = i;
+        } else if ("priceToSell".equals(columnNames[i])) {
+          priceToSellIndex = i;
+        }
+      }
+
+      // Create basic styles
+      CellStyle headerStyle = createHeaderStyle(workbook);
+
+      // Create normal and red fonts
+      Font normalFont = workbook.createFont();
+      normalFont.setFontName("Arial");
+
+      Font redFont = workbook.createFont();
+      redFont.setFontName("Arial");
+      redFont.setColor(IndexedColors.RED.getIndex());
+
+      Font urlFont = workbook.createFont();
+      urlFont.setUnderline(Font.U_SINGLE);
+      urlFont.setColor(IndexedColors.BLUE.getIndex());
+
+      Font redUrlFont = workbook.createFont();
+      redUrlFont.setUnderline(Font.U_SINGLE);
+      redUrlFont.setColor(IndexedColors.RED.getIndex());
 
       // Create header row
       Row headerRow = sheet.createRow(0);
-      CellStyle headerStyle = createHeaderStyle(workbook);
-      CellStyle dataStyle = createDataStyle(workbook);
-
-      // Write headers and validate data lengths
-      int colNum = 0;
-      int maxRows = 0;
-      for (Map.Entry<String, List<String>> entry : colNameToValues.entrySet()) {
-        // Header cell
-        Cell headerCell = headerRow.createCell(colNum);
-        headerCell.setCellValue(entry.getKey());
-        headerCell.setCellStyle(headerStyle);
-
-        // Track maximum number of rows needed
-        maxRows = Math.max(maxRows, entry.getValue().size());
-        colNum++;
+      for (int i = 0; i < columnNames.length; i++) {
+        Cell cell = headerRow.createCell(i);
+        cell.setCellValue(columnNames[i]);
+        cell.setCellStyle(headerStyle);
       }
 
-      // Create data rows
-      for (int rowNum = 0; rowNum < maxRows; rowNum++) {
-        Row dataRow = sheet.createRow(rowNum + 1);
-        colNum = 0;
+      // Get maximum row count
+      int maxRows = 0;
+      for (List<String> values : colNameToValues.values()) {
+        maxRows = Math.max(maxRows, values.size());
+      }
 
-        for (Map.Entry<String, List<String>> entry : colNameToValues.entrySet()) {
-          String columnName = entry.getKey();
-          List<String> values = entry.getValue();
+      // Process data rows
+      for (int rowIdx = 0; rowIdx < maxRows; rowIdx++) {
+        Row row = sheet.createRow(rowIdx + 1);
 
-          Cell dataCell = dataRow.createCell(colNum);
+        // Check if this row should be highlighted
+        boolean useRedFont = false;
+        if (closeIndex >= 0 && priceToSellIndex >= 0) {
+          List<String> closeValues = colNameToValues.get(columnNames[closeIndex]);
+          List<String> priceToSellValues = colNameToValues.get(columnNames[priceToSellIndex]);
 
-          if (rowNum < values.size()) {
-            String value = values.get(rowNum);
+          if (rowIdx < closeValues.size() && rowIdx < priceToSellValues.size()) {
+            try {
+              // Clean up strings and parse as doubles for numeric comparison
+              String closeStr = closeValues.get(rowIdx).replace(",", "").trim();
+              String priceToSellStr = priceToSellValues.get(rowIdx).replace(",", "").trim();
 
-            if (urlColumns != null && urlColumns.contains(columnName)) {
-              // Format as URL if this column is in urlColumns
-              setUrlCell(workbook, dataCell, value);
-            } else {
-              // Regular cell formatting
-              dataCell.setCellValue(value);
-              dataCell.setCellStyle(dataStyle);
+              double closeValue = Double.parseDouble(closeStr);
+              double priceToSellValue = Double.parseDouble(priceToSellStr);
+
+              if (closeValue < priceToSellValue) {
+                useRedFont = true;
+              }
+            } catch (NumberFormatException e) {
+              // Continue without highlighting if numbers can't be parsed
             }
           }
+        }
 
-          colNum++;
+        // Create cells for this row
+        for (int colIdx = 0; colIdx < columnNames.length; colIdx++) {
+          Cell cell = row.createCell(colIdx);
+          String columnName = columnNames[colIdx];
+          List<String> columnValues = colNameToValues.get(columnName);
+
+          if (rowIdx < columnValues.size()) {
+            String value = columnValues.get(rowIdx);
+            cell.setCellValue(value);
+
+            // Basic cell style
+            CellStyle cellStyle = workbook.createCellStyle();
+            cellStyle.setBorderBottom(BorderStyle.THIN);
+            cellStyle.setBorderLeft(BorderStyle.THIN);
+            cellStyle.setBorderRight(BorderStyle.THIN);
+            cellStyle.setBorderTop(BorderStyle.THIN);
+
+            // Apply appropriate font based on need for red highlight and cell type
+            if (urlColumns != null && urlColumns.contains(columnName)) {
+              // URL styling
+              Hyperlink link = createHelper.createHyperlink(HyperlinkType.URL);
+              link.setAddress(value);
+              cell.setHyperlink(link);
+              cellStyle.setFont(useRedFont ? redUrlFont : urlFont);
+            } else {
+              // Normal cell styling
+              cellStyle.setFont(useRedFont ? redFont : normalFont);
+            }
+
+            cell.setCellStyle(cellStyle);
+          }
         }
       }
 
       // Auto-size columns
-      for (int i = 0; i < colNameToValues.size(); i++) {
+      for (int i = 0; i < columnNames.length; i++) {
         sheet.autoSizeColumn(i);
       }
 

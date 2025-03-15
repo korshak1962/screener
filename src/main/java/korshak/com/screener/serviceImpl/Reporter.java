@@ -43,6 +43,7 @@ public class Reporter {
   private static final String FINVIZ_URL = "F_URL";
   private static final String TREND = "_trend";
   private static final String PREVIOUS = "_Previous";
+  private static final String STRATAGY_RESULT = "StratRes";
   private final StrategyProvider strategyProvider;
   private final OptimizatorTilt optimizatorTilt;
   private final StrategyMerger strategyMerger;
@@ -113,6 +114,7 @@ public class Reporter {
     colnameToValues.put(CLOSE, new ArrayList<>());
     colnameToValues.put(PRICE_TO_BUY, new ArrayList<>());
     colnameToValues.put(PRICE_TO_SELL, new ArrayList<>());
+    colnameToValues.put(STRATAGY_RESULT, new ArrayList<>());
     DecimalFormat df = new DecimalFormat("#.##");
     for (TimeFrame timeFrameTrend : TimeFrame.values()) {
       if (timeFrameTrend != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
@@ -164,6 +166,7 @@ public class Reporter {
           strategyResult.getOptParams().get(PRICE_TO_BUY)));
       colnameToValues.get(PRICE_TO_SELL).add(df.format(
           strategyResult.getOptParams().get(PRICE_TO_SELL)));
+      colnameToValues.get(STRATAGY_RESULT).add(strategyResult.toExcelString());
       colnameToValues.get(FINVIZ_URL).add(buildFinvizUrl(entry.getKey()));
     }
     try {
@@ -354,14 +357,14 @@ public class Reporter {
   private void futurePriceCalc(String ticker, Map<String, Double> optParams) {
     double priceToBuy = futurePriceByTiltCalculator.calculatePriceBinary(ticker, TimeFrame.DAY,
         optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_BUY));
-    System.out.println("Binary Price to buy: " + priceToBuy);
+    //System.out.println("Price to buy: " + priceToBuy);
     //priceToBuy = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
     //    optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_BUY));
     // System.out.println("Old Price to buy: " + priceToBuy);
 
     double priceToSell = futurePriceByTiltCalculator.calculatePriceBinary(ticker, TimeFrame.DAY,
         optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_SELL));
-    System.out.println("Binary Price to sell: " + priceToSell);
+    //System.out.println("Price to sell: " + priceToSell);
     optParams.put(PRICE_TO_BUY, priceToBuy);
     optParams.put(PRICE_TO_SELL, priceToSell);
   }
@@ -375,13 +378,15 @@ public class Reporter {
             strategy.getEndDate(),
             strategy.getTimeFrame());
     StrategyResult strategyResult =
-        tradeService.calculateProfitAndDrawdownLong(strategy, strategy.getTicker(),
-            strategy.getStartDate(),
-            strategy.getEndDate(),
-            strategy.getTimeFrame());
+        tradeService.calculateProfitAndDrawdownLong(strategy);
+    StrategyResult strategyResultShort =
+        tradeService.calculateProfitAndDrawdownShort(strategy);
+    strategyResult.setBuyAndHoldPnL(buyAndHoldstrategyResult.getLongPnL());
+    strategyResult.setShortPnL(strategyResultShort.getShortPnL());
+
     System.out.println(strategy.getStrategyName() + " result: " + strategyResult);
-    System.out.println(
-        buyAndHoldStrategy.getStrategyName() + " result: " + buyAndHoldstrategyResult);
+   // System.out.println(
+    //    buyAndHoldStrategy.getStrategyName() + " result: " + buyAndHoldstrategyResult);
 
 /*
     ExcelExportService.exportTradesToExcel(strategyResultTilt.getTradesLong(),

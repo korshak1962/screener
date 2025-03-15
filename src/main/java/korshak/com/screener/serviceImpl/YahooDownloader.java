@@ -98,11 +98,8 @@ public class YahooDownloader implements SharePriceDownLoaderService {
   }
 
   @Override
-  public int fetchAndSaveData(String ticker, String yearMonth) {
+  public int fetchAndSaveData(String ticker, int year,int month) {
     try {
-      String[] parts = yearMonth.split("-");
-      int year = Integer.parseInt(parts[0]);
-      int month = Integer.parseInt(parts[1]);
 
       LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
       LocalDateTime endDate = startDate.plusDays(10);
@@ -128,7 +125,7 @@ public class YahooDownloader implements SharePriceDownLoaderService {
 
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException(
-          "Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
+          "Invalid yearMonth format. Expected YYYY-MM, got: " + year +" "+ month, e);
     }
   }
 
@@ -393,7 +390,7 @@ public class YahooDownloader implements SharePriceDownLoaderService {
       String yearMonthStr = yearMonth.format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
       try {
-        totalSaved += fetchAndSaveData(ticker, yearMonthStr);
+        totalSaved += fetchAndSaveData(ticker, yearMonth.getYear(),yearMonth.getMonth().getValue());
         startDate = startDate.plusMonths(1);
 
         // Add delay between months
@@ -416,7 +413,7 @@ public class YahooDownloader implements SharePriceDownLoaderService {
 
   @Override
   public int fetchAndSaveData(String timeSeriesLabel, String ticker, String interval,
-                              String yearMonth) {
-    return fetchAndSaveData(ticker, yearMonth);
+                              int year,int month) {
+    return fetchAndSaveData(ticker, year,month);
   }
 }

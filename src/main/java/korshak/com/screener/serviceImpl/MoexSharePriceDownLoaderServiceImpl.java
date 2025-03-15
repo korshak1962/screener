@@ -47,17 +47,13 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
 
   @Override
   public int fetchAndSaveData(String timeSeriesLabel, String ticker, String interval,
-                              String yearMonth) {
-    return fetchAndSaveData(ticker, yearMonth);
+                              int year,int month) {
+    return fetchAndSaveData(ticker, year,month);
   }
 
   @Override
-  public int fetchAndSaveData(String ticker, String yearMonth) {
+  public int fetchAndSaveData(String ticker, int year,int month) {
     try {
-      String[] parts = yearMonth.split("-");
-      int year = Integer.parseInt(parts[0]);
-      int month = Integer.parseInt(parts[1]);
-
       LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
       LocalDateTime endDate = startDate.plusDays(10);
 
@@ -71,11 +67,11 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
 
       if (!existingData.isEmpty()) {
         System.out.println(
-            "Data for ticker " + ticker + " and month " + yearMonth + " already exists in DB");
+            "Data for ticker " + ticker +" year  "+year+ " and month " + month + " already exists in DB");
         return 0;
       }
 
-      String url = buildMoexUrl(ticker, yearMonth);
+      String url = buildMoexUrl(ticker, year,month);
       System.out.println("Requesting URL: " + url);
 
       String response = restTemplate.getForObject(url, String.class);
@@ -88,7 +84,7 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
       List<PriceHour> priceDataList = extractPriceData(root, dbTicker);
 
       if (priceDataList.isEmpty()) {
-        System.out.println("No data found for " + ticker + " in " + yearMonth);
+        System.out.println("No data found for " + ticker + " in " + year+" "+month);
         return 0;
       }
 
@@ -98,14 +94,11 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
 
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException(
-          "Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
+          "Invalid yearMonth format. Expected YYYY-MM, got: " + year+" "+month, e);
     }
   }
 
-  private String buildMoexUrl(String ticker, String yearMonth) {
-    String[] parts = yearMonth.split("-");
-    int year = Integer.parseInt(parts[0]);
-    int month = Integer.parseInt(parts[1]);
+  private String buildMoexUrl(String ticker, int year,int month) {
 
     YearMonth requestedYearMonth = YearMonth.of(year, month);
     YearMonth currentYearMonth = YearMonth.now();

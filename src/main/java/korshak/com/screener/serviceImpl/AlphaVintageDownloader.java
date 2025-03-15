@@ -53,7 +53,13 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
   */
   //json
   public int fetchAndSaveData(String timeSeriesLabel, String ticker, String interval,
-                              String yearMonth) {
+                              int month, int year) {
+    String yearMonth;
+      if (month < 10) {
+        yearMonth = year + "0" + month;
+      } else {
+        yearMonth = year + ""+month;
+      }
     dbTicker = ticker;
     String url =
         baseUrl + timeSeriesLabel + "&symbol=" + ticker + "&interval=" + interval + "&month=" +
@@ -93,13 +99,8 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
   }
 
   @Override
-  public int fetchAndSaveData(String ticker, String yearMonth) {
+  public int fetchAndSaveData(String ticker, int year, int month) {
     try {
-      // Parse year and month from yearMonth string (format: "2024-01")
-      String[] parts = yearMonth.split("-");
-      int year = Integer.parseInt(parts[0]);
-      int month = Integer.parseInt(parts[1]);
-
       // Create date range for first 10 days of the month
       LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
       LocalDateTime endDate = startDate.plusDays(10);
@@ -114,18 +115,19 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
 
       if (!existingData.isEmpty()) {
         System.out.println(
-            "Data for ticker " + ticker + " and month " + yearMonth + " already exists in DB");
+            "Data for ticker " + ticker + " year " + year + " and month " + month +
+                " already exists in DB");
         return 0;
       }
 
       // If data doesn't exist, proceed with fetching and saving
       String interval = "5min";
       final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-      return fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
+      return fetchAndSaveData(timeSeriesLabel, ticker, interval, year,month);
 
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException(
-          "Invalid yearMonth format. Expected YYYY-MM, got: " + yearMonth, e);
+          "Invalid yearMonth format. Expected YYYY-MM, got: " + year+" "+month, e);
     }
   }
 

@@ -21,7 +21,7 @@ public class Portfolios {
         "FXI", "MOMO", "MCHI", "LYFT", "YY", "AAPL");
     NAME_TO_TICKERS.put(Portfolios.US, US);
 
-    List<String> US_WATCH = List.of("GLD", "IBIT", "GOOG", "TMDX");//,"NVIDIA","TSLA","AMZN");
+    List<String> US_WATCH = List.of("GLD", "IBIT", "GOOG", "TMDX","NVDA","TSLA","AMZN");
     NAME_TO_TICKERS.put(Portfolios.US_WATCH, US_WATCH);
 
     List<String> US_SECTOR_ETF =
@@ -33,7 +33,9 @@ public class Portfolios {
         "FLOT", "SNGS", "TRNFP");
     NAME_TO_TICKERS.put(Portfolios.MOEX, MOEX);
 
-    List<String> EM = List.of("EEMV","IEMG","EWZ","ARGT","");
+    List<String> EM = List.of("EEMV","IEMG","EWZ","ARGT","EWW","GXG","ECH");
     NAME_TO_TICKERS.put(Portfolios.EM, EM);
   }
+
+
 }

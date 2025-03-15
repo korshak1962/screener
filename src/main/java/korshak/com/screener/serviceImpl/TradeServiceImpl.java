@@ -141,7 +141,6 @@ public class TradeServiceImpl implements TradeService {
     if (iteratorSignal.hasNext()) {
       prevSignal = iteratorSignal.next();
     }
-    double prevPnl;
     while (iteratorSignal.hasNext()) {
       Signal currentSignal = iteratorSignal.next();
       if (currentSignal.getSignalType() == SignalType.ShortClose) {

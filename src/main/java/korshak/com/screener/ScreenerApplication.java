@@ -65,7 +65,7 @@ public class ScreenerApplication implements CommandLineRunner {
   Reporter reporter;
   @Autowired
   @Qualifier("AlphaVintageDownloader")
-  private AlphaVintageDownloader alfaVintageDownloader;
+  private AlphaVintageDownloader alphaVintageDownloader;
   @Autowired
   @Qualifier("yahooDownloader")
   private SharePriceDownLoaderService yahooDownloader;
@@ -135,14 +135,14 @@ public class ScreenerApplication implements CommandLineRunner {
     LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
     String ticker = "EEMV";
-    reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
     LocalDateTime startDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.MARCH, 10, 0, 0);
+    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.APRIL, 10, 0, 0);
     //reporter.createExcelReport(List.of(ticker), startDateEval, endDateEval, TimeFrame.DAY,ticker);
     Map<String, Double> optParams = new HashMap<>();
     //optParams.put(Optimizator.STOP_LOSS,.98);
-//    reporter.evaluateAndShow(buyCloseHigherPrevClose,optParams,ticker, startDateEval, endDateEval, TimeFrame.WEEK);
+    //reporter.evaluateAndShow(buyCloseHigherPrevClose,optParams,ticker, startDateEval, endDateEval, TimeFrame.WEEK);
     Map<TimeFrame, List<String>> timeFrameToStrategyNames = new HashMap<>();
 /*    List<String> strategyNames = List.of("TrendChangeStrategy");
     timeFrameToStrategyNames.put(TimeFrame.DAY, strategyNames);
@@ -151,28 +151,31 @@ public class ScreenerApplication implements CommandLineRunner {
 
  */
     timeFrameToStrategyNames.put(TimeFrame.DAY, List.of("TiltFromBaseStrategy"));
-   // reporter.readAndShow(timeFrameToStrategyNames, ticker, startDateEval, endDateEval);
+    // reporter.readAndShow(timeFrameToStrategyNames, ticker, startDateEval, endDateEval);
 
     //reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
-//     reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
-//       "_MOEX"),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.MOEX);
-    //reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
-    //""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
-
+    // reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+    //     "_MOEX"), startDateEval, endDateEval, TimeFrame.DAY, Portfolios.MOEX);
+    //   reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
+    //  ""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
 
 
     //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), "2025-", 1, 2, yahooDownloader);
-   //  downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
-     //   LocalDate.now().minusDays(4), yahooDownloader);
+    //  downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
+    //     LocalDate.now().minusDays(4), yahooDownloader);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    //downloadSeries("EWW", "2024-", 1, 12,alfaVintageDownloader);
+    // downloadSeries("AMZN", 2024, 1,2025, 1, alphaVintageDownloader);
+    downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), 2025, 1, 2025, 1,
+        alphaVintageDownloader);
+
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US), "2025-", 3, 3, yahooDownloader);
+    //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),
+    //      "2025-", 1, 3, yahooDownloader);
     //downloadSeries("QQQ", "2025-01-01", yahooDownloader);
 //    downloadSeries("SNGS", "2018-01-01", moexDownloader);
-     //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
-      // "2025-", 3, 3, moexDownloader);
+    //   downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+    //     "2025-", 3, 3, moexDownloader);
 
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
 
@@ -526,15 +529,18 @@ public class ScreenerApplication implements CommandLineRunner {
     }
   }
 
-  private void downloadSeries(final List<String> tickers, String year, int startMonth,
+  private void downloadSeries(final List<String> tickers, int startYear, int startMonth,
+                              int endYear,
                               int finalMonth,
                               SharePriceDownLoaderService sharePriceDownLoaderService) {
     for (String ticker : tickers) {
-      downloadSeries(ticker, year, startMonth, finalMonth, sharePriceDownLoaderService);
+      downloadSeries(ticker, startYear, startMonth, endYear, finalMonth,
+          sharePriceDownLoaderService);
     }
   }
 
-  private void downloadSeries(final String ticker, String year, int startMonth, int finalMonth,
+  private void downloadSeries(final String ticker, int startYear, int startMonth, int endYear,
+                              int endMonth,
                               SharePriceDownLoaderService sharePriceDownLoaderService) {
     // final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
     // String interval = "5min";
@@ -542,17 +548,22 @@ public class ScreenerApplication implements CommandLineRunner {
     int lengthMax = 50;
     int saved = 0;
     String yearMonth;
-    for (int month = startMonth; month < finalMonth + 1; month++) {
-      if (month < 10) {
-        yearMonth = year + "0" + month;
-      } else {
-        yearMonth = year + month;
+    if (startYear == endYear) {
+      saved =
+          downloadForGivenYear(ticker, startYear, startMonth, endMonth, sharePriceDownLoaderService,
+              saved);
+    } else {
+      for (int year = startYear; year <= endYear; year++) {
+        if (year == startYear) {
+          saved = downloadForGivenYear(ticker, year, startMonth, 12, sharePriceDownLoaderService,
+              saved);
+        } else if (year == endYear) {
+          saved =
+              downloadForGivenYear(ticker, year, 1, endMonth, sharePriceDownLoaderService, saved);
+        } else {
+          saved = downloadForGivenYear(ticker, year, 1, 12, sharePriceDownLoaderService, saved);
+        }
       }
-
-      System.out.println("yearMonth = " + yearMonth);
-      saved += sharePriceDownLoaderService
-          .fetchAndSaveData(ticker, yearMonth);
-      System.out.println("saved = " + saved);
     }
     if (saved > 0) {
       priceAggregationService.aggregateAllTimeFrames(sharePriceDownLoaderService.getDbTicker());
@@ -563,24 +574,32 @@ public class ScreenerApplication implements CommandLineRunner {
     }
   }
 
-  private void downloadSeriesUnsafe(final String ticker, String year, int startMonth,
+  private static int downloadForGivenYear(String ticker, int year, int startMonth, int endMonth,
+                                          SharePriceDownLoaderService sharePriceDownLoaderService,
+                                          int saved) {
+    for (int month = startMonth; month < endMonth + 1; month++) {
+
+      System.out.println(ticker + " year = " + year + " month = " + month);
+      saved += sharePriceDownLoaderService
+          .fetchAndSaveData(ticker, year, month);
+      System.out.println("saved = " + saved);
+    }
+    return saved;
+  }
+
+  private void downloadSeriesUnsafe(final String ticker, int year, int startMonth,
                                     int finalMonth) {
     final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
     final String interval = "5min";
     int lengthMin = 2;
     int lengthMax = 50;
     int saved = 0;
-    String yearMonth;
-    for (int month = startMonth; month < finalMonth + 1; month++) {
-      if (month < 10) {
-        yearMonth = year + "0" + month;
-      } else {
-        yearMonth = year + month;
-      }
 
-      System.out.println("yearMonth = " + yearMonth);
-      saved += alfaVintageDownloader
-          .fetchAndSaveData(timeSeriesLabel, ticker, interval, yearMonth);
+    for (int month = startMonth; month < finalMonth + 1; month++) {
+
+      System.out.println("yearMonth = " + year + " " + month);
+      saved += alphaVintageDownloader
+          .fetchAndSaveData(timeSeriesLabel, ticker, interval, year, month);
       System.out.println("saved = " + saved);
     }
     if (saved > 0) {
