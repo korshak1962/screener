@@ -114,6 +114,9 @@ public class TiltFromBaseStrategy extends BaseStrategy {
       setLength(optParams.get("Length").intValue());
       tiltBuy = optParams.get("TiltBuy");
       tiltSell = optParams.get("TiltSell");
+    }else{
+      throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
+          " ticker = " + ticker + " timeframe = " + timeFrame);
     }
   }
 }

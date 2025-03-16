@@ -44,6 +44,7 @@ public class Reporter {
   private static final String TREND = "_trend";
   private static final String PREVIOUS = "_Previous";
   private static final String STRATAGY_RESULT = "StratRes";
+  public static double STOP_LOSS_MAX_PERCENT = .97;
   private final StrategyProvider strategyProvider;
   private final OptimizatorTilt optimizatorTilt;
   private final StrategyMerger strategyMerger;
@@ -78,12 +79,12 @@ public class Reporter {
     this.trendChangeStrategy = trendChangeStrategy;
   }
 
-  private static void show(Strategy strategy, StrategyResult strategyResultTilt) {
+  private static void show(Strategy strategy, StrategyResult strategyResult) {
     System.setProperty("java.awt.headless", "false");
     ChartService chartService = new ChartServiceImpl(strategy.getStrategyName());
-    chartService.drawChart(strategyResultTilt.getPrices(), strategyResultTilt.getSignals()
+    chartService.drawChart(strategyResult.getPrices(), strategyResult.getSignals()
         , strategy.getPriceIndicators()
-        , strategyResultTilt.getTradesLong(), strategy.getIndicators());
+        , strategyResult.getTradesLong(), strategy.getIndicators());
     pause();
   }
 
@@ -97,10 +98,13 @@ public class Reporter {
   }
 
   private static List<OptParam> getOptParamsAsList(String ticker, TimeFrame timeFrame,String strategy,
-                                                   Map<String, Double> optParams) {
+                                                   Map<String, Double> paramToDouble,Map<String, String> paramToString) {
     List<OptParam> optParamsList = new ArrayList<>();
-    for (Map.Entry<String, Double> entry : optParams.entrySet()) {
+    for (Map.Entry<String, Double> entry : paramToDouble.entrySet()) {
       optParamsList.add(new OptParam(ticker, entry.getKey(),strategy, timeFrame, entry.getValue(),""));
+    }
+    for (Map.Entry<String, String> entry : paramToString.entrySet()) {
+      optParamsList.add(new OptParam(ticker, entry.getKey(),strategy, timeFrame, 0D,entry.getValue()));
     }
     return optParamsList;
   }
@@ -208,7 +212,7 @@ public class Reporter {
                                           LocalDateTime startDate,
                                           LocalDateTime endDate, TimeFrame timeFrame) throws IOException {
     strategyMerger
-        .setStopLossPercent(.97)
+        .setStopLossPercent(STOP_LOSS_MAX_PERCENT)
         .init(ticker, timeFrame, startDate, endDate)
         //  .addStrategy(
         //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
@@ -228,7 +232,7 @@ public class Reporter {
     List<Strategy> strategies = new ArrayList<>();
     strategies.add(baseStrategy);
     return getStrategyResult(ticker, startDate, endDate, timeFrame,
-        .97, strategies);
+        STOP_LOSS_MAX_PERCENT, strategies);
   }
 
   private StrategyResult getStrategyResult(String ticker, LocalDateTime startDate,
@@ -252,6 +256,18 @@ public class Reporter {
   public StrategyResult readAndShow(Map<TimeFrame, List<String>> timeFrameToStrategyNames,
                                     String ticker, LocalDateTime startDate,
                                     LocalDateTime endDate) {
+    List<Strategy> strategies =
+        getStrategies(timeFrameToStrategyNames, ticker, startDate, endDate);
+    TimeFrame signalTimeFrame = Collections.min(timeFrameToStrategyNames.keySet());
+    StrategyResult strategyResult =
+        getStrategyResult(ticker, startDate, endDate, signalTimeFrame, STOP_LOSS_MAX_PERCENT, strategies);
+    show(strategyMerger, strategyResult);
+    return strategyResult;
+  }
+
+  private List<Strategy> getStrategies(Map<TimeFrame, List<String>> timeFrameToStrategyNames,
+                                       String ticker, LocalDateTime startDate,
+                                       LocalDateTime endDate) {
     List<Strategy> strategies = new ArrayList<>();
     for (Map.Entry<TimeFrame, List<String>> entry : timeFrameToStrategyNames.entrySet()) {
       strategyProvider.init(ticker, startDate, endDate, entry.getKey());
@@ -260,11 +276,7 @@ public class Reporter {
         strategies.add(strategy);
       }
     }
-    TimeFrame signalTimeFrame = Collections.min(timeFrameToStrategyNames.keySet());
-    StrategyResult strategyResult =
-        getStrategyResult(ticker, startDate, endDate, signalTimeFrame, .97, strategies);
-    show(strategyMerger, strategyResult);
-    return strategyResult;
+    return strategies;
   }
 
   public StrategyResult readAndShow(String ticker, LocalDateTime startDate, LocalDateTime endDate,
@@ -275,7 +287,7 @@ public class Reporter {
     return strategyResult;
   }
 
-  public StrategyResult evaluateAndShow(BaseStrategy baseStrategy, Map<String, Double> optParams,
+  public StrategyResult evaluateAndShow(BaseStrategy baseStrategy,
                                         String ticker, LocalDateTime startDate,
                                         LocalDateTime endDate,
                                         TimeFrame timeFrame) throws IOException {
@@ -323,15 +335,16 @@ public class Reporter {
     double minStopLossPercent = .92;
     double maxStopLossPercent = .99;
     double stepOfStopLoss = 0.005;
-    Map<String, Double> optParams =
+    Map<String, Double> paramToDouble =
         optimazeStrategy(optimizatorTilt, ticker, timeFrame, startDate, endDate,
             minStopLossPercent,
             maxStopLossPercent, stepOfStopLoss);
-    optParams.put(startDate.toString(), -1D);
-    optParams.put(endDate.toString(), 1D);
-    List<OptParam> optParamList = getOptParamsAsList(ticker, timeFrame, "TiltFromBaseStrategy", optParams);
+    Map<String, String> paramToString = new HashMap<>();
+    paramToString.put("startDate", startDate.toString());
+    paramToString.put("endDate", endDate.toString());
+    List<OptParam> optParamList = getOptParamsAsList(ticker, timeFrame, "TiltFromBaseStrategy", paramToDouble,paramToString);
     optParamDao.saveAll(optParamList);
-    return optParams;
+    return paramToDouble;
   }
 
   private Map<String, Double> optimazeStrategy(Optimizator optimizator, String ticker,

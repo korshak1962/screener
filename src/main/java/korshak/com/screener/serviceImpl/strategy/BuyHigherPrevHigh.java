@@ -36,7 +36,7 @@ public class BuyHigherPrevHigh extends BaseStrategy {
           "high > " + priceOfBackupTimeframe.getHigh());
     }
     if (price.getLow() < priceOfBackupTimeframe.getLow()) {
-      signal = Utils.createSignal(price, SignalType.LongClose,
+      signal = Utils.createSignal(price, SignalType.ShortOpen,
           "low < " + priceOfBackupTimeframe.getLow());
     }
     return signal;

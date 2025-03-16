@@ -30,7 +30,6 @@ import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
 import korshak.com.screener.serviceImpl.strategy.Optimizator;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
-import korshak.com.screener.serviceImpl.strategy.StopLossLessThanPrevMinExtremumStrategy;
 import korshak.com.screener.serviceImpl.strategy.StopLossPercentStrategy;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
 import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
@@ -56,9 +55,6 @@ public class ScreenerApplication implements CommandLineRunner {
   @Autowired
   @Qualifier("StopLossPercentStrategy")
   StopLossPercentStrategy stopLossPercentStrategy;
-  @Autowired
-  @Qualifier("StopLossLessThanPrevMinExtremumStrategy")
-  StopLossLessThanPrevMinExtremumStrategy stopLossLessThanPrevMinExtremumStrategy;
   @Autowired
   RsiService rsiService;
   @Autowired
@@ -131,18 +127,19 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
-    String ticker = "EEMV";
-    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    LocalDateTime startDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.APRIL, 10, 0, 0);
+    reporter.optAndShow("QQQ", startDate, endDate, TimeFrame.DAY);
+
+    LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    String ticker = "QQQ";
     //reporter.createExcelReport(List.of(ticker), startDateEval, endDateEval, TimeFrame.DAY,ticker);
-    Map<String, Double> optParams = new HashMap<>();
-    //optParams.put(Optimizator.STOP_LOSS,.98);
-    //reporter.evaluateAndShow(buyCloseHigherPrevClose,optParams,ticker, startDateEval, endDateEval, TimeFrame.WEEK);
+    Reporter.STOP_LOSS_MAX_PERCENT = .98;
+    //reporter.evaluateAndShow(buyCloseHigherPrevClose, ticker, startDateEval, endDateEval,
+    //    TimeFrame.WEEK);
     Map<TimeFrame, List<String>> timeFrameToStrategyNames = new HashMap<>();
 /*    List<String> strategyNames = List.of("TrendChangeStrategy");
     timeFrameToStrategyNames.put(TimeFrame.DAY, strategyNames);
@@ -150,8 +147,13 @@ public class ScreenerApplication implements CommandLineRunner {
     timeFrameToStrategyNames.put(TimeFrame.WEEK, strategyNamesDay);
 
  */
-    timeFrameToStrategyNames.put(TimeFrame.DAY, List.of("TiltFromBaseStrategy"));
-    // reporter.readAndShow(timeFrameToStrategyNames, ticker, startDateEval, endDateEval);
+    timeFrameToStrategyNames.put(TimeFrame.WEEK,
+        List.of("BuyCloseHigherSellCloseLessMin"));
+    //timeFrameToStrategyNames.put(TimeFrame.DAY,
+    //    List.of("TiltFromBaseStrategy"));
+    // reporter.readAndShow(timeFrameToStrategyNames, "QQQ",
+    //     LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0),
+    //     LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0););
 
     //reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
     // reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
@@ -160,14 +162,14 @@ public class ScreenerApplication implements CommandLineRunner {
     //  ""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
 
 
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), "2025-", 1, 2, yahooDownloader);
-    //  downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
-    //     LocalDate.now().minusDays(4), yahooDownloader);
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), "2025-", 2, 3, yahooDownloader);
+     // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
+     //    LocalDate.now().minusDays(5), yahooDownloader);
     //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
     // downloadSeries("AMZN", 2024, 1,2025, 1, alphaVintageDownloader);
-    downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), 2025, 1, 2025, 1,
-        alphaVintageDownloader);
+//    downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), 2025, 1, 2025, 1,
+//        alphaVintageDownloader);
 
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),

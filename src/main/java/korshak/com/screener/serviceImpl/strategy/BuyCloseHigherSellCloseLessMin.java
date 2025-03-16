@@ -8,11 +8,11 @@ import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
 
-@Service("BuyCloseHigherPrevClose")
-public class BuyCloseHigherPrevClose extends BaseStrategy {
+@Service("BuyCloseHigherSellCloseLessMin")
+public class BuyCloseHigherSellCloseLessMin extends BaseStrategy {
   BasePrice pricePrev;
 
-  public BuyCloseHigherPrevClose(PriceDao priceDao, OptParamDao optParamDao) {
+  public BuyCloseHigherSellCloseLessMin(PriceDao priceDao, OptParamDao optParamDao) {
     super(priceDao, optParamDao);
   }
 
@@ -34,10 +34,16 @@ public class BuyCloseHigherPrevClose extends BaseStrategy {
       signal = Utils.createSignal(price, SignalType.LongOpen,
           "close > " + priceOfBackupTimeframe.getClose());
     }
-    if (price.getClose() < priceOfBackupTimeframe.getClose()) {
+    if (price.getClose() < priceOfBackupTimeframe.getLow()) {
       signal = Utils.createSignal(price, SignalType.ShortOpen,
           "close<" + priceOfBackupTimeframe.getClose());
     }
     return signal;
   }
+
+  @Override
+  public void setOptParams() {
+
+  }
 }
+
