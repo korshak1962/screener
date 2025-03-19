@@ -173,10 +173,10 @@ public class Utils {
     };
   }
 
-  public static Map<String, Double> getOptParamsAsMap(List<OptParam> optParamList) {
-    Map<String, Double> optParams = new HashMap<>();
+  public static Map<String, OptParam> getOptParamsAsMap(List<OptParam> optParamList) {
+    Map<String, OptParam> optParams = new HashMap<>();
     for (OptParam optParam : optParamList) {
-      optParams.put(optParam.getId().getParam(), optParam.getValue());
+      optParams.put(optParam.getId().getParam(), optParam);
     }
     return optParams;
   }

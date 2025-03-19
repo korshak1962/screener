@@ -1,11 +1,13 @@
 package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
+import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
@@ -18,6 +20,9 @@ import org.springframework.stereotype.Service;
 @Service("TiltFromBaseStrategy")
 public class TiltFromBaseStrategy extends BaseStrategy {
 
+  public static final String LENGTH = "Length";
+  public static final String TILT_BUY = "TiltBuy";
+  public static final String TILT_SELL = "TiltSell";
   final SmaDao smaDao;
   Map<LocalDateTime, BaseSma> smaMap;
   double tiltBuy = 1;
@@ -28,6 +33,23 @@ public class TiltFromBaseStrategy extends BaseStrategy {
   public TiltFromBaseStrategy(SmaDao smaDao, PriceDao priceDao, OptParamDao optParamDao) {
     super(priceDao, optParamDao);
     this.smaDao = smaDao;
+    initOptParams();
+  }
+
+  private void initOptParams() {
+    List<OptParam> optParams = new ArrayList<>();
+    optParams.add(
+        new OptParam(ticker, LENGTH, this.getClass().getSimpleName(), timeFrame,
+            4.0, "", 4.0f, 10.0f, 1.0f)
+    );
+    optParams.add(
+        new OptParam(ticker, TILT_BUY, this.getClass().getSimpleName(), timeFrame,
+            -0.02, "", -0.02f, 0.02f, 0.01f)    );
+    optParams.add(
+        new OptParam(ticker, TILT_SELL, this.getClass().getSimpleName(), timeFrame,
+            -0.05, "", -0.05f, 0.01f, 0.01f)
+    );
+    optParamsMap = Utils.getOptParamsAsMap(optParams);
   }
 
   @Override
@@ -107,13 +129,11 @@ public class TiltFromBaseStrategy extends BaseStrategy {
     throw new IllegalArgumentException("Wrong time frame for signal");
   }
 
-  public void setOptParams() {
-    optParams = optParamDao.findValuesByTickerAndTimeframeAndStrategy(ticker, timeFrame,
-        this.getClass().getSimpleName());
-    if (optParams != null && optParams.get("Length") != null) {
-      setLength(optParams.get("Length").intValue());
-      tiltBuy = optParams.get("TiltBuy");
-      tiltSell = optParams.get("TiltSell");
+  public void setOptParams(Map<String, OptParam> optParamsMap) {
+    if (optParamsMap != null && optParamsMap.get(LENGTH) != null) {
+      setLength(optParamsMap.get(LENGTH).getValue().intValue());
+      tiltBuy = optParamsMap.get(TILT_BUY).getValue();
+      tiltSell = optParamsMap.get(TILT_SELL).getValue();
     }else{
       throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
           " ticker = " + ticker + " timeframe = " + timeFrame);

@@ -33,7 +33,7 @@ public class Portfolios {
         "FLOT", "SNGS", "TRNFP");
     NAME_TO_TICKERS.put(Portfolios.MOEX, MOEX);
 
-    List<String> EM = List.of("EEMV","IEMG","EWZ","ARGT","EWW","GXG","ECH");
+    List<String> EM = List.of("EEMV","IEMG","EWZ","ARGT","EWW","GXG","ECH","AAXJ");
     NAME_TO_TICKERS.put(Portfolios.EM, EM);
   }
 

@@ -20,6 +20,7 @@ public interface OptParamDao {
 
   Map<String, Double> findValuesByTickerAndStrategy(String ticker, String strategy);
 
-  Map<String, Double> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe,
-                                                                String strategy);
+  Map<String, Double> findValuesByTickerAndTimeframeAndStrategyAsMap(String ticker, TimeFrame timeframe,
+                                                                     String strategy);
+  List<OptParam> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe, String strategy);
 }

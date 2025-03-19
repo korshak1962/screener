@@ -1,10 +1,17 @@
 package korshak.com.screener.serviceImpl.strategy;
 
+import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.LENGTH;
+import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.TILT_BUY;
+import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.TILT_SELL;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.TradeService;
+import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,9 +19,6 @@ import org.springframework.stereotype.Service;
 
 @Service("OptimizatorTilt")
 public class OptimizatorTilt extends Optimizator {
-  public static final String LENGTH = "Length";
-  public static final String TILT_BUY = "TiltBuy";
-  public static final String TILT_SELL = "TiltSell";
   int minLength = 30;
   int maxLength = 40;
   int stepLength = 1;
@@ -47,18 +51,20 @@ public class OptimizatorTilt extends Optimizator {
     return optimumParameters;
   }
 
-  public void configure(int minLength, int maxLength, int stepLength,
-                        double minTiltBuy, double maxTiltBuy, double tiltBuyStep,
-                        double minTiltSell, double maxTiltSell, double tiltSellStep) {
-    this.minLength = minLength;
-    this.maxLength = maxLength;
-    this.stepLength = stepLength;
-    this.minTiltBuy = minTiltBuy;
-    this.maxTiltBuy = maxTiltBuy;
-    this.tiltBuyStep = tiltBuyStep;
-    this.minTiltSell = minTiltSell;
-    this.maxTiltSell = maxTiltSell;
-    this.tiltSellStep = tiltSellStep;
+  public void configureTiltFromBaseStrategy(List<OptParam> optParamList ) {
+    Map<String, OptParam> optParamsMap=Utils.getOptParamsAsMap(optParamList);
+    OptParam length=optParamsMap.get(LENGTH);
+    this.minLength = (int)length.getMin();
+    this.maxLength = (int)length.getMax();
+    this.stepLength = (int)length.getStep();
+    OptParam tiltBuy=optParamsMap.get(TILT_BUY);
+    this.minTiltBuy = tiltBuy.getMin();
+    this.maxTiltBuy = tiltBuy.getMax();
+    this.tiltBuyStep = tiltBuy.getStep();
+    OptParam tiltSell=optParamsMap.get(TILT_SELL);
+    this.minTiltSell = tiltSell.getMin();
+    this.maxTiltSell = tiltSell.getMax();
+    this.tiltSellStep = tiltSell.getStep();
   }
 
   private void optimazeTiltStrategy() {

@@ -87,13 +87,20 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public Map<String, Double> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe, String strategy) {
-    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndId_Strategy(ticker, timeframe, strategy);
+  public Map<String, Double> findValuesByTickerAndTimeframeAndStrategyAsMap(String ticker, TimeFrame timeframe, String strategy) {
+    List<OptParam> params =
+        findValuesByTickerAndTimeframeAndStrategy(ticker, timeframe, strategy);
     return params.stream()
         .filter(param -> param.getValue() != null)
         .collect(Collectors.toMap(
             param -> param.getId().getParam(),
             OptParam::getValue
         ));
+  }
+
+  public List<OptParam> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe, String strategy) {
+    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndId_Strategy(ticker,
+        timeframe, strategy);
+    return params;
   }
 }

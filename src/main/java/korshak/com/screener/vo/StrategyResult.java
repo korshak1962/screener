@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.OptParam;
 
 public class StrategyResult {
   private final List<? extends BasePrice> prices;
@@ -62,18 +63,18 @@ public class StrategyResult {
   @Override
   public String toString() {
     return prices.getFirst().getId().getTicker() +
-        " \n longPnL=" + df.format(longPnL) +
+        " \n lPnL=" + df.format(longPnL) +
         ", BHPnL=" + df.format(buyAndHoldPnL) +
-         ", shortPnL=" + df.format(shortPnL) +
+         ", sPnL=" + df.format(shortPnL) +
         //  ", totalPnL=" + df.format(totalPnL) +
-        ", profitToLostRatio=" + df.format(profitToLostRatio) +
-        ", profitLongTradesQnty=" + profitLongTradesQnty +
-        ", lostLongTradesQnty=" + lostLongTradesQnty +
+        ", pToLRatio=" + df.format(profitToLostRatio) +
+        ", prLTrQnty=" + profitLongTradesQnty +
+        ", lostLTrQnty=" + lostLongTradesQnty +
         //   ", totalPnL=" + df.format(totalPnL) +
         //  ", minLongPnl=" + minLongPnl +
         // ", worstLongTrade=" + worstLongTrade +
         //   ", minShortPnl=" + minShortPnl +
-        ", AnnualPercentageReturnLong =" + df.format(getAnnualPercentageReturnLong())
+        ", AnPercentRetLong =" + df.format(getAnnualPercentageReturnLong())
         // ", maxPossibleLossIfBuyAndHold=" + df.format(maxPossibleLoss)
         ;
   }

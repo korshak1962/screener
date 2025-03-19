@@ -1,5 +1,9 @@
 package korshak.com.screener;
 
+import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.LENGTH;
+import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.TILT_BUY;
+import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.TILT_SELL;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -131,13 +135,13 @@ public class ScreenerApplication implements CommandLineRunner {
     LocalDateTime endDate = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
 
-    reporter.optAndShow("QQQ", startDate, endDate, TimeFrame.DAY);
+    //reporter.optAndShow("QQQ", startDate, endDate, TimeFrame.DAY);
 
     LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
-    String ticker = "QQQ";
+    String ticker = "SBER_MOEX";
     //reporter.createExcelReport(List.of(ticker), startDateEval, endDateEval, TimeFrame.DAY,ticker);
-    Reporter.STOP_LOSS_MAX_PERCENT = .98;
+    Reporter.STOP_LOSS_MAX_PERCENT = .95;
     //reporter.evaluateAndShow(buyCloseHigherPrevClose, ticker, startDateEval, endDateEval,
     //    TimeFrame.WEEK);
     Map<TimeFrame, List<String>> timeFrameToStrategyNames = new HashMap<>();
@@ -147,13 +151,13 @@ public class ScreenerApplication implements CommandLineRunner {
     timeFrameToStrategyNames.put(TimeFrame.WEEK, strategyNamesDay);
 
  */
-    timeFrameToStrategyNames.put(TimeFrame.WEEK,
-        List.of("BuyCloseHigherSellCloseLessMin"));
+    timeFrameToStrategyNames.put(TimeFrame.DAY,
+        List.of("TiltFromBaseStrategy"));
     //timeFrameToStrategyNames.put(TimeFrame.DAY,
     //    List.of("TiltFromBaseStrategy"));
-    // reporter.readAndShow(timeFrameToStrategyNames, "QQQ",
-    //     LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0),
-    //     LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0););
+  // reporter.readAndShow(timeFrameToStrategyNames, "MCHI",
+  //       LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0),
+  //       LocalDateTime.of(2025, Month.APRIL, 1, 0, 0));
 
     //reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
     // reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
@@ -162,22 +166,24 @@ public class ScreenerApplication implements CommandLineRunner {
     //  ""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
 
 
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), "2025-", 2, 3, yahooDownloader);
-     // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
+   // downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_SECTOR_ETF),
+    //    2025, 2,2025, 3, yahooDownloader);
+    // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.EM),
      //    LocalDate.now().minusDays(5), yahooDownloader);
-    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+    reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
-    // downloadSeries("AMZN", 2024, 1,2025, 1, alphaVintageDownloader);
-//    downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH), 2025, 1, 2025, 1,
-//        alphaVintageDownloader);
+     //downloadSeries("AAXJ", 2024, 1,2025, 1, alphaVintageDownloader);
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
+    //    2020, 1, 2025, 1,
+    //   alphaVintageDownloader);
 
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),
     //      "2025-", 1, 3, yahooDownloader);
     //downloadSeries("QQQ", "2025-01-01", yahooDownloader);
 //    downloadSeries("SNGS", "2018-01-01", moexDownloader);
-    //   downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
-    //     "2025-", 3, 3, moexDownloader);
+   //    downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+    //     2025, 3,2025, 3, moexDownloader);
 
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
 
@@ -199,9 +205,9 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private void futurePriceCalc(String ticker, Map<String, Double> optParams) {
     double priceToBuy = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
-        optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_BUY));
+        optParams.get(LENGTH).intValue(), optParams.get(TILT_BUY));
     double priceToSell = futurePriceByTiltCalculator.calculatePrice(ticker, TimeFrame.DAY,
-        optParams.get(OptimizatorTilt.LENGTH).intValue(), optParams.get(OptimizatorTilt.TILT_SELL));
+        optParams.get(LENGTH).intValue(), optParams.get(TILT_SELL));
     System.out.println("Price to buy: " + priceToBuy);
     System.out.println("Price to sell: " + priceToSell);
   }
@@ -237,11 +243,11 @@ public class ScreenerApplication implements CommandLineRunner {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
     //{Length=44.0, TiltBuy=0.01, TiltSell=-0.05}
     //tiltStrategy.setLength(9);
-    tiltStrategy.setLength(params.get(OptimizatorTilt.LENGTH).intValue());
+    tiltStrategy.setLength(params.get(LENGTH).intValue());
     //tiltStrategy.setTiltBuy(0.02);
-    tiltStrategy.setTiltBuy(params.get(OptimizatorTilt.TILT_BUY));
+    tiltStrategy.setTiltBuy(params.get(TILT_BUY));
     //tiltStrategy.setTiltSell(-0.02);
-    tiltStrategy.setTiltSell(params.get(OptimizatorTilt.TILT_SELL));
+    tiltStrategy.setTiltSell(params.get(TILT_SELL));
     tiltStrategy.calcSignals();
     return tiltStrategy;
   }

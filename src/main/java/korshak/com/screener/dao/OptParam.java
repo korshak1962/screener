@@ -18,14 +18,26 @@ public class OptParam {
   @Column(name = "value_string")
   private String valueString;
 
+  @Column(name = "min", nullable = false, columnDefinition = "FLOAT DEFAULT 0")
+  private float min = 0.0f;
+
+  @Column(name = "max", nullable = false, columnDefinition = "FLOAT DEFAULT 0")
+  private float max = 0.0f;
+
+  @Column(name = "step", nullable = false, columnDefinition = "FLOAT DEFAULT 0")
+  private float step = 0.0f;
+
   public OptParam() {
   }
 
-  public OptParam(String ticker, String paramName, String strategy, TimeFrame timeframe, Double value, String valueString) {
+  public OptParam(String ticker, String paramName, String strategy, TimeFrame timeframe, Double value, String valueString, float min, float max, float step) {
     this.id = new OptParamKey(ticker, paramName, strategy);
     this.timeframe = timeframe;
     this.value = value;
     this.valueString = valueString;
+    this.min = min;
+    this.max = max;
+    this.step = step;
   }
 
   public OptParamKey getId() {
@@ -60,6 +72,30 @@ public class OptParam {
     this.valueString = valueString;
   }
 
+  public float getMin() {
+    return min;
+  }
+
+  public void setMin(float min) {
+    this.min = min;
+  }
+
+  public float getMax() {
+    return max;
+  }
+
+  public void setMax(float max) {
+    this.max = max;
+  }
+
+  public float getStep() {
+    return step;
+  }
+
+  public void setStep(float step) {
+    this.step = step;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -80,6 +116,9 @@ public class OptParam {
         ", timeframe=" + timeframe +
         ", value=" + value +
         ", valueString='" + valueString + '\'' +
+        ", min=" + min +
+        ", max=" + max +
+        ", step=" + step +
         '}';
   }
 
