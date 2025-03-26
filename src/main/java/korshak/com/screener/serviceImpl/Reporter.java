@@ -25,12 +25,14 @@ import korshak.com.screener.service.TrendService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BaseStrategy;
+import korshak.com.screener.serviceImpl.strategy.GenericOptimizator;
 import korshak.com.screener.serviceImpl.strategy.Optimizator;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
 import korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.TrendChangeStrategy;
 import korshak.com.screener.utils.ExcelExportService;
+import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -49,6 +51,7 @@ public class Reporter {
   public static double STOP_LOSS_MAX_PERCENT = .97;
   private final StrategyProvider strategyProvider;
   private final OptimizatorTilt optimizatorTilt;
+  private final GenericOptimizator genericOptimizator;
   private final StrategyMerger strategyMerger;
   private final FuturePriceByTiltCalculator futurePriceByTiltCalculator;
   private final TradeService tradeService;
@@ -61,6 +64,7 @@ public class Reporter {
 
   public Reporter(StrategyProvider strategyProvider,
                   @Qualifier("OptimizatorTilt") OptimizatorTilt optimizatorTilt,
+                  @Qualifier("GenericOptimizator") GenericOptimizator genericOptimizator,
                   @Qualifier("StrategyMerger") StrategyMerger strategyMerger,
                   FuturePriceByTiltCalculator futurePriceByTiltCalculator,
                   TradeService tradeService,
@@ -79,6 +83,7 @@ public class Reporter {
     this.trendService = trendService;
     this.optParamDao = optParamDao;
     this.trendChangeStrategy = trendChangeStrategy;
+    this.genericOptimizator = genericOptimizator;
   }
 
   private static void show(Strategy strategy, StrategyResult strategyResult) {
@@ -232,8 +237,7 @@ public class Reporter {
   }
 
   public StrategyResult getStrategyResult(String ticker, LocalDateTime startDate,
-                                          LocalDateTime endDate, TimeFrame timeFrame)
-      throws IOException {
+                                          LocalDateTime endDate, TimeFrame timeFrame) {
 
     BaseStrategy baseStrategy =
         initStrategy(tiltFromBaseStrategy, timeFrame, ticker, startDate, endDate);
@@ -253,7 +257,7 @@ public class Reporter {
     Map<String, Double> optParams = new HashMap<>();
     for (Strategy strategy : strategies) {
       strategyMerger.addStrategy(strategy);
-      Map<String, OptParam> optParamsMap = ((BaseStrategy) strategy).getOptParamsMap();
+      Map<String, OptParam> optParamsMap = strategy.getOptParams();
       for (Map.Entry<String, OptParam> entry : optParamsMap.entrySet()) {
         optParams.put(entry.getKey(), entry.getValue().getValue());
       }
@@ -362,6 +366,35 @@ public class Reporter {
     fillOptParamList(optParamList, paramToDouble, paramToString);
     optParamDao.saveAll(optParamList);
     return paramToDouble;
+  }
+
+  public Map<Strategy, Map<String, OptParam>> findSaveOptParamsGeneric(String ticker,
+                                                                       LocalDateTime startDate,
+                                                                       LocalDateTime endDate,
+                                                                       TimeFrame timeFrame) {
+    strategyMerger.getNameToStrategy().clear();
+    strategyMerger.init(ticker, timeFrame, startDate, endDate);
+    strategyProvider.init(ticker, startDate, endDate, timeFrame);
+
+    TiltFromBaseStrategy shortStrategy = (TiltFromBaseStrategy) strategyProvider
+        .getStrategy("TiltFromBaseStrategy");
+    strategyMerger.addStrategy(shortStrategy);
+
+    TiltFromBaseStrategy longStrategy = (TiltFromBaseStrategy) strategyProvider
+        .getStrategy("TiltFromBaseStrategy");
+    List<OptParam> optParamList = new ArrayList<>();
+    OptParam optParam = new OptParam(ticker, LENGTH, "TiltFromBaseStrategy", timeFrame,
+        4.0, "", 30.0f, 40.0f, 1.0f);
+    optParamList.add(optParam);
+    longStrategy.initOptParams(Utils.getOptParamsAsMap(optParamList));
+  //  strategyMerger.addStrategy(longStrategy);
+
+
+    genericOptimizator.init(strategyMerger);
+    Map<Strategy, Map<String, OptParam>> strategyToParams =
+        genericOptimizator.findOptimalParametersForAllStrategies();
+    //   optParamDao.saveAll(optParamList);
+    return strategyToParams;
   }
 
   private Map<String, Double> optimazeStrategy(Optimizator optimizator, String ticker,

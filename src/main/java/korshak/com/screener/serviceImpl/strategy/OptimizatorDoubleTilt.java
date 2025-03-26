@@ -2,7 +2,9 @@ package korshak.com.screener.serviceImpl.strategy;
 
 import java.util.HashMap;
 import java.util.Map;
+import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.service.TradeService;
+import korshak.com.screener.service.strategy.Strategy;
 import org.springframework.stereotype.Service;
 
 @Service("OptimizatorDoubleTilt")
@@ -73,6 +75,11 @@ public class OptimizatorDoubleTilt extends Optimizator {
 
      */
     return optimumParameters;
+  }
+
+  @Override
+  public Map<Strategy, Map<String, OptParam>> findOptimalParametersForAllStrategies() {
+    throw new UnsupportedOperationException("Unimplemented method 'findOptimalParametersForAllStrategies'");
   }
 
 

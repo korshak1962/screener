@@ -201,7 +201,7 @@ public abstract class BaseStrategy implements Strategy {
     return (List<BasePrice>) specialPrices;
   }
 
-  public Map<String, OptParam> getOptParamsMap() {
+  public Map<String, OptParam> getOptParams() {
     return optParamsMap;
   }
 }

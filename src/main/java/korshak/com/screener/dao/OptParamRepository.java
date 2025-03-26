@@ -16,4 +16,12 @@ public interface OptParamRepository extends JpaRepository<OptParam, OptParam.Opt
   List<OptParam> findById_TickerAndId_Strategy(String ticker, String strategy);
 
   List<OptParam> findById_TickerAndTimeframeAndId_Strategy(String ticker, TimeFrame timeframe, String strategy);
+
+// ==== OptParamRepository.java changes ====
+
+  // Add new methods to query including case_id
+  List<OptParam> findById_TickerAndTimeframeAndId_CaseId(String ticker, TimeFrame timeframe, String caseId);
+
+  List<OptParam> findById_TickerAndTimeframeAndId_StrategyAndId_CaseId(String ticker, TimeFrame timeframe, String strategy, String caseId);
+
 }

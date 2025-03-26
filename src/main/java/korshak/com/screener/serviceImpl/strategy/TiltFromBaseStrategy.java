@@ -12,12 +12,15 @@ import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 @Service("TiltFromBaseStrategy")
+@Scope("prototype")
 public class TiltFromBaseStrategy extends BaseStrategy {
 
   public static final String LENGTH = "Length";
@@ -25,31 +28,41 @@ public class TiltFromBaseStrategy extends BaseStrategy {
   public static final String TILT_SELL = "TiltSell";
   final SmaDao smaDao;
   Map<LocalDateTime, BaseSma> smaMap;
-  double tiltBuy = 1;
-  double tiltSell = -1;
+  double tiltBuy = 0;
+  double tiltSell = 0;
   int length;
   List<? extends BaseSma> smaList;
 
   public TiltFromBaseStrategy(SmaDao smaDao, PriceDao priceDao, OptParamDao optParamDao) {
     super(priceDao, optParamDao);
     this.smaDao = smaDao;
-    initOptParams();
   }
 
-  private void initOptParams() {
-    List<OptParam> optParams = new ArrayList<>();
-    optParams.add(
-        new OptParam(ticker, LENGTH, this.getClass().getSimpleName(), timeFrame,
-            4.0, "", 4.0f, 10.0f, 1.0f)
-    );
-    optParams.add(
-        new OptParam(ticker, TILT_BUY, this.getClass().getSimpleName(), timeFrame,
-            -0.02, "", -0.02f, 0.02f, 0.01f)    );
-    optParams.add(
-        new OptParam(ticker, TILT_SELL, this.getClass().getSimpleName(), timeFrame,
-            -0.05, "", -0.05f, 0.01f, 0.01f)
-    );
-    optParamsMap = Utils.getOptParamsAsMap(optParams);
+  public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+                       LocalDateTime endDate) {
+    super.init(ticker, timeFrame, startDate, endDate);
+    initOptParams(null);
+    return this;
+  }
+
+  public void initOptParams(Map<String, OptParam> mameToValue) {
+      List<OptParam> optParams = new ArrayList<>();
+      optParams.add(
+          new OptParam(ticker, LENGTH, this.getClass().getSimpleName(), timeFrame,
+              4.0, "", 4.0f, 10.0f, 1.0f)
+      );
+      optParams.add(
+          new OptParam(ticker, TILT_BUY, this.getClass().getSimpleName(), timeFrame,
+              -0.02, "", -0.02f, 0.02f, 0.01f));
+      optParams.add(
+          new OptParam(ticker, TILT_SELL, this.getClass().getSimpleName(), timeFrame,
+              -0.05, "", -0.05f, 0.01f, 0.01f)
+      );
+      optParamsMap = Utils.getOptParamsAsMap(optParams);
+    if (mameToValue != null) {
+      optParamsMap.putAll(mameToValue);
+    }
+    setOptParams(optParamsMap);
   }
 
   @Override
@@ -134,7 +147,7 @@ public class TiltFromBaseStrategy extends BaseStrategy {
       setLength(optParamsMap.get(LENGTH).getValue().intValue());
       tiltBuy = optParamsMap.get(TILT_BUY).getValue();
       tiltSell = optParamsMap.get(TILT_SELL).getValue();
-    }else{
+    } else {
       throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
           " ticker = " + ticker + " timeframe = " + timeFrame);
     }

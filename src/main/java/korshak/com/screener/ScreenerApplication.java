@@ -131,17 +131,17 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
-
-    //reporter.optAndShow("QQQ", startDate, endDate, TimeFrame.DAY);
+    //reporter.findSaveOptParamsGeneric("QQQ", startDate, endDate, TimeFrame.DAY);
+    reporter.optAndShow("QQQ", startDate, endDate, TimeFrame.DAY);
 
     LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     String ticker = "SBER_MOEX";
     //reporter.createExcelReport(List.of(ticker), startDateEval, endDateEval, TimeFrame.DAY,ticker);
-    Reporter.STOP_LOSS_MAX_PERCENT = .95;
+   // Reporter.STOP_LOSS_MAX_PERCENT = .95;
     //reporter.evaluateAndShow(buyCloseHigherPrevClose, ticker, startDateEval, endDateEval,
     //    TimeFrame.WEEK);
     Map<TimeFrame, List<String>> timeFrameToStrategyNames = new HashMap<>();
@@ -166,23 +166,23 @@ public class ScreenerApplication implements CommandLineRunner {
     //  ""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
 
 
-   // downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_SECTOR_ETF),
-    //    2025, 2,2025, 3, yahooDownloader);
+  //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.ALL),
+   //     2025, 2,2025, 3, yahooDownloader);
     // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.EM),
-     //    LocalDate.now().minusDays(5), yahooDownloader);
-    reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+    //     LocalDate.now().minusDays(5), yahooDownloader);
+    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
 
      //downloadSeries("AAXJ", 2024, 1,2025, 1, alphaVintageDownloader);
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
-    //    2020, 1, 2025, 1,
-    //   alphaVintageDownloader);
+  //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA),
+  //      2024, 1, 2025, 1,
+  //     alphaVintageDownloader);
 
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),
     //      "2025-", 1, 3, yahooDownloader);
     //downloadSeries("QQQ", "2025-01-01", yahooDownloader);
 //    downloadSeries("SNGS", "2018-01-01", moexDownloader);
-   //    downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+    //   downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
     //     2025, 3,2025, 3, moexDownloader);
 
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
@@ -254,25 +254,6 @@ public class ScreenerApplication implements CommandLineRunner {
 
   private DoubleTiltStrategy initStrategy(DoubleTiltStrategy doubleTiltStrategy) {
     return doubleTiltStrategy;
-  }
-
-  private Map<String, Double> optimazeStrategy(Optimizator optimizator, String ticker,
-                                               TimeFrame timeFrame,
-                                               LocalDateTime startDate, LocalDateTime endDate,
-                                               double minPercent,
-                                               double maxPercent, double step) {
-    optimizator.init(ticker, timeFrame, startDate, endDate);
-    Map<String, Double> params =
-        optimizator.findOptimumParametersWithStopLoss(minPercent, maxPercent, step);
-    System.out.println(" " + ticker + " " + params.remove(Optimizator.MAX_PNL) + " " + params);
-    StrategyResult buyAndHoldstrategyResult =
-        tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, ticker,
-            startDate,
-            endDate,
-            timeFrame);
-    System.out.println("Buy and hold pnl = " + buyAndHoldstrategyResult.getLongPnL());
-    //System.exit(0);
-    return params;
   }
 
   private void evaluateDoubleTiltStrategyMinusDownTrend() throws IOException {

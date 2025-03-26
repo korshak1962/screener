@@ -2,8 +2,10 @@ package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.TradeService;
+import korshak.com.screener.service.strategy.Strategy;
 
 
 public abstract class Optimizator {
@@ -19,6 +21,15 @@ public abstract class Optimizator {
   public Optimizator(StrategyMerger merger, TradeService tradeService) {
     this.merger = merger;
     this.tradeService = tradeService;
+  }
+
+  public void init(StrategyMerger merger) {
+    this.ticker = merger.getTicker();
+    this.timeFrame = merger.timeFrame;
+    this.startDate = merger.startDate;
+    this.endDate = merger.endDate;
+    merger.nameToStrategy.values().forEach(strategy ->
+        strategy.init(ticker, timeFrame, startDate, endDate));
   }
 
   public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
@@ -50,4 +61,5 @@ public abstract class Optimizator {
 
   public abstract Map<String, Double> findOptimumParameters();
 
+  public abstract Map<Strategy, Map<String, OptParam>> findOptimalParametersForAllStrategies();
 }

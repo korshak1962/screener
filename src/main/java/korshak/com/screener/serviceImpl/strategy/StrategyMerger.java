@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
@@ -30,7 +31,7 @@ public class StrategyMerger implements Strategy {
   List<? extends BasePrice> prices;
   List<Signal> signalsLong;
   List<Signal> signalsShort = new ArrayList<>();
-
+  Map<String, OptParam> optParamsMap = new HashMap<>();
   Map<LocalDateTime, List<Signal>> dateToSignals;
   Comparator<Signal> signalComparator = (s1, s2) -> {
     // First compare by SignalType value
@@ -72,6 +73,7 @@ public class StrategyMerger implements Strategy {
         endDate,
         timeFrame
     );
+    initOptParams(null);
     return this;
   }
 
@@ -137,7 +139,7 @@ public class StrategyMerger implements Strategy {
   }
 
   public StrategyMerger addStrategy(Strategy strategy) {
-    nameToStrategy.put(strategy.getStrategyName() + strategy.getTimeFrame(), strategy);
+    nameToStrategy.put(strategy.getStrategyName() + strategy.getTimeFrame()+strategy.hashCode(), strategy);
     return this;
   }
 
@@ -197,5 +199,27 @@ public class StrategyMerger implements Strategy {
   public StrategyMerger setStopLossPercent(double stopLossMaxPercent) {
     this.stopLossMaxPercent = stopLossMaxPercent;
     return this;
+  }
+  public void initOptParams(Map<String, OptParam> mameToValue) {
+    List<OptParam> optParams = new ArrayList<>();
+    optParams.add(
+        new OptParam(ticker, "stopLossPercent", this.getClass().getSimpleName(), timeFrame,
+            .98, "", .92f, 0.99f, 0.01f)
+    );
+    /*
+    optParams.add(new OptParam(ticker, "startDate", this.getClass().getSimpleName(), timeFrame,
+        0d, startDate.toString(), 0f, 0f, 1f));
+    optParams.add(new OptParam(ticker, "endDate", this.getClass().getSimpleName(), timeFrame,
+        0d, endDate.toString(), 0f, 0f, 1f));
+
+     */
+    optParamsMap = Utils.getOptParamsAsMap(optParams);
+    if (mameToValue != null) {
+      optParamsMap.putAll(mameToValue);
+    }
+  }
+
+ public Map<String, OptParam> getOptParams() {
+    return optParamsMap;
   }
 }

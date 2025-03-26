@@ -1,6 +1,12 @@
 package korshak.com.screener.dao;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -27,11 +33,24 @@ public class OptParam {
   @Column(name = "step", nullable = false, columnDefinition = "FLOAT DEFAULT 0")
   private float step = 0.0f;
 
+  // Define relationship to CompositeCase - one OptParam can have multiple CompositeCases
+  // This is a reverse relationship where composite_case depends on opt_params
+
+
   public OptParam() {
   }
 
-  public OptParam(String ticker, String paramName, String strategy, TimeFrame timeframe, Double value, String valueString, float min, float max, float step) {
-    this.id = new OptParamKey(ticker, paramName, strategy);
+  public OptParam(String ticker, String paramName, String strategy, TimeFrame timeframe,
+                  Double value, String valueString, float min, float max, float step) {
+    this(ticker, paramName, strategy, "Single", timeframe, value,
+        valueString, min, max, step);
+  }
+
+
+  public OptParam(String ticker, String paramName, String strategy, String caseId,
+                  TimeFrame timeframe, Double value, String valueString, float min, float max,
+                  float step) {
+    this.id = new OptParamKey(ticker, paramName, strategy, caseId);
     this.timeframe = timeframe;
     this.value = value;
     this.valueString = valueString;
@@ -47,6 +66,13 @@ public class OptParam {
   public void setId(OptParamKey id) {
     this.id = id;
   }
+
+  public String getCaseId() {
+    return id != null ? id.getCaseId() : null;
+  }
+
+  //@OneToOne(mappedBy = "optParam", fetch = FetchType.LAZY)
+  //private CompositeCase compositeCase;
 
   public TimeFrame getTimeframe() {
     return timeframe;
@@ -98,8 +124,12 @@ public class OptParam {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     OptParam optParam = (OptParam) o;
     return Objects.equals(id, optParam.id);
   }
@@ -128,13 +158,18 @@ public class OptParam {
     private String param;
     private String strategy;
 
+    @Column(name = "case_id", nullable = false)
+    private String caseId;
+
     public OptParamKey() {
+      this.caseId = "Single"; // Default value
     }
 
-    public OptParamKey(String ticker, String paramName, String strategy) {
+    public OptParamKey(String ticker, String paramName, String strategy, String caseId) {
       this.ticker = ticker;
       this.param = paramName;
       this.strategy = strategy;
+      this.caseId = caseId != null ? caseId : "Single";
     }
 
     public String getTicker() {
@@ -161,19 +196,32 @@ public class OptParam {
       this.strategy = strategy;
     }
 
+    public String getCaseId() {
+      return caseId;
+    }
+
+    public void setCaseId(String caseId) {
+      this.caseId = caseId != null ? caseId : "Single";
+    }
+
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
       OptParamKey that = (OptParamKey) o;
       return Objects.equals(ticker, that.ticker) &&
           Objects.equals(param, that.param) &&
-          Objects.equals(strategy, that.strategy);
+          Objects.equals(strategy, that.strategy) &&
+          Objects.equals(caseId, that.caseId);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(ticker, param, strategy);
+      return Objects.hash(ticker, param, strategy, caseId);
     }
 
     @Override
@@ -182,6 +230,7 @@ public class OptParam {
           "ticker='" + ticker + '\'' +
           ", paramName='" + param + '\'' +
           ", strategy='" + strategy + '\'' +
+          ", caseId='" + caseId + '\'' +
           '}';
     }
   }

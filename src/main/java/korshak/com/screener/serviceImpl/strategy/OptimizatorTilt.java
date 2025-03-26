@@ -11,6 +11,7 @@ import java.util.Map;
 import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.TradeService;
+import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,11 @@ public class OptimizatorTilt extends Optimizator {
   public Map<String, Double> findOptimumParameters() {
     optimazeTiltStrategy();
     return optimumParameters;
+  }
+
+  @Override
+  public Map<Strategy, Map<String, OptParam>> findOptimalParametersForAllStrategies() {
+    throw new RuntimeException("Not implemented");
   }
 
   public void configureTiltFromBaseStrategy(List<OptParam> optParamList ) {

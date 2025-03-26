@@ -18,9 +18,19 @@ public interface OptParamDao {
 
   Map<String, Object> findAllValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe);
 
+  // New methods for case_id support
+  List<OptParam> findByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
+
+  Map<String, Double> findValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
+
+  Map<String, String> findStringValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
+
+  Map<String, Object> findAllValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
+
   Map<String, Double> findValuesByTickerAndStrategy(String ticker, String strategy);
 
   Map<String, Double> findValuesByTickerAndTimeframeAndStrategyAsMap(String ticker, TimeFrame timeframe,
                                                                      String strategy);
+
   List<OptParam> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe, String strategy);
 }
