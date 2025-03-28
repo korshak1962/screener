@@ -31,7 +31,6 @@ import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTren
 import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevClose;
 import korshak.com.screener.serviceImpl.strategy.BuyHigherPrevHigh;
 import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
-import korshak.com.screener.serviceImpl.strategy.Optimizator;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
 import korshak.com.screener.serviceImpl.strategy.StopLossPercentStrategy;
@@ -131,11 +130,13 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
+    List<String> strategyNames = List.of("TiltFromBaseStrategy");
+    reporter.readParamsGetStrategyResult("QQQ", startDate, endDate, TimeFrame.DAY,strategyNames);
     //reporter.findSaveOptParamsGeneric("QQQ", startDate, endDate, TimeFrame.DAY);
-    reporter.optAndShow("QQQ", startDate, endDate, TimeFrame.DAY);
+    //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 
     LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
@@ -155,9 +156,9 @@ public class ScreenerApplication implements CommandLineRunner {
         List.of("TiltFromBaseStrategy"));
     //timeFrameToStrategyNames.put(TimeFrame.DAY,
     //    List.of("TiltFromBaseStrategy"));
-  // reporter.readAndShow(timeFrameToStrategyNames, "MCHI",
-  //       LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0),
-  //       LocalDateTime.of(2025, Month.APRIL, 1, 0, 0));
+   //reporter.readAndShow(timeFrameToStrategyNames, "QQQ",
+    //     LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0),
+    //     LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0));
 
     //reporter.readAndShow(ticker, startDateEval, endDateEval, TimeFrame.DAY);
     // reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
@@ -168,14 +169,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.ALL),
    //     2025, 2,2025, 3, yahooDownloader);
-    // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.EM),
-    //     LocalDate.now().minusDays(5), yahooDownloader);
-    //reporter.optAndShow(ticker, startDate, endDate, TimeFrame.DAY);
+   //  downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA),
+    //     LocalDate.now().minusDays(8), yahooDownloader);
 
-     //downloadSeries("AAXJ", 2024, 1,2025, 1, alphaVintageDownloader);
-  //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA),
-  //      2024, 1, 2025, 1,
-  //     alphaVintageDownloader);
+
+    // downloadSeries("AAXJ", 2024, 1,2025, 1, alphaVintageDownloader);
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA), 2024, 1, 2025, 1, alphaVintageDownloader);
 
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),
@@ -588,7 +587,7 @@ public class ScreenerApplication implements CommandLineRunner {
 
       System.out.println("yearMonth = " + year + " " + month);
       saved += alphaVintageDownloader
-          .fetchAndSaveData(timeSeriesLabel, ticker, interval, year, month);
+          .fetchAndSaveData(timeSeriesLabel, ticker, interval, month,year);
       System.out.println("saved = " + saved);
     }
     if (saved > 0) {

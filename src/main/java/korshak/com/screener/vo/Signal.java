@@ -33,4 +33,13 @@ public class Signal {
     return comment;
   }
 
+  @Override
+  public String toString() {
+    return "Signal{" +
+        "date=" + date +
+        ", price=" + price +
+        ", signalType=" + signalType +
+        ", comment='" + comment + '\'' +
+        '}';
+  }
 }

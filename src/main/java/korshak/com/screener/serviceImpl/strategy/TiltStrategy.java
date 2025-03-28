@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
+import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.TimeFrame;
@@ -205,6 +206,16 @@ public class TiltStrategy implements Strategy {
 
   @Override
   public void calcSignals() {
+
+  }
+
+  @Override
+  public Map<String, OptParam> getOptParams() {
+    return Map.of();
+  }
+
+  @Override
+  public void setOptParams(Map<String, OptParam> optParamsMap) {
 
   }
 

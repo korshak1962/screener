@@ -34,4 +34,13 @@ public class Trade {
   public void setMaxPainPercent(double maxPainPercent) {
     this.maxPainPercent = maxPainPercent;
   }
+
+  @Override
+  public String toString() {
+    return "Trade{" +
+        "open=" + open +
+        ", close=" + close +
+        ", pnl=" + pnl +
+        '}';
+  }
 }

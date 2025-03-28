@@ -105,11 +105,17 @@ public class OptimizatorTilt extends Optimizator {
            */
 
           if (maxPnl < longPnL) {
+            strategyResultLong.getTradesLong().forEach(trade -> {
+              System.out.println(trade);
+            });
             maxPnl = longPnL;
             optimumParameters.put(MAX_PNL, maxPnl);
             optimumParameters.put(TILT_BUY, tiltFromBaseStrategy.getTiltBuy());
+            System.out.println("tiltBuy = "+tiltFromBaseStrategy.getTiltBuy());
             optimumParameters.put(TILT_SELL, tiltFromBaseStrategy.getTiltSell());
+            System.out.println("tiltSell = "+tiltFromBaseStrategy.getTiltSell());
             optimumParameters.put(LENGTH, (double) tiltFromBaseStrategy.getLength());
+            System.out.println("LENGTH = "+tiltFromBaseStrategy.getLength());
           }
         }
       }

@@ -39,24 +39,7 @@ public interface Strategy {
 
   void calcSignals();
 
-  /**
-   * Returns a map of parameter names to OptParam objects that can be optimized.
-   * Default implementation returns an empty map.
-   *
-   * @return Map of parameter names to OptParam objects
-   */
-  default Map<String, OptParam> getOptParams() {
-    return new HashMap<>();
-  }
 
-  /**
-   * Sets optimization parameters for the strategy.
-   * Default implementation does nothing.
-   * Implementing classes should apply these parameters to their internal state.
-   *
-   * @param optParamsMap Map of parameter names to OptParam objects
-   */
-  default void setOptParams(Map<String, OptParam> optParamsMap) {
-    // Default implementation does nothing
-  }
+   Map<String, OptParam> getOptParams() ;
+   void setOptParams(Map<String, OptParam> optParamsMap) ;
 }

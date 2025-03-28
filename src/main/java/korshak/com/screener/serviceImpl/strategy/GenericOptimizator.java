@@ -24,6 +24,11 @@ public class GenericOptimizator extends Optimizator {
   private long combinationsTested;
   private long totalCombinations;
 
+  // Track progress statistics
+  private long lastProgressReport = 0;
+  private long progressReportInterval = 100;
+  private long startTime;
+
   public GenericOptimizator(StrategyMerger merger, TradeService tradeService) {
     super(merger, tradeService);
   }
@@ -72,6 +77,7 @@ public class GenericOptimizator extends Optimizator {
   public Map<Strategy, Map<String, OptParam>> findOptimalParametersForAllStrategies() {
     // Initialize member variables
     initializeOptimization();
+    startTime = System.currentTimeMillis();
 
     if (strategiesToOptimize.isEmpty()) {
       System.out.println("No parameters to optimize");
@@ -82,15 +88,60 @@ public class GenericOptimizator extends Optimizator {
     totalCombinations = calculateTotalCombinations();
     System.out.println("Total parameter combinations to check: " + totalCombinations);
 
-    // Start recursive optimization with the first strategy
-    optimizeStrategyRecursive(0);
+    // Prepare parameter structures for recursive optimization
+    Map<Strategy, List<String>> strategyParamNames = new HashMap<>();
+    Map<Strategy, List<List<OptParam>>> strategyParamValues = new HashMap<>();
+
+    // For each strategy, identify all parameters and their potential values
+    for (Strategy strategy : strategiesToOptimize) {
+      strategyParamNames.put(strategy, new ArrayList<>());
+      strategyParamValues.put(strategy, new ArrayList<>());
+
+      for (Map.Entry<String, OptParam> entry : strategy.getOptParams().entrySet()) {
+        String paramName = entry.getKey();
+        OptParam baseParam = entry.getValue();
+
+        // Add parameter name
+        strategyParamNames.get(strategy).add(paramName);
+
+        // Generate all possible values for this parameter
+        List<OptParam> paramValues = new ArrayList<>();
+        double paramValue = baseParam.getMin();
+        while (paramValue <= baseParam.getMax()) {
+          // Create param with this value
+          OptParam newParam = new OptParam(
+              baseParam.getId().getTicker(),
+              baseParam.getId().getParam(),
+              baseParam.getId().getStrategy(),
+              baseParam.getId().getCaseId(),
+              baseParam.getTimeframe(),
+              paramValue,
+              baseParam.getValueString(),
+              baseParam.getMin(),
+              baseParam.getMax(),
+              baseParam.getStep()
+          );
+          paramValues.add(newParam);
+          paramValue += baseParam.getStep();
+        }
+
+        // Add parameter values list
+        strategyParamValues.get(strategy).add(paramValues);
+      }
+    }
+
+    // Start recursive optimization with the first strategy and first parameter
+    optimizeStrategyRecursive(0, 0, strategyParamNames, strategyParamValues);
 
     // Apply best parameters to all strategies
     for (Strategy strategy : strategiesToOptimize) {
       strategy.setOptParams(bestParams.get(strategy));
     }
 
+    long totalTimeMs = System.currentTimeMillis() - startTime;
+
     System.out.println("Optimization complete. Found best overall PnL: " + bestOverallPnL);
+    System.out.println("Tested " + combinationsTested + " combinations in " + (totalTimeMs / 1000) + " seconds");
     System.out.println("Best parameters:");
     for (Strategy strategy : strategiesToOptimize) {
       System.out.println("Strategy: " + strategy.getStrategyName());
@@ -110,6 +161,7 @@ public class GenericOptimizator extends Optimizator {
     bestParams = new HashMap<>();
     bestOverallPnL = -Double.MAX_VALUE;
     combinationsTested = 0;
+    lastProgressReport = 0;
 
     // Identify strategies that have optimizable parameters
     for (Strategy strategy : merger.getNameToStrategy().values()) {
@@ -120,22 +172,37 @@ public class GenericOptimizator extends Optimizator {
         bestParams.put(strategy, new HashMap<>(strategy.getOptParams()));
       }
     }
-    strategiesToOptimize.add(merger);
-    currentParams.put(merger, new HashMap<>(merger.getOptParams()));
-    bestParams.put(merger, new HashMap<>(merger.getOptParams()));
+
+    // Add merger itself if it has parameters
+    if (!merger.getOptParams().isEmpty()) {
+      strategiesToOptimize.add(merger);
+      currentParams.put(merger, new HashMap<>(merger.getOptParams()));
+      bestParams.put(merger, new HashMap<>(merger.getOptParams()));
+    }
   }
 
   /**
-   * Recursively optimizes strategies, one at a time, but evaluating the overall PnL
-   * after each combination of parameters
+   * Recursively optimizes strategies, exploring all combinations of all parameters
+   * across all strategies and evaluating the overall PnL after each combination.
+   *
+   * @param strategyIndex Index of current strategy being optimized
+   * @param paramIndex Index of current parameter being optimized for the current strategy
+   * @param strategyParamNames Map of strategy to list of parameter names
+   * @param strategyParamValues Map of strategy to list of parameter value lists
    */
-  private void optimizeStrategyRecursive(int strategyIndex) {
+  private void optimizeStrategyRecursive(
+      int strategyIndex,
+      int paramIndex,
+      Map<Strategy, List<String>> strategyParamNames,
+      Map<Strategy, List<List<OptParam>>> strategyParamValues) {
+
     // Base case: we've gone through all strategies
     if (strategyIndex >= strategiesToOptimize.size()) {
       // Apply all current parameters
       for (Strategy strategy : strategiesToOptimize) {
         strategy.setOptParams(currentParams.get(strategy));
       }
+
       // Run the merger to calculate overall PnL
       merger.mergeSignals();
       StrategyResult result = tradeService.calculateProfitAndDrawdownLong(merger);
@@ -160,54 +227,63 @@ public class GenericOptimizator extends Optimizator {
         }
       }
 
-      // Log progress
-      if (combinationsTested % 100 == 0 || combinationsTested == totalCombinations) {
-        System.out.println("Progress: " + combinationsTested + " of " + totalCombinations +
-            " combinations tested. Current best PnL: " + bestOverallPnL);
+      // Log progress periodically
+      if (combinationsTested - lastProgressReport >= progressReportInterval ||
+          combinationsTested == totalCombinations) {
+        lastProgressReport = combinationsTested;
+        long elapsedTimeMs = System.currentTimeMillis() - startTime;
+        double percentComplete = (double)combinationsTested / totalCombinations * 100;
+
+        // Estimate remaining time
+        long estimatedTotalTimeMs = 0;
+        if (combinationsTested > 0) {
+          estimatedTotalTimeMs = (long)(elapsedTimeMs * totalCombinations / combinationsTested);
+        }
+        long remainingTimeMs = estimatedTotalTimeMs - elapsedTimeMs;
+
+        System.out.println(String.format(
+            "Progress: %.2f%% (%d/%d) | Elapsed: %ds | Remaining: %ds | Current best PnL: %.2f",
+            percentComplete,
+            combinationsTested,
+            totalCombinations,
+            elapsedTimeMs / 1000,
+            remainingTimeMs / 1000,
+            bestOverallPnL));
       }
+
       return;
     }
 
-    // Get current strategy to optimize
-    Strategy strategy = strategiesToOptimize.get(strategyIndex);
-    Map<String, OptParam> strategyParams = strategy.getOptParams();
+    Strategy currentStrategy = strategiesToOptimize.get(strategyIndex);
+    List<String> paramNames = strategyParamNames.get(currentStrategy);
 
-    // Build possible values for each parameter
-    for (Map.Entry<String, OptParam> entry : strategyParams.entrySet()) {
-      String paramName = entry.getKey();
-      OptParam baseParam = entry.getValue();
-
-      double paramValue = baseParam.getMin();
-      while (paramValue <= baseParam.getMax()) {
-        // Create param with this value
-        OptParam newParam = new OptParam(
-            baseParam.getId().getTicker(),
-            baseParam.getId().getParam(),
-            baseParam.getId().getStrategy(),
-            baseParam.getId().getCaseId(),
-            baseParam.getTimeframe(),
-            paramValue,
-            baseParam.getValueString(),
-            baseParam.getMin(),
-            baseParam.getMax(),
-            baseParam.getStep()
-        );
-
-        // Store this parameter value
-        currentParams.get(strategy).put(paramName, newParam);
-
-        // Recur to next parameter or strategy
-        optimizeStrategyRecursive(strategyIndex + 1);
-
-        paramValue += baseParam.getStep();
-      }
-
-      // Reset to original parameter value before continuing
-      currentParams.get(strategy).put(paramName, strategyParams.get(paramName));
-
-      // Break after testing one parameter to avoid excessive nesting
-      break;
+    // If this strategy has no parameters or we've gone through all parameters
+    if (paramNames.isEmpty() || paramIndex >= paramNames.size()) {
+      // Move to the next strategy
+      optimizeStrategyRecursive(strategyIndex + 1, 0, strategyParamNames, strategyParamValues);
+      return;
     }
+
+    // Get current parameter name and its possible values
+    String paramName = paramNames.get(paramIndex);
+    List<OptParam> paramValues = strategyParamValues.get(currentStrategy).get(paramIndex);
+
+    // Try each value for the current parameter
+    for (OptParam paramValue : paramValues) {
+      // Set this parameter value
+      currentParams.get(currentStrategy).put(paramName, paramValue);
+
+      // If this is the last parameter for this strategy, move to next strategy
+      if (paramIndex == paramNames.size() - 1) {
+        optimizeStrategyRecursive(strategyIndex + 1, 0, strategyParamNames, strategyParamValues);
+      } else {
+        // Otherwise, move to next parameter for this strategy
+        optimizeStrategyRecursive(strategyIndex, paramIndex + 1, strategyParamNames, strategyParamValues);
+      }
+    }
+
+    // Reset parameter to original value before continuing
+    currentParams.get(currentStrategy).put(paramName, currentStrategy.getOptParams().get(paramName));
   }
 
   /**
@@ -217,14 +293,13 @@ public class GenericOptimizator extends Optimizator {
     long total = 1;
 
     for (Strategy strategy : strategiesToOptimize) {
-      long strategyTotal = 1;
       Map<String, OptParam> params = strategy.getOptParams();
+      long strategyTotal = 1;
 
-      // For simplicity, only consider 1 parameter per strategy in our current approach
-      if (!params.isEmpty()) {
-        OptParam param = params.values().iterator().next();
+      // Consider all parameters for this strategy
+      for (OptParam param : params.values()) {
         long numValues = 1 + Math.round((param.getMax() - param.getMin()) / param.getStep());
-        strategyTotal = numValues;
+        strategyTotal *= numValues;
       }
 
       total *= strategyTotal;

@@ -55,11 +55,11 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
   public int fetchAndSaveData(String timeSeriesLabel, String ticker, String interval,
                               int month, int year) {
     String yearMonth;
-      if (month < 10) {
-        yearMonth = year + "0" + month;
-      } else {
-        yearMonth = year + ""+month;
-      }
+    if (month < 10) {
+      yearMonth = year + "-0" + month;
+    } else {
+      yearMonth = year + "-" + month;
+    }
     dbTicker = ticker;
     String url =
         baseUrl + timeSeriesLabel + "&symbol=" + ticker + "&interval=" + interval + "&month=" +
@@ -123,11 +123,11 @@ public class AlphaVintageDownloader implements SharePriceDownLoaderService {
       // If data doesn't exist, proceed with fetching and saving
       String interval = "5min";
       final String timeSeriesLabel = "TIME_SERIES_INTRADAY";
-      return fetchAndSaveData(timeSeriesLabel, ticker, interval, year,month);
+      return fetchAndSaveData(timeSeriesLabel, ticker, interval, month, year);
 
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException(
-          "Invalid yearMonth format. Expected YYYY-MM, got: " + year+" "+month, e);
+          "Invalid yearMonth format. Expected YYYY-MM, got: " + year + " " + month, e);
     }
   }
 

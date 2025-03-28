@@ -20,9 +20,11 @@ import org.springframework.stereotype.Service;
 
 @Service("StrategyMerger")
 public class StrategyMerger implements Strategy {
-
+  public static final String STOP_LOSS_PERCENT = "StopLoss";
+  public static final String START_DATE = "startDate";
+  public static final String END_DATE = "endDate";
   final PriceDao priceDao;
-  double stopLossMaxPercent = .98;
+  double stopLossMaxPercent;
   Map<String, Strategy> nameToStrategy = new HashMap<>();
   TimeFrame timeFrame;
   LocalDateTime startDate;
@@ -197,15 +199,19 @@ public class StrategyMerger implements Strategy {
   }
 
   public StrategyMerger setStopLossPercent(double stopLossMaxPercent) {
+  //  System.out.println("stopLossMaxPercent = " + stopLossMaxPercent);
     this.stopLossMaxPercent = stopLossMaxPercent;
     return this;
   }
   public void initOptParams(Map<String, OptParam> mameToValue) {
     List<OptParam> optParams = new ArrayList<>();
+    double initStopLoss = .8;
     optParams.add(
-        new OptParam(ticker, "stopLossPercent", this.getClass().getSimpleName(), timeFrame,
-            .98, "", .92f, 0.99f, 0.01f)
+        new OptParam(ticker, STOP_LOSS_PERCENT, this.getClass().getSimpleName(), timeFrame,
+            initStopLoss, "", .8f, 1f, 0.02f)
     );
+
+    this.setStopLossPercent(initStopLoss);
     /*
     optParams.add(new OptParam(ticker, "startDate", this.getClass().getSimpleName(), timeFrame,
         0d, startDate.toString(), 0f, 0f, 1f));
@@ -216,10 +222,21 @@ public class StrategyMerger implements Strategy {
     optParamsMap = Utils.getOptParamsAsMap(optParams);
     if (mameToValue != null) {
       optParamsMap.putAll(mameToValue);
+      setOptParams(optParamsMap);
     }
   }
 
  public Map<String, OptParam> getOptParams() {
     return optParamsMap;
+  }
+
+  @Override
+  public void setOptParams(Map<String, OptParam> optParamsMap) {
+    if (optParamsMap != null && optParamsMap.get(STOP_LOSS_PERCENT) != null) {
+      this.setStopLossPercent(optParamsMap.get(STOP_LOSS_PERCENT).getValue());
+    } else {
+      throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
+          " ticker = " + ticker + " timeframe = " + timeFrame);
+    }
   }
 }
