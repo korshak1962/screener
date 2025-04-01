@@ -208,7 +208,7 @@ public class StrategyMerger implements Strategy {
     double initStopLoss = .8;
     optParams.add(
         new OptParam(ticker, STOP_LOSS_PERCENT, this.getClass().getSimpleName(), timeFrame,
-            initStopLoss, "", .8f, 1f, 0.02f)
+            initStopLoss, "", .8f, .95f, 0.05f)
     );
 
     this.setStopLossPercent(initStopLoss);

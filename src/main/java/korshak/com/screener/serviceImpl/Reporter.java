@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
 import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.dao.OptParamDao;
@@ -36,7 +37,6 @@ import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
 import korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.TrendChangeStrategy;
 import korshak.com.screener.utils.ExcelExportService;
-import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -90,12 +90,15 @@ public class Reporter {
     this.genericOptimizator = genericOptimizator;
   }
 
-  private static void show(Strategy strategy, StrategyResult strategyResult) {
+  private static void show(StrategyResult strategyResult,
+                           Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators,
+                           Map<String, NavigableMap<LocalDateTime, Double>> indicators,
+                           String chartName) {
     System.setProperty("java.awt.headless", "false");
-    ChartService chartService = new ChartServiceImpl(strategy.getStrategyName());
+    ChartService chartService = new ChartServiceImpl(chartName);
     chartService.drawChart(strategyResult.getPrices(), strategyResult.getSignals()
-        , strategy.getPriceIndicators()
-        , strategyResult.getTradesLong(), strategy.getIndicators());
+        , priceIndicators
+        , strategyResult.getTradesLong(), indicators);
     pause();
   }
 
@@ -227,18 +230,14 @@ public class Reporter {
 
   public StrategyResult getStrategyResult(BaseStrategy baseStrategy, String ticker,
                                           LocalDateTime startDate,
-                                          LocalDateTime endDate, TimeFrame timeFrame)
-      throws IOException {
+                                          LocalDateTime endDate, TimeFrame timeFrame) {
     strategyMerger
-        .setStopLossPercent(STOP_LOSS_MAX_PERCENT)
-        .init(ticker, timeFrame, startDate, endDate)
-        //  .addStrategy(
-        //      stopLossLessThanPrevMinExtremumStrategy.init(ticker, TimeFrame.DAY, startDate, endDate))
         .addStrategy(
             baseStrategy
         )
-        .mergeSignals()
-    ;
+        .setStopLossPercent(STOP_LOSS_MAX_PERCENT)
+        .init(ticker, timeFrame, startDate, endDate)
+        .mergeSignals();
     return evaluateStrategy(strategyMerger);
   }
 
@@ -273,7 +272,8 @@ public class Reporter {
 
     strategyMerger.mergeSignals();
     StrategyResult strategyResult = evaluateStrategy(strategyMerger);
-    show(strategyMerger, strategyResult);
+    show(strategyResult, strategyMerger.getPriceIndicators(),
+        strategyMerger.getIndicators(), strategyMerger.getStrategyName());
     System.out.println(strategyResult);
     return strategyResult;
   }
@@ -309,7 +309,8 @@ public class Reporter {
     StrategyResult strategyResult =
         getStrategyResult(ticker, startDate, endDate, signalTimeFrame, STOP_LOSS_MAX_PERCENT,
             strategies);
-    show(strategyMerger, strategyResult);
+    show(strategyResult, strategyMerger.getPriceIndicators(),
+        strategyMerger.getIndicators(), strategyMerger.getStrategyName());
     return strategyResult;
   }
 
@@ -331,7 +332,8 @@ public class Reporter {
                                     TimeFrame timeFrame) throws IOException {
     StrategyResult strategyResult =
         readParamsGetStrategyResult(ticker, startDate, endDate, timeFrame);
-    show(strategyMerger, strategyResult);
+    show(strategyResult, strategyMerger.getPriceIndicators(),
+        strategyMerger.getIndicators(), strategyMerger.getStrategyName());
     return strategyResult;
   }
 
@@ -342,7 +344,8 @@ public class Reporter {
     baseStrategy.init(ticker, timeFrame, startDate, endDate);
     StrategyResult strategyResult =
         getStrategyResult(baseStrategy, ticker, startDate, endDate, timeFrame);
-    show(strategyMerger, strategyResult);
+    show(strategyResult, strategyMerger.getPriceIndicators(),
+        strategyMerger.getIndicators(), strategyMerger.getStrategyName());
     return strategyResult;
   }
 
@@ -413,12 +416,23 @@ public class Reporter {
 
     TiltFromBaseStrategy longStrategy = (TiltFromBaseStrategy) strategyProvider
         .getStrategy("TiltFromBaseStrategy");
-    List<OptParam> optParamList = new ArrayList<>();
-    OptParam optParam = new OptParam(ticker, LENGTH, "TiltFromBaseStrategy", timeFrame,
-        4.0, "", 30.0f, 40.0f, 1.0f);
-    optParamList.add(optParam);
-    longStrategy.initOptParams(getOptParamsAsMap(optParamList));
-    //  strategyMerger.addStrategy(longStrategy);
+
+    String caseId = "long";
+    List<OptParam> optParamListLong = List.of(
+     new OptParam(ticker, LENGTH, "TiltFromBaseStrategy", caseId, timeFrame,
+        24.0, "", 24.0f, 36.0f, 4.0f),
+
+        new OptParam(ticker, TILT_BUY, "TiltFromBaseStrategy", caseId, timeFrame,
+            -0.01, "", -0.01f, 0.01f, 0.01f),
+
+        new OptParam(ticker, TILT_SELL, "TiltFromBaseStrategy", caseId, timeFrame,
+            -0.02, "", -0.02f, 0.01f, 0.01f)
+    );
+
+    longStrategy.initOptParams(getOptParamsAsMap(optParamListLong));
+      //strategyMerger.addStrategy(longStrategy);
+
+
     strategyMerger.initOptParams(null);
 
     genericOptimizator.init(strategyMerger);

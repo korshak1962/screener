@@ -24,6 +24,10 @@ public class GenericOptimizator extends Optimizator {
   private long combinationsTested;
   private long totalCombinations;
 
+  // Parameter structures for optimization
+  private Map<Strategy, List<String>> strategyParamNames;
+  private Map<Strategy, List<List<OptParam>>> strategyParamValues;
+
   // Track progress statistics
   private long lastProgressReport = 0;
   private long progressReportInterval = 100;
@@ -88,9 +92,9 @@ public class GenericOptimizator extends Optimizator {
     totalCombinations = calculateTotalCombinations();
     System.out.println("Total parameter combinations to check: " + totalCombinations);
 
-    // Prepare parameter structures for recursive optimization
-    Map<Strategy, List<String>> strategyParamNames = new HashMap<>();
-    Map<Strategy, List<List<OptParam>>> strategyParamValues = new HashMap<>();
+    // Initialize parameter structures for recursive optimization
+    strategyParamNames = new HashMap<>();
+    strategyParamValues = new HashMap<>();
 
     // For each strategy, identify all parameters and their potential values
     for (Strategy strategy : strategiesToOptimize) {
@@ -131,7 +135,7 @@ public class GenericOptimizator extends Optimizator {
     }
 
     // Start recursive optimization with the first strategy and first parameter
-    optimizeStrategyRecursive(0, 0, strategyParamNames, strategyParamValues);
+    optimizeStrategyRecursive(0, 0);
 
     // Apply best parameters to all strategies
     for (Strategy strategy : strategiesToOptimize) {
@@ -162,6 +166,8 @@ public class GenericOptimizator extends Optimizator {
     bestOverallPnL = -Double.MAX_VALUE;
     combinationsTested = 0;
     lastProgressReport = 0;
+    strategyParamNames = new HashMap<>();
+    strategyParamValues = new HashMap<>();
 
     // Identify strategies that have optimizable parameters
     for (Strategy strategy : merger.getNameToStrategy().values()) {
@@ -187,14 +193,8 @@ public class GenericOptimizator extends Optimizator {
    *
    * @param strategyIndex Index of current strategy being optimized
    * @param paramIndex Index of current parameter being optimized for the current strategy
-   * @param strategyParamNames Map of strategy to list of parameter names
-   * @param strategyParamValues Map of strategy to list of parameter value lists
    */
-  private void optimizeStrategyRecursive(
-      int strategyIndex,
-      int paramIndex,
-      Map<Strategy, List<String>> strategyParamNames,
-      Map<Strategy, List<List<OptParam>>> strategyParamValues) {
+  private void optimizeStrategyRecursive(int strategyIndex, int paramIndex) {
 
     // Base case: we've gone through all strategies
     if (strategyIndex >= strategiesToOptimize.size()) {
@@ -260,7 +260,7 @@ public class GenericOptimizator extends Optimizator {
     // If this strategy has no parameters or we've gone through all parameters
     if (paramNames.isEmpty() || paramIndex >= paramNames.size()) {
       // Move to the next strategy
-      optimizeStrategyRecursive(strategyIndex + 1, 0, strategyParamNames, strategyParamValues);
+      optimizeStrategyRecursive(strategyIndex + 1, 0);
       return;
     }
 
@@ -275,10 +275,10 @@ public class GenericOptimizator extends Optimizator {
 
       // If this is the last parameter for this strategy, move to next strategy
       if (paramIndex == paramNames.size() - 1) {
-        optimizeStrategyRecursive(strategyIndex + 1, 0, strategyParamNames, strategyParamValues);
+        optimizeStrategyRecursive(strategyIndex + 1, 0);
       } else {
         // Otherwise, move to next parameter for this strategy
-        optimizeStrategyRecursive(strategyIndex, paramIndex + 1, strategyParamNames, strategyParamValues);
+        optimizeStrategyRecursive(strategyIndex, paramIndex + 1);
       }
     }
 

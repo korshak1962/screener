@@ -49,14 +49,14 @@ public class TiltFromBaseStrategy extends BaseStrategy {
       List<OptParam> optParams = new ArrayList<>();
       optParams.add(
           new OptParam(ticker, LENGTH, this.getClass().getSimpleName(), timeFrame,
-              4.0, "", 7.0f, 10.0f, 1.0f)
+              5.0, "", 5.0f, 10.0f, 1.0f)
       );
       optParams.add(
           new OptParam(ticker, TILT_BUY, this.getClass().getSimpleName(), timeFrame,
-              -0.05, "", -0.05f, 0.06f, 0.01f));
+              -0.05, "", -0.5f, 0.8f, 0.1f));
       optParams.add(
           new OptParam(ticker, TILT_SELL, this.getClass().getSimpleName(), timeFrame,
-              -0.05, "", -0.05f, 0.06f, 0.01f)
+              -0.05, "", -0.5f, 0.2f, 0.1f)
       );
       optParamsMap = Utils.getOptParamsAsMap(optParams);
     if (mameToValue != null) {

@@ -105,9 +105,6 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("OptimizatorDoubleTilt")
   private OptimizatorDoubleTilt optimizatorDoubleTilt;
   @Autowired
-  @Qualifier("OptimizatorTilt")
-  private OptimizatorTilt optimizatorTilt;
-  @Autowired
   private TrendService trendService;
   @Autowired
   private FuturePriceByTiltCalculator futurePriceByTiltCalculator;
@@ -134,17 +131,18 @@ public class ScreenerApplication implements CommandLineRunner {
     LocalDateTime endDate = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
     List<String> strategyNames = List.of("TiltFromBaseStrategy");
-    reporter.readParamsGetStrategyResult("QQQ", startDate, endDate, TimeFrame.DAY,strategyNames);
+    //reporter.readParamsGetStrategyResult("QQQ", startDate, endDate, TimeFrame.DAY,strategyNames);
     //reporter.findSaveOptParamsGeneric("QQQ", startDate, endDate, TimeFrame.DAY);
     //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 
     LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime endDateEval = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
     String ticker = "SBER_MOEX";
     //reporter.createExcelReport(List.of(ticker), startDateEval, endDateEval, TimeFrame.DAY,ticker);
-   // Reporter.STOP_LOSS_MAX_PERCENT = .95;
-    //reporter.evaluateAndShow(buyCloseHigherPrevClose, ticker, startDateEval, endDateEval,
-    //    TimeFrame.WEEK);
+    Reporter.STOP_LOSS_MAX_PERCENT = .9;
+   // reporter.evaluateAndShow(buyCloseHigherPrevClose, ticker, startDateEval, endDateEval,
+   //     TimeFrame.WEEK);
+
     Map<TimeFrame, List<String>> timeFrameToStrategyNames = new HashMap<>();
 /*    List<String> strategyNames = List.of("TrendChangeStrategy");
     timeFrameToStrategyNames.put(TimeFrame.DAY, strategyNames);
@@ -169,20 +167,20 @@ public class ScreenerApplication implements CommandLineRunner {
 
   //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.ALL),
    //     2025, 2,2025, 3, yahooDownloader);
-   //  downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA),
-    //     LocalDate.now().minusDays(8), yahooDownloader);
+    // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
+     //    LocalDate.now().minusDays(8), yahooDownloader);
 
 
     // downloadSeries("AAXJ", 2024, 1,2025, 1, alphaVintageDownloader);
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA), 2024, 1, 2025, 1, alphaVintageDownloader);
+    downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA), 2024, 1, 2025, 1, alphaVintageDownloader);
 
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),
     //      "2025-", 1, 3, yahooDownloader);
     //downloadSeries("QQQ", "2025-01-01", yahooDownloader);
 //    downloadSeries("SNGS", "2018-01-01", moexDownloader);
-    //   downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
-    //     2025, 3,2025, 3, moexDownloader);
+     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
+      //   2025, 3,2025, 3, moexDownloader);
 
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
 
