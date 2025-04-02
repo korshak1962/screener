@@ -52,9 +52,9 @@ public class StrategyProvider {
   }
 
   // Overload to accept Class directly
-  public Strategy getStrategy(Class<Strategy> strategyClass) {
+  public Strategy getStrategy(Class<? extends Strategy> strategyClass) {
     Strategy strategy = applicationContext.getBean(strategyClass);
-    strategy.init(ticker, timeFrame, startDate, endDate);
+    //strategy.init(ticker, timeFrame, startDate, endDate);
     return strategy;
   }
 }

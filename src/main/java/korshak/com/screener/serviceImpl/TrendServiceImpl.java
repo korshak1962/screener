@@ -91,6 +91,7 @@ public class TrendServiceImpl implements TrendService {
     for (TimeFrame timeFrame : TimeFrame.values()) {
       if (timeFrame != TimeFrame.MIN5) { // Skip 5-minute timeframe as it's the base
         calculateAndStorePriceTrend(ticker, timeFrame);
+        System.out.println("Trend calculated for " + ticker + " " + timeFrame);
       }
     }
   }

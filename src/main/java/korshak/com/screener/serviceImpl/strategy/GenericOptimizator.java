@@ -11,6 +11,7 @@ import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.StrategyResult;
+import korshak.com.screener.vo.SubStrategy;
 import org.springframework.stereotype.Service;
 
 @Service("GenericOptimizator")
@@ -170,12 +171,12 @@ public class GenericOptimizator extends Optimizator {
     strategyParamValues = new HashMap<>();
 
     // Identify strategies that have optimizable parameters
-    for (Strategy strategy : merger.getNameToStrategy().values()) {
-      if (!strategy.getOptParams().isEmpty()) {
-        strategiesToOptimize.add(strategy);
+    for (SubStrategy subStrategy : merger.getSubStrategies()) {
+      if (!subStrategy.getStrategy().getOptParams().isEmpty()) {
+        strategiesToOptimize.add(subStrategy.getStrategy());
         // Initialize parameter maps
-        currentParams.put(strategy, new HashMap<>(strategy.getOptParams()));
-        bestParams.put(strategy, new HashMap<>(strategy.getOptParams()));
+        currentParams.put(subStrategy.getStrategy(), new HashMap<>(subStrategy.getStrategy().getOptParams()));
+        bestParams.put(subStrategy.getStrategy(), new HashMap<>(subStrategy.getStrategy().getOptParams()));
       }
     }
 

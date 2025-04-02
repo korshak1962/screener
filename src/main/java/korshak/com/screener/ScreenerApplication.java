@@ -127,12 +127,16 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
     List<String> strategyNames = List.of("TiltFromBaseStrategy");
     //reporter.readParamsGetStrategyResult("QQQ", startDate, endDate, TimeFrame.DAY,strategyNames);
     //reporter.findSaveOptParamsGeneric("QQQ", startDate, endDate, TimeFrame.DAY);
+   // for (String ticker : Portfolios.NAME_TO_TICKERS.get(Portfolios.US)){
+   //   trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
+   // }
+    reporter.findSaveOptParamsGeneric("QQQ", startDate, endDate, TimeFrame.WEEK, TimeFrame.DAY);
     //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 
     LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
@@ -141,7 +145,7 @@ public class ScreenerApplication implements CommandLineRunner {
     //reporter.createExcelReport(List.of(ticker), startDateEval, endDateEval, TimeFrame.DAY,ticker);
     Reporter.STOP_LOSS_MAX_PERCENT = .9;
    // reporter.evaluateAndShow(buyCloseHigherPrevClose, ticker, startDateEval, endDateEval,
-   //     TimeFrame.WEEK);
+    //    TimeFrame.WEEK);
 
     Map<TimeFrame, List<String>> timeFrameToStrategyNames = new HashMap<>();
 /*    List<String> strategyNames = List.of("TrendChangeStrategy");
@@ -164,15 +168,14 @@ public class ScreenerApplication implements CommandLineRunner {
     //   reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
     //  ""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
 
-
   //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.ALL),
    //     2025, 2,2025, 3, yahooDownloader);
-    // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
-     //    LocalDate.now().minusDays(8), yahooDownloader);
+    // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.ALL),
+     //    LocalDate.now().minusDays(18), yahooDownloader);
 
 
     // downloadSeries("AAXJ", 2024, 1,2025, 1, alphaVintageDownloader);
-    downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA), 2024, 1, 2025, 1, alphaVintageDownloader);
+    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA), 2024, 1, 2025, 1, alphaVintageDownloader);
 
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),

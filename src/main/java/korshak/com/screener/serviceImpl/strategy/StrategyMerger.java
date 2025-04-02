@@ -16,6 +16,7 @@ import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
+import korshak.com.screener.vo.SubStrategy;
 import org.springframework.stereotype.Service;
 
 @Service("StrategyMerger")
@@ -25,7 +26,7 @@ public class StrategyMerger implements Strategy {
   public static final String END_DATE = "endDate";
   final PriceDao priceDao;
   double stopLossMaxPercent;
-  Map<String, Strategy> nameToStrategy = new HashMap<>();
+  List<SubStrategy> subStrategies = new ArrayList<>();
   TimeFrame timeFrame;
   LocalDateTime startDate;
   LocalDateTime endDate;
@@ -76,13 +77,18 @@ public class StrategyMerger implements Strategy {
         timeFrame
     );
     initOptParams(null);
+    for (SubStrategy subStrategy : subStrategies) {
+      subStrategy.getStrategy().init(ticker, subStrategy.getTimeFrame(), startDate, endDate);
+    }
     return this;
   }
 
   @Override
   public String getStrategyName() {
     return "StrategyMerger " +
-        nameToStrategy.keySet().stream().reduce("", (s1, s2) -> s1 + " " + s2);
+        subStrategies.stream().reduce(" ",
+            (s1, s2) -> s1.getClass().getSimpleName() + " " + s2.getClass().getSimpleName(),
+            String::concat);
   }
 
   @Override
@@ -92,12 +98,21 @@ public class StrategyMerger implements Strategy {
 
   @Override
   public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
-    return this.nameToStrategy.values().iterator().next().getIndicators();
+    if (this.subStrategies.iterator().next().getStrategy().getIndicators() != null) {
+      return this.subStrategies.iterator().next().getStrategy().getIndicators();
+    }
+    return Map.of();
   }
 
   @Override
   public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
-    return this.nameToStrategy.values().iterator().next().getPriceIndicators();
+    if (this.subStrategies.isEmpty()) {
+      return Map.of();
+    }
+    if (this.subStrategies.iterator().next().getStrategy().getPriceIndicators() != null) {
+      return this.subStrategies.iterator().next().getStrategy().getPriceIndicators();
+    }
+    return Map.of();
   }
 
   @Override
@@ -140,23 +155,29 @@ public class StrategyMerger implements Strategy {
 
   }
 
-  public StrategyMerger addStrategy(Strategy strategy) {
-    nameToStrategy.put(strategy.getStrategyName() + strategy.getTimeFrame()+strategy.hashCode(), strategy);
+  public StrategyMerger addStrategy(Strategy strategy, TimeFrame timeFrame) {
+    subStrategies.add(new SubStrategy(strategy, timeFrame));
     return this;
   }
 
-  public Map<String, Strategy> getNameToStrategy() {
-    return nameToStrategy;
+  public StrategyMerger addStrategies(List<SubStrategy> subStrategies) {
+    this.subStrategies.addAll(subStrategies);
+    return this;
+  }
+
+  public List<SubStrategy> getSubStrategies() {
+    return subStrategies;
   }
 
   public void mergeSignals() {
     dateToSignals = new HashMap<>();
     signalsLong = new ArrayList<>();
-    for (Strategy strategy : nameToStrategy.values()) {
-      strategy.calcSignals();
-      List<? extends Signal> signalsOfStrategy = strategy.getAllSignals(timeFrame);
+    for (SubStrategy subStrategy : subStrategies) {
+      subStrategy.getStrategy().calcSignals();
+      List<? extends Signal> signalsOfStrategy = subStrategy.getStrategy().getAllSignals(timeFrame);
       if (signalsOfStrategy.isEmpty()) {
-        throw new RuntimeException("Strategy " + strategy.getStrategyName() + " has no signals");
+        throw new RuntimeException(
+            "Strategy " + subStrategy.getStrategy().getStrategyName() + " has no signals");
       }
       signalsOfStrategy.forEach(signal -> {
         if (!dateToSignals.containsKey(signal.getDate())) {
@@ -199,10 +220,11 @@ public class StrategyMerger implements Strategy {
   }
 
   public StrategyMerger setStopLossPercent(double stopLossMaxPercent) {
-  //  System.out.println("stopLossMaxPercent = " + stopLossMaxPercent);
+    //  System.out.println("stopLossMaxPercent = " + stopLossMaxPercent);
     this.stopLossMaxPercent = stopLossMaxPercent;
     return this;
   }
+
   public void initOptParams(Map<String, OptParam> mameToValue) {
     List<OptParam> optParams = new ArrayList<>();
     double initStopLoss = .8;
@@ -226,7 +248,7 @@ public class StrategyMerger implements Strategy {
     }
   }
 
- public Map<String, OptParam> getOptParams() {
+  public Map<String, OptParam> getOptParams() {
     return optParamsMap;
   }
 

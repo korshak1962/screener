@@ -42,7 +42,7 @@ public class OptimizatorTilt extends Optimizator {
   @Override
   public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                    LocalDateTime endDate) {
-    this.merger.addStrategy(tiltFromBaseStrategy);
+    this.merger.addStrategy(tiltFromBaseStrategy,timeFrame);
     super.init(ticker, timeFrame, startDate, endDate);
   }
 

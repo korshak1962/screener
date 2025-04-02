@@ -46,6 +46,12 @@ public class OptParam {
         valueString, min, max, step);
   }
 
+  public OptParam(String ticker, String paramName, String strategy, TimeFrame timeframe,
+                  Double value,  float min, float max, float step) {
+    this(ticker, paramName, strategy, "Single", timeframe, value,
+        "", min, max, step);
+  }
+
 
   public OptParam(String ticker, String paramName, String strategy, String caseId,
                   TimeFrame timeframe, Double value, String valueString, float min, float max,

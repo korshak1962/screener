@@ -54,7 +54,7 @@ public class TrendChangeStrategy extends BaseStrategy {
             "open cause trend = 1 timeframe = " + this.timeFrame);
         return signal;
       }
-      if (trend.getTrend() == -1) {
+      if (trend.getTrend() < -1) {
         Signal signal = Utils.createSignal(price, SignalType.ShortOpen, price.getOpen(),
             "open cause trend = -1 timeframe = " + this.timeFrame);
         return signal;
