@@ -32,7 +32,6 @@ import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevClose;
 import korshak.com.screener.serviceImpl.strategy.BuyHigherPrevHigh;
 import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
 import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
-import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
 import korshak.com.screener.serviceImpl.strategy.StopLossPercentStrategy;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
 import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
@@ -132,11 +131,13 @@ public class ScreenerApplication implements CommandLineRunner {
     //TMOS LKOH SBER MGNT  TINKOFF
     List<String> strategyNames = List.of("TiltFromBaseStrategy");
     //reporter.readParamsGetStrategyResult("QQQ", startDate, endDate, TimeFrame.DAY,strategyNames);
-    //reporter.findSaveOptParamsGeneric("QQQ", startDate, endDate, TimeFrame.DAY);
+    //reporter.findResultFor2strategies("QQQ", startDate, endDate, TimeFrame.DAY);
    // for (String ticker : Portfolios.NAME_TO_TICKERS.get(Portfolios.US)){
    //   trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
    // }
-    reporter.findSaveOptParamsGeneric("QQQ", startDate, endDate, TimeFrame.WEEK, TimeFrame.DAY);
+    reporter.findOptParamAndSaveGeneric("QQQ", startDate, endDate, TimeFrame.DAY, "onlyShort");
+    //reporter.readOptParamsGenericAndShow("QQQ", startDate, endDate, TimeFrame.DAY,"onlyShort");
+    //reporter.findResultFor2strategies("QQQ", startDate, endDate, TimeFrame.WEEK, TimeFrame.DAY);
     //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 
     LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
@@ -175,7 +176,10 @@ public class ScreenerApplication implements CommandLineRunner {
 
 
     // downloadSeries("AAXJ", 2024, 1,2025, 1, alphaVintageDownloader);
-    //downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.CHINA), 2024, 1, 2025, 1, alphaVintageDownloader);
+    //https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=Tencent&apikey=2NYM2EF6HJZUCXAL
+    //test https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&month=2024-01&outputsize=full&apikey=2NYM2EF6HJZUCXAL
+    //https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=TCEHY&outputsize=full&apikey=YOUR_API_KEY
+    downloadSeries(Portfolios.CHINA, 2024, 1, 2025, 1, alphaVintageDownloader);
 
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),

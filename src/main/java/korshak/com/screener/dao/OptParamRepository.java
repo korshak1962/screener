@@ -6,7 +6,7 @@ import java.util.List;
 
 @Repository
 public interface OptParamRepository extends JpaRepository<OptParam, OptParam.OptParamKey> {
-  // Update query methods to use the embedded key
+  // Existing methods
   void deleteById_TickerAndTimeframe(String ticker, TimeFrame timeframe);
 
   List<OptParam> findById_Ticker(String ticker);
@@ -17,11 +17,24 @@ public interface OptParamRepository extends JpaRepository<OptParam, OptParam.Opt
 
   List<OptParam> findById_TickerAndTimeframeAndId_Strategy(String ticker, TimeFrame timeframe, String strategy);
 
-// ==== OptParamRepository.java changes ====
-
-  // Add new methods to query including case_id
+  // Methods for case_id
   List<OptParam> findById_TickerAndTimeframeAndId_CaseId(String ticker, TimeFrame timeframe, String caseId);
 
   List<OptParam> findById_TickerAndTimeframeAndId_StrategyAndId_CaseId(String ticker, TimeFrame timeframe, String strategy, String caseId);
 
+  // New methods for finding by caseId
+  List<OptParam> findById_CaseId(String caseId);
+
+  List<OptParam> findById_TickerAndId_CaseId(String ticker, String caseId);
+
+  // New methods for strategyClass
+  List<OptParam> findByStrategyClass(String strategyClass);
+
+  List<OptParam> findById_TickerAndStrategyClass(String ticker, String strategyClass);
+
+  List<OptParam> findById_TickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass);
+
+  List<OptParam> findById_TickerAndTimeframeAndId_StrategyAndStrategyClass(String ticker, TimeFrame timeframe, String strategy, String strategyClass);
+
+  List<OptParam> findById_TickerAndTimeframeAndId_CaseIdAndStrategyClass(String ticker, TimeFrame timeframe, String caseId, String strategyClass);
 }

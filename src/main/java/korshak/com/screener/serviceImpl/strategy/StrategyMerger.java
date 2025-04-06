@@ -76,7 +76,7 @@ public class StrategyMerger implements Strategy {
         endDate,
         timeFrame
     );
-    initOptParams(null);
+    createDefaultOptParams();
     for (SubStrategy subStrategy : subStrategies) {
       subStrategy.getStrategy().init(ticker, subStrategy.getTimeFrame(), startDate, endDate);
     }
@@ -225,27 +225,20 @@ public class StrategyMerger implements Strategy {
     return this;
   }
 
-  public void initOptParams(Map<String, OptParam> mameToValue) {
-    List<OptParam> optParams = new ArrayList<>();
-    double initStopLoss = .8;
-    optParams.add(
-        new OptParam(ticker, STOP_LOSS_PERCENT, this.getClass().getSimpleName(), timeFrame,
-            initStopLoss, "", .8f, .95f, 0.05f)
-    );
-
-    this.setStopLossPercent(initStopLoss);
-    /*
-    optParams.add(new OptParam(ticker, "startDate", this.getClass().getSimpleName(), timeFrame,
-        0d, startDate.toString(), 0f, 0f, 1f));
-    optParams.add(new OptParam(ticker, "endDate", this.getClass().getSimpleName(), timeFrame,
-        0d, endDate.toString(), 0f, 0f, 1f));
-
-     */
-    optParamsMap = Utils.getOptParamsAsMap(optParams);
-    if (mameToValue != null) {
-      optParamsMap.putAll(mameToValue);
-      setOptParams(optParamsMap);
+  public void createDefaultOptParams() {
+    if (!optParamsMap.isEmpty()) {
+      return;
     }
+    List<OptParam> optParams = new ArrayList<>();
+    double initStopLoss = .5;
+    optParams.add(
+        new OptParam(ticker, STOP_LOSS_PERCENT, this.getClass().getSimpleName(), "single",
+            timeFrame, this.getClass().getSimpleName(),
+            initStopLoss, "", .5f, .9f, 0.1f)
+    );
+    this.setStopLossPercent(initStopLoss);
+    optParamsMap = Utils.getOptParamsAsMap(optParams);
+    setOptParams(optParamsMap);
   }
 
   public Map<String, OptParam> getOptParams() {

@@ -18,7 +18,7 @@ public interface OptParamDao {
 
   Map<String, Object> findAllValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe);
 
-  // New methods for case_id support
+  // Methods for case_id support
   List<OptParam> findByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
 
   Map<String, Double> findValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
@@ -27,10 +27,37 @@ public interface OptParamDao {
 
   Map<String, Object> findAllValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
 
+  // New methods for finding by caseId
+  List<OptParam> findByCaseId(String caseId);
+
+  List<OptParam> findByTickerAndCaseId(String ticker, String caseId);
+
   Map<String, Double> findValuesByTickerAndStrategy(String ticker, String strategy);
 
   Map<String, Double> findValuesByTickerAndTimeframeAndStrategyAsMap(String ticker, TimeFrame timeframe,
                                                                      String strategy);
 
   List<OptParam> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe, String strategy);
+
+  // New methods for strategyClass
+  List<OptParam> findByStrategyClass(String strategyClass);
+
+  List<OptParam> findByTickerAndStrategyClass(String ticker, String strategyClass);
+
+  List<OptParam> findByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass);
+
+  Map<String, Double> findValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass);
+
+  Map<String, String> findStringValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass);
+
+  Map<String, Object> findAllValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass);
+
+  /**
+   * Find optimization parameters grouped by strategy for a specific ticker and caseId
+   *
+   * @param ticker The stock ticker
+   * @param caseId The caseId value
+   * @return Map of strategy names to their corresponding parameter lists
+   */
+  Map<String, List<OptParam>> findByTickerAndCaseIdGroupedByStrategy(String ticker, String caseId);
 }

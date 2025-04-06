@@ -1,13 +1,11 @@
 package korshak.com.screener.serviceImpl.strategy;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import korshak.com.screener.dao.OptParam;
-import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.StrategyResult;
@@ -22,6 +20,7 @@ public class GenericOptimizator extends Optimizator {
   private Map<Strategy, Map<String, OptParam>> currentParams;
   private Map<Strategy, Map<String, OptParam>> bestParams;
   private double bestOverallPnL;
+  private StrategyResult bestOverallResult;
   private long combinationsTested;
   private long totalCombinations;
 
@@ -120,6 +119,7 @@ public class GenericOptimizator extends Optimizator {
               baseParam.getId().getStrategy(),
               baseParam.getId().getCaseId(),
               baseParam.getTimeframe(),
+              baseParam.getStrategyClass(),
               paramValue,
               baseParam.getValueString(),
               baseParam.getMin(),
@@ -212,7 +212,7 @@ public class GenericOptimizator extends Optimizator {
       // Check if this gives better PnL
       if (result != null && result.getLongPnL() > bestOverallPnL) {
         bestOverallPnL = result.getLongPnL();
-
+        bestOverallResult = result;
         // Store these parameters as best so far
         for (Strategy strategy : strategiesToOptimize) {
           bestParams.get(strategy).clear();
@@ -340,5 +340,9 @@ public class GenericOptimizator extends Optimizator {
     merger.setStopLossPercent(originalStopLoss);
 
     return bestParams;
+  }
+
+  public StrategyResult getBestOverallResult() {
+    return bestOverallResult;
   }
 }

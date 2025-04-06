@@ -36,32 +36,36 @@ public class TiltFromBaseStrategy extends BaseStrategy {
   public TiltFromBaseStrategy(SmaDao smaDao, PriceDao priceDao, OptParamDao optParamDao) {
     super(priceDao, optParamDao);
     this.smaDao = smaDao;
+
   }
 
   public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                        LocalDateTime endDate) {
     super.init(ticker, timeFrame, startDate, endDate);
-    initOptParams(null);
+    createDefaultOptParams();
     return this;
   }
 
-  public void initOptParams(Map<String, OptParam> mameToValue) {
-      List<OptParam> optParams = new ArrayList<>();
-      optParams.add(
-          new OptParam(ticker, LENGTH, this.getClass().getSimpleName(), timeFrame,
-              5.0, "", 5.0f, 10.0f, 1.0f)
-      );
-      optParams.add(
-          new OptParam(ticker, TILT_BUY, this.getClass().getSimpleName(), timeFrame,
-              -0.05, "", -0.5f, 0.8f, 0.1f));
-      optParams.add(
-          new OptParam(ticker, TILT_SELL, this.getClass().getSimpleName(), timeFrame,
-              -0.05, "", -0.5f, 0.2f, 0.1f)
-      );
-      optParamsMap = Utils.getOptParamsAsMap(optParams);
-    if (mameToValue != null) {
-      optParamsMap.putAll(mameToValue);
+  public void createDefaultOptParams() {
+    if (!optParamsMap.isEmpty()) {
+      return;
     }
+    List<OptParam> optParams = new ArrayList<>();
+    optParams.add(
+        new OptParam(ticker, LENGTH, this.getClass().getSimpleName(), "single",
+            timeFrame, this.getClass().getSimpleName(),
+            5.0, "", 5.0f, 10.0f, 1.0f)
+    );
+    optParams.add(
+        new OptParam(ticker, TILT_BUY, this.getClass().getSimpleName(), "single",
+            timeFrame, this.getClass().getSimpleName(),
+            -0.05, "", -0.5f, 0.8f, 0.1f));
+    optParams.add(
+        new OptParam(ticker, TILT_SELL, this.getClass().getSimpleName(), "single",
+            timeFrame, this.getClass().getSimpleName(),
+            -0.05, "", -0.5f, 0.2f, 0.1f)
+    );
+    optParamsMap = Utils.getOptParamsAsMap(optParams);
     setOptParams(optParamsMap);
   }
 
@@ -151,5 +155,6 @@ public class TiltFromBaseStrategy extends BaseStrategy {
       throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
           " ticker = " + ticker + " timeframe = " + timeFrame);
     }
+    this.optParamsMap = optParamsMap;
   }
 }

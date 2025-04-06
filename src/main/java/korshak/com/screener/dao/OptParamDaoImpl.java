@@ -1,5 +1,6 @@
 package korshak.com.screener.dao;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,10 +105,20 @@ public class OptParamDaoImpl implements OptParamDao {
     return params;
   }
 
-  // Add new method to find by caseId
+  // Methods for case_id
   @Override
   public List<OptParam> findByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId) {
     return optParamRepository.findById_TickerAndTimeframeAndId_CaseId(ticker, timeframe, caseId);
+  }
+
+  @Override
+  public List<OptParam> findByCaseId(String caseId) {
+    return optParamRepository.findById_CaseId(caseId);
+  }
+
+  @Override
+  public List<OptParam> findByTickerAndCaseId(String ticker, String caseId) {
+    return optParamRepository.findById_TickerAndId_CaseId(ticker, caseId);
   }
 
   @Override
@@ -147,5 +158,78 @@ public class OptParamDaoImpl implements OptParamDao {
     }
 
     return result;
+  }
+
+  // New methods for strategyClass
+  @Override
+  public List<OptParam> findByStrategyClass(String strategyClass) {
+    return optParamRepository.findByStrategyClass(strategyClass);
+  }
+
+  @Override
+  public List<OptParam> findByTickerAndStrategyClass(String ticker, String strategyClass) {
+    return optParamRepository.findById_TickerAndStrategyClass(ticker, strategyClass);
+  }
+
+  @Override
+  public List<OptParam> findByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass) {
+    return optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe, strategyClass);
+  }
+
+  @Override
+  public Map<String, Double> findValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass) {
+    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe, strategyClass);
+    return params.stream()
+        .filter(param -> param.getValue() != null)
+        .collect(Collectors.toMap(
+            param -> param.getId().getParam(),
+            OptParam::getValue
+        ));
+  }
+
+  @Override
+  public Map<String, String> findStringValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass) {
+    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe, strategyClass);
+    return params.stream()
+        .filter(param -> param.getValueString() != null)
+        .collect(Collectors.toMap(
+            param -> param.getId().getParam(),
+            OptParam::getValueString
+        ));
+  }
+
+  @Override
+  public Map<String, Object> findAllValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass) {
+    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe, strategyClass);
+    Map<String, Object> result = new HashMap<>();
+
+    for (OptParam param : params) {
+      String paramName = param.getId().getParam();
+      if (param.getValue() != null) {
+        result.put(paramName, param.getValue());
+      } else if (param.getValueString() != null) {
+        result.put(paramName, param.getValueString());
+      }
+    }
+
+    return result;
+  }
+
+  @Override
+  public Map<String, List<OptParam>> findByTickerAndCaseIdGroupedByStrategy(String ticker, String caseId) {
+    // Get all parameters for the ticker, timeframe, and tag
+    List<OptParam> allParams = findByTickerAndCaseId(ticker, caseId);
+    // Group parameters by strategy
+    Map<String, List<OptParam>> strategyToParams = new HashMap<>();
+    for (OptParam param : allParams) {
+      String strategy = param.getId().getStrategy();
+      // Initialize the list if this is the first parameter for this strategy
+      if (!strategyToParams.containsKey(strategy)) {
+        strategyToParams.put(strategy, new ArrayList<>());
+      }
+      // Add the parameter to the list for this strategy
+      strategyToParams.get(strategy).add(param);
+    }
+    return strategyToParams;
   }
 }

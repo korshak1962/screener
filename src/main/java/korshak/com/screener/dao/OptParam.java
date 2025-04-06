@@ -19,6 +19,9 @@ public class OptParam {
   @Enumerated(EnumType.STRING)
   private TimeFrame timeframe;
 
+  @Column(name = "strategy_class")
+  private String strategyClass;
+
   private Double value;
 
   @Column(name = "value_string")
@@ -33,31 +36,17 @@ public class OptParam {
   @Column(name = "step", nullable = false, columnDefinition = "FLOAT DEFAULT 0")
   private float step = 0.0f;
 
-  // Define relationship to CompositeCase - one OptParam can have multiple CompositeCases
-  // This is a reverse relationship where composite_case depends on opt_params
-
-
+  // Constructors
   public OptParam() {
   }
 
-  public OptParam(String ticker, String paramName, String strategy, TimeFrame timeframe,
-                  Double value, String valueString, float min, float max, float step) {
-    this(ticker, paramName, strategy, "Single", timeframe, value,
-        valueString, min, max, step);
-  }
 
-  public OptParam(String ticker, String paramName, String strategy, TimeFrame timeframe,
-                  Double value,  float min, float max, float step) {
-    this(ticker, paramName, strategy, "Single", timeframe, value,
-        "", min, max, step);
-  }
-
-
-  public OptParam(String ticker, String paramName, String strategy, String caseId,
-                  TimeFrame timeframe, Double value, String valueString, float min, float max,
-                  float step) {
+    public OptParam(String ticker, String paramName, String strategy, String caseId,
+                  TimeFrame timeframe, String strategyClass, Double value, String valueString,
+                  float min, float max, float step) {
     this.id = new OptParamKey(ticker, paramName, strategy, caseId);
     this.timeframe = timeframe;
+    this.strategyClass = strategyClass;
     this.value = value;
     this.valueString = valueString;
     this.min = min;
@@ -65,6 +54,7 @@ public class OptParam {
     this.step = step;
   }
 
+  // Getters and setters
   public OptParamKey getId() {
     return id;
   }
@@ -77,15 +67,20 @@ public class OptParam {
     return id != null ? id.getCaseId() : null;
   }
 
-  //@OneToOne(mappedBy = "optParam", fetch = FetchType.LAZY)
-  //private CompositeCase compositeCase;
-
   public TimeFrame getTimeframe() {
     return timeframe;
   }
 
   public void setTimeframe(TimeFrame timeframe) {
     this.timeframe = timeframe;
+  }
+
+  public String getStrategyClass() {
+    return strategyClass;
+  }
+
+  public void setStrategyClass(String strategyClass) {
+    this.strategyClass = strategyClass;
   }
 
   public Double getValue() {
@@ -147,15 +142,10 @@ public class OptParam {
 
   @Override
   public String toString() {
-    return "OptParam{" +
-        "id=" + id +
-        ", timeframe=" + timeframe +
+    return
+        "param=" + id.param +
         ", value=" + value +
-        ", valueString='" + valueString + '\'' +
-        ", min=" + min +
-        ", max=" + max +
-        ", step=" + step +
-        '}';
+        ", valueString='" + valueString;
   }
 
   @Embeddable
