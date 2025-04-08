@@ -16,7 +16,6 @@ import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
-import korshak.com.screener.vo.SubStrategy;
 import org.springframework.stereotype.Service;
 
 @Service("StrategyMerger")
@@ -26,7 +25,7 @@ public class StrategyMerger implements Strategy {
   public static final String END_DATE = "endDate";
   final PriceDao priceDao;
   double stopLossMaxPercent;
-  List<SubStrategy> subStrategies = new ArrayList<>();
+  List<Strategy> subStrategies = new ArrayList<>();
   TimeFrame timeFrame;
   LocalDateTime startDate;
   LocalDateTime endDate;
@@ -77,8 +76,8 @@ public class StrategyMerger implements Strategy {
         timeFrame
     );
     createDefaultOptParams();
-    for (SubStrategy subStrategy : subStrategies) {
-      subStrategy.getStrategy().init(ticker, subStrategy.getTimeFrame(), startDate, endDate);
+    for (Strategy strategy : subStrategies) {
+      strategy.init(ticker, strategy.getTimeFrame(), startDate, endDate);
     }
     return this;
   }
@@ -98,8 +97,8 @@ public class StrategyMerger implements Strategy {
 
   @Override
   public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
-    if (this.subStrategies.iterator().next().getStrategy().getIndicators() != null) {
-      return this.subStrategies.iterator().next().getStrategy().getIndicators();
+    if (this.subStrategies.iterator().next().getIndicators() != null) {
+      return this.subStrategies.iterator().next().getIndicators();
     }
     return Map.of();
   }
@@ -109,8 +108,8 @@ public class StrategyMerger implements Strategy {
     if (this.subStrategies.isEmpty()) {
       return Map.of();
     }
-    if (this.subStrategies.iterator().next().getStrategy().getPriceIndicators() != null) {
-      return this.subStrategies.iterator().next().getStrategy().getPriceIndicators();
+    if (this.subStrategies.iterator().next().getPriceIndicators() != null) {
+      return this.subStrategies.iterator().next().getPriceIndicators();
     }
     return Map.of();
   }
@@ -156,28 +155,29 @@ public class StrategyMerger implements Strategy {
   }
 
   public StrategyMerger addStrategy(Strategy strategy, TimeFrame timeFrame) {
-    subStrategies.add(new SubStrategy(strategy, timeFrame));
+    subStrategies.add(strategy);
     return this;
   }
 
-  public StrategyMerger addStrategies(List<SubStrategy> subStrategies) {
+  public StrategyMerger addStrategies(List<Strategy> subStrategies) {
     this.subStrategies.addAll(subStrategies);
     return this;
   }
 
-  public List<SubStrategy> getSubStrategies() {
+  public List<Strategy> getSubStrategies() {
     return subStrategies;
   }
 
   public void mergeSignals() {
     dateToSignals = new HashMap<>();
     signalsLong = new ArrayList<>();
-    for (SubStrategy subStrategy : subStrategies) {
-      subStrategy.getStrategy().calcSignals();
-      List<? extends Signal> signalsOfStrategy = subStrategy.getStrategy().getAllSignals(timeFrame);
+    signalsShort = new ArrayList<>();
+    for (Strategy subStrategy : subStrategies) {
+      subStrategy.calcSignals();
+      List<? extends Signal> signalsOfStrategy = subStrategy.getAllSignals(timeFrame);
       if (signalsOfStrategy.isEmpty()) {
         throw new RuntimeException(
-            "Strategy " + subStrategy.getStrategy().getStrategyName() + " has no signals");
+            "Strategy " + subStrategy.getStrategyName() + " has no signals");
       }
       signalsOfStrategy.forEach(signal -> {
         if (!dateToSignals.containsKey(signal.getDate())) {
@@ -238,7 +238,7 @@ public class StrategyMerger implements Strategy {
     );
     this.setStopLossPercent(initStopLoss);
     optParamsMap = Utils.getOptParamsAsMap(optParams);
-    setOptParams(optParamsMap);
+    configure(optParamsMap);
   }
 
   public Map<String, OptParam> getOptParams() {
@@ -246,7 +246,7 @@ public class StrategyMerger implements Strategy {
   }
 
   @Override
-  public void setOptParams(Map<String, OptParam> optParamsMap) {
+  public void configure(Map<String, OptParam> optParamsMap) {
     if (optParamsMap != null && optParamsMap.get(STOP_LOSS_PERCENT) != null) {
       this.setStopLossPercent(optParamsMap.get(STOP_LOSS_PERCENT).getValue());
     } else {

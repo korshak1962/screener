@@ -92,11 +92,15 @@ public class TradeServiceImpl implements TradeService {
     TreeMap<LocalDateTime, Double> currentPnL = new TreeMap<>();
     Map<LocalDateTime, Double> minLongPnl = new HashMap<>();
     //========================= temporary
+
+    /*
     Signal last = strategy.getSignalsLong().getLast();
     if (last.getSignalType() == SignalType.LongOpen) {
       System.out.println("===== Last signal is LongOpen at price = " + last.getPrice()
           + " at " + last.getDate() + " cause " + last.getComment());
     }
+
+     */
     //====================
     Iterator<? extends Signal> iteratorSignal = strategy.getSignalsLong().iterator();
     Signal prevSignal = iteratorSignal.next();

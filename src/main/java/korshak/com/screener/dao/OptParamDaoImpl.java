@@ -41,7 +41,6 @@ public class OptParamDaoImpl implements OptParamDao {
   public Map<String, Double> findValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe) {
     List<OptParam> params = optParamRepository.findById_TickerAndTimeframe(ticker, timeframe);
     return params.stream()
-        .filter(param -> param.getValue() != null)
         .collect(Collectors.toMap(
             param -> param.getId().getParam(),
             OptParam::getValue
@@ -49,7 +48,8 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public Map<String, String> findStringValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe) {
+  public Map<String, String> findStringValuesByTickerAndTimeframe(String ticker,
+                                                                  TimeFrame timeframe) {
     List<OptParam> params = optParamRepository.findById_TickerAndTimeframe(ticker, timeframe);
     return params.stream()
         .filter(param -> param.getValueString() != null)
@@ -66,11 +66,8 @@ public class OptParamDaoImpl implements OptParamDao {
 
     for (OptParam param : params) {
       String paramName = param.getId().getParam();
-      if (param.getValue() != null) {
-        result.put(paramName, param.getValue());
-      } else if (param.getValueString() != null) {
-        result.put(paramName, param.getValueString());
-      }
+      result.put(paramName, param.getValue());
+      result.put(paramName, param.getValueString());
     }
 
     return result;
@@ -80,7 +77,6 @@ public class OptParamDaoImpl implements OptParamDao {
   public Map<String, Double> findValuesByTickerAndStrategy(String ticker, String strategy) {
     List<OptParam> params = optParamRepository.findById_TickerAndId_Strategy(ticker, strategy);
     return params.stream()
-        .filter(param -> param.getValue() != null)
         .collect(Collectors.toMap(
             param -> param.getId().getParam(),
             OptParam::getValue
@@ -88,18 +84,21 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public Map<String, Double> findValuesByTickerAndTimeframeAndStrategyAsMap(String ticker, TimeFrame timeframe, String strategy) {
+  public Map<String, Double> findValuesByTickerAndTimeframeAndStrategyAsMap(String ticker,
+                                                                            TimeFrame timeframe,
+                                                                            String strategy) {
     List<OptParam> params =
         findValuesByTickerAndTimeframeAndStrategy(ticker, timeframe, strategy);
     return params.stream()
-        .filter(param -> param.getValue() != null)
         .collect(Collectors.toMap(
             param -> param.getId().getParam(),
             OptParam::getValue
         ));
   }
 
-  public List<OptParam> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe, String strategy) {
+  public List<OptParam> findValuesByTickerAndTimeframeAndStrategy(String ticker,
+                                                                  TimeFrame timeframe,
+                                                                  String strategy) {
     List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndId_Strategy(ticker,
         timeframe, strategy);
     return params;
@@ -107,7 +106,8 @@ public class OptParamDaoImpl implements OptParamDao {
 
   // Methods for case_id
   @Override
-  public List<OptParam> findByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId) {
+  public List<OptParam> findByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe,
+                                                          String caseId) {
     return optParamRepository.findById_TickerAndTimeframeAndId_CaseId(ticker, timeframe, caseId);
   }
 
@@ -122,10 +122,12 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public Map<String, Double> findValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId) {
-    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndId_CaseId(ticker, timeframe, caseId);
+  public Map<String, Double> findValuesByTickerAndTimeframeAndCaseId(String ticker,
+                                                                     TimeFrame timeframe,
+                                                                     String caseId) {
+    List<OptParam> params =
+        optParamRepository.findById_TickerAndTimeframeAndId_CaseId(ticker, timeframe, caseId);
     return params.stream()
-        .filter(param -> param.getValue() != null)
         .collect(Collectors.toMap(
             param -> param.getId().getParam(),
             OptParam::getValue
@@ -133,8 +135,11 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public Map<String, String> findStringValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId) {
-    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndId_CaseId(ticker, timeframe, caseId);
+  public Map<String, String> findStringValuesByTickerAndTimeframeAndCaseId(String ticker,
+                                                                           TimeFrame timeframe,
+                                                                           String caseId) {
+    List<OptParam> params =
+        optParamRepository.findById_TickerAndTimeframeAndId_CaseId(ticker, timeframe, caseId);
     return params.stream()
         .filter(param -> param.getValueString() != null)
         .collect(Collectors.toMap(
@@ -144,19 +149,17 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public Map<String, Object> findAllValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId) {
-    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndId_CaseId(ticker, timeframe, caseId);
+  public Map<String, Object> findAllValuesByTickerAndTimeframeAndCaseId(String ticker,
+                                                                        TimeFrame timeframe,
+                                                                        String caseId) {
+    List<OptParam> params =
+        optParamRepository.findById_TickerAndTimeframeAndId_CaseId(ticker, timeframe, caseId);
     Map<String, Object> result = new HashMap<>();
-
     for (OptParam param : params) {
       String paramName = param.getId().getParam();
-      if (param.getValue() != null) {
-        result.put(paramName, param.getValue());
-      } else if (param.getValueString() != null) {
-        result.put(paramName, param.getValueString());
-      }
+      result.put(paramName, param.getValue());
+      result.put(paramName, param.getValueString());
     }
-
     return result;
   }
 
@@ -172,15 +175,20 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public List<OptParam> findByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass) {
-    return optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe, strategyClass);
+  public List<OptParam> findByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe,
+                                                                 String strategyClass) {
+    return optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe,
+        strategyClass);
   }
 
   @Override
-  public Map<String, Double> findValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass) {
-    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe, strategyClass);
+  public Map<String, Double> findValuesByTickerAndTimeframeAndStrategyClass(String ticker,
+                                                                            TimeFrame timeframe,
+                                                                            String strategyClass) {
+    List<OptParam> params =
+        optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe,
+            strategyClass);
     return params.stream()
-        .filter(param -> param.getValue() != null)
         .collect(Collectors.toMap(
             param -> param.getId().getParam(),
             OptParam::getValue
@@ -188,8 +196,12 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public Map<String, String> findStringValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass) {
-    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe, strategyClass);
+  public Map<String, String> findStringValuesByTickerAndTimeframeAndStrategyClass(String ticker,
+                                                                                  TimeFrame timeframe,
+                                                                                  String strategyClass) {
+    List<OptParam> params =
+        optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe,
+            strategyClass);
     return params.stream()
         .filter(param -> param.getValueString() != null)
         .collect(Collectors.toMap(
@@ -199,24 +211,26 @@ public class OptParamDaoImpl implements OptParamDao {
   }
 
   @Override
-  public Map<String, Object> findAllValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass) {
-    List<OptParam> params = optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe, strategyClass);
+  public Map<String, Object> findAllValuesByTickerAndTimeframeAndStrategyClass(String ticker,
+                                                                               TimeFrame timeframe,
+                                                                               String strategyClass) {
+    List<OptParam> params =
+        optParamRepository.findById_TickerAndTimeframeAndStrategyClass(ticker, timeframe,
+            strategyClass);
     Map<String, Object> result = new HashMap<>();
 
     for (OptParam param : params) {
       String paramName = param.getId().getParam();
-      if (param.getValue() != null) {
-        result.put(paramName, param.getValue());
-      } else if (param.getValueString() != null) {
-        result.put(paramName, param.getValueString());
-      }
+      result.put(paramName, param.getValue());
+      result.put(paramName, param.getValueString());
     }
 
     return result;
   }
 
   @Override
-  public Map<String, List<OptParam>> findByTickerAndCaseIdGroupedByStrategy(String ticker, String caseId) {
+  public Map<String, List<OptParam>> findByTickerAndCaseIdGroupedByStrategy(String ticker,
+                                                                            String caseId) {
     // Get all parameters for the ticker, timeframe, and tag
     List<OptParam> allParams = findByTickerAndCaseId(ticker, caseId);
     // Group parameters by strategy

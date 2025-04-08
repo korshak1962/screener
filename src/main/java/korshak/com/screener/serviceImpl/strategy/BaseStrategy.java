@@ -129,7 +129,7 @@ public abstract class BaseStrategy implements Strategy {
     return allSignals;
   }
 
-  public void setOptParams(Map<String, OptParam> optParamsMap) {
+  public void configure(Map<String, OptParam> optParamsMap) {
     this.optParamsMap = optParamsMap;
   }
 

@@ -94,7 +94,7 @@ public class DoubleTiltStrategy implements Strategy {
   }
 
   @Override
-  public void setOptParams(Map<String, OptParam> optParamsMap) {
+  public void configure(Map<String, OptParam> optParamsMap) {
 
   }
 

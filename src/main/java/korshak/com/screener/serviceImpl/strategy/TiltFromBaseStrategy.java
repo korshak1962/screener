@@ -42,10 +42,10 @@ public class TiltFromBaseStrategy extends BaseStrategy {
   public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                        LocalDateTime endDate) {
     super.init(ticker, timeFrame, startDate, endDate);
-    createDefaultOptParams();
+
     return this;
   }
-
+/*
   public void createDefaultOptParams() {
     if (!optParamsMap.isEmpty()) {
       return;
@@ -66,8 +66,10 @@ public class TiltFromBaseStrategy extends BaseStrategy {
             -0.05, "", -0.5f, 0.2f, 0.1f)
     );
     optParamsMap = Utils.getOptParamsAsMap(optParams);
-    setOptParams(optParamsMap);
+    configure(optParamsMap);
   }
+
+ */
 
   @Override
   public Signal getSignal(BasePrice price) {
@@ -146,9 +148,10 @@ public class TiltFromBaseStrategy extends BaseStrategy {
     throw new IllegalArgumentException("Wrong time frame for signal");
   }
 
-  public void setOptParams(Map<String, OptParam> optParamsMap) {
+  public void configure(Map<String, OptParam> optParamsMap) {
     if (optParamsMap != null && optParamsMap.get(LENGTH) != null) {
-      setLength(optParamsMap.get(LENGTH).getValue().intValue());
+      this.timeFrame = optParamsMap.get(LENGTH).getTimeframe();
+      setLength((int)optParamsMap.get(LENGTH).getValue());
       tiltBuy = optParamsMap.get(TILT_BUY).getValue();
       tiltSell = optParamsMap.get(TILT_SELL).getValue();
     } else {

@@ -127,7 +127,7 @@ public class ScreenerApplication implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
     LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
-    LocalDateTime endDate = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
+    LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
     List<String> strategyNames = List.of("TiltFromBaseStrategy");
     //reporter.readParamsGetStrategyResult("QQQ", startDate, endDate, TimeFrame.DAY,strategyNames);
@@ -171,7 +171,7 @@ public class ScreenerApplication implements CommandLineRunner {
 
   //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.ALL),
    //     2025, 2,2025, 3, yahooDownloader);
-    // downloadSeriesFromToTomorrow(Portfolios.NAME_TO_TICKERS.get(Portfolios.ALL),
+    // downloadSeriesFromToTomorrow(Portfolios.US_SECTOR_ETF,
      //    LocalDate.now().minusDays(18), yahooDownloader);
 
 
@@ -179,7 +179,7 @@ public class ScreenerApplication implements CommandLineRunner {
     //https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=Tencent&apikey=2NYM2EF6HJZUCXAL
     //test https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&month=2024-01&outputsize=full&apikey=2NYM2EF6HJZUCXAL
     //https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=TCEHY&outputsize=full&apikey=YOUR_API_KEY
-    downloadSeries(Portfolios.CHINA, 2024, 1, 2025, 1, alphaVintageDownloader);
+    //downloadSeries(Portfolios.US_WATCH, 2024, 1, 2025, 1, alphaVintageDownloader);
 
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),

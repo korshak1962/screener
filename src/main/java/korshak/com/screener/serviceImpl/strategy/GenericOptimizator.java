@@ -9,7 +9,6 @@ import korshak.com.screener.dao.OptParam;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.StrategyResult;
-import korshak.com.screener.vo.SubStrategy;
 import org.springframework.stereotype.Service;
 
 @Service("GenericOptimizator")
@@ -51,7 +50,7 @@ public class GenericOptimizator extends Optimizator {
       Strategy strategy = entry.getKey();
 
       // Apply optimal parameters
-      strategy.setOptParams(entry.getValue());
+      strategy.configure(entry.getValue());
 
       // Add parameters to result map
       for (OptParam param : entry.getValue().values()) {
@@ -140,7 +139,7 @@ public class GenericOptimizator extends Optimizator {
 
     // Apply best parameters to all strategies
     for (Strategy strategy : strategiesToOptimize) {
-      strategy.setOptParams(bestParams.get(strategy));
+      strategy.configure(bestParams.get(strategy));
     }
 
     long totalTimeMs = System.currentTimeMillis() - startTime;
@@ -171,12 +170,12 @@ public class GenericOptimizator extends Optimizator {
     strategyParamValues = new HashMap<>();
 
     // Identify strategies that have optimizable parameters
-    for (SubStrategy subStrategy : merger.getSubStrategies()) {
-      if (!subStrategy.getStrategy().getOptParams().isEmpty()) {
-        strategiesToOptimize.add(subStrategy.getStrategy());
+    for (Strategy strategy : merger.getSubStrategies()) {
+      if (!strategy.getOptParams().isEmpty()) {
+        strategiesToOptimize.add(strategy);
         // Initialize parameter maps
-        currentParams.put(subStrategy.getStrategy(), new HashMap<>(subStrategy.getStrategy().getOptParams()));
-        bestParams.put(subStrategy.getStrategy(), new HashMap<>(subStrategy.getStrategy().getOptParams()));
+        currentParams.put(strategy, new HashMap<>(strategy.getOptParams()));
+        bestParams.put(strategy, new HashMap<>(strategy.getOptParams()));
       }
     }
 
@@ -201,7 +200,7 @@ public class GenericOptimizator extends Optimizator {
     if (strategyIndex >= strategiesToOptimize.size()) {
       // Apply all current parameters
       for (Strategy strategy : strategiesToOptimize) {
-        strategy.setOptParams(currentParams.get(strategy));
+        strategy.configure(currentParams.get(strategy));
       }
 
       // Run the merger to calculate overall PnL

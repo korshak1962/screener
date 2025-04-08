@@ -29,7 +29,7 @@ public abstract class Optimizator {
     this.startDate = merger.startDate;
     this.endDate = merger.endDate;
     merger.getSubStrategies().forEach(subStrategy ->
-        subStrategy.getStrategy().init(ticker, timeFrame, startDate, endDate));
+        subStrategy.init(ticker, timeFrame, startDate, endDate));
   }
 
   public void init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
@@ -39,7 +39,7 @@ public abstract class Optimizator {
     this.startDate = startDate;
     this.endDate = endDate;
     merger.getSubStrategies().forEach(subStrategy ->
-        subStrategy.getStrategy().init(ticker, timeFrame, startDate, endDate));
+        subStrategy.init(ticker, timeFrame, startDate, endDate));
     // Then initialize merger
     merger.init(ticker, timeFrame, startDate, endDate);
   }

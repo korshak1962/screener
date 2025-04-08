@@ -1,7 +1,6 @@
 package korshak.com.screener.service.strategy;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -41,5 +40,5 @@ public interface Strategy {
 
 
    Map<String, OptParam> getOptParams() ;
-   void setOptParams(Map<String, OptParam> optParamsMap) ;
+   void configure(Map<String, OptParam> optParamsMap) ;
 }

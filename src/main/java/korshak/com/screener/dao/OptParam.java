@@ -22,7 +22,7 @@ public class OptParam {
   @Column(name = "strategy_class")
   private String strategyClass;
 
-  private Double value;
+  private double value;
 
   @Column(name = "value_string")
   private String valueString;
@@ -42,7 +42,7 @@ public class OptParam {
 
 
     public OptParam(String ticker, String paramName, String strategy, String caseId,
-                  TimeFrame timeframe, String strategyClass, Double value, String valueString,
+                  TimeFrame timeframe, String strategyClass, double value, String valueString,
                   float min, float max, float step) {
     this.id = new OptParamKey(ticker, paramName, strategy, caseId);
     this.timeframe = timeframe;
@@ -83,11 +83,11 @@ public class OptParam {
     this.strategyClass = strategyClass;
   }
 
-  public Double getValue() {
+  public double getValue() {
     return value;
   }
 
-  public void setValue(Double value) {
+  public void setValue(double value) {
     this.value = value;
   }
 
