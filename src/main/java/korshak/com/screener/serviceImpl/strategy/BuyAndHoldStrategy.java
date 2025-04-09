@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
@@ -114,12 +114,12 @@ public class BuyAndHoldStrategy implements Strategy {
   }
 
   @Override
-  public Map<String, OptParam> getOptParams() {
+  public Map<String, Param> getParams() {
     return Map.of();
   }
 
   @Override
-  public void configure(Map<String, OptParam> optParamsMap) {
+  public void configure(Map<String, Param> nameToParam) {
 
   }
 }

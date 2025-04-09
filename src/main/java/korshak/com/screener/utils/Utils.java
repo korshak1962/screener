@@ -8,7 +8,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.SmaDay;
 import korshak.com.screener.dao.SmaHour;
 import korshak.com.screener.dao.SmaMonth;
@@ -173,9 +173,9 @@ public class Utils {
     };
   }
 
-  public static Map<String, OptParam> getOptParamsAsMap(List<OptParam> optParamList) {
-    Map<String, OptParam> optParams = new HashMap<>();
-    for (OptParam optParam : optParamList) {
+  public static Map<String, Param> getOptParamsAsMap(List<Param> optParamList) {
+    Map<String, Param> optParams = new HashMap<>();
+    for (Param optParam : optParamList) {
       optParams.put(optParam.getId().getParam(), optParam);
     }
     return optParams;

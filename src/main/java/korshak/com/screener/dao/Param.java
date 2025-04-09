@@ -12,7 +12,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "opt_params")
-public class OptParam {
+public class Param {
   @EmbeddedId
   private OptParamKey id;
 
@@ -37,13 +37,13 @@ public class OptParam {
   private float step = 0.0f;
 
   // Constructors
-  public OptParam() {
+  public Param() {
   }
 
 
-    public OptParam(String ticker, String paramName, String strategy, String caseId,
-                  TimeFrame timeframe, String strategyClass, double value, String valueString,
-                  float min, float max, float step) {
+    public Param(String ticker, String paramName, String strategy, String caseId,
+                 TimeFrame timeframe, String strategyClass, double value, String valueString,
+                 float min, float max, float step) {
     this.id = new OptParamKey(ticker, paramName, strategy, caseId);
     this.timeframe = timeframe;
     this.strategyClass = strategyClass;
@@ -131,7 +131,7 @@ public class OptParam {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    OptParam optParam = (OptParam) o;
+    Param optParam = (Param) o;
     return Objects.equals(id, optParam.id);
   }
 

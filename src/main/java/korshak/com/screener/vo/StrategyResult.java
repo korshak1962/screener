@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.OptParam;
 
 public class StrategyResult {
   private final List<? extends BasePrice> prices;

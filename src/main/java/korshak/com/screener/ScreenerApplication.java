@@ -31,7 +31,6 @@ import korshak.com.screener.serviceImpl.strategy.BuyAndHoldStrategyMinusDownTren
 import korshak.com.screener.serviceImpl.strategy.BuyCloseHigherPrevClose;
 import korshak.com.screener.serviceImpl.strategy.BuyHigherPrevHigh;
 import korshak.com.screener.serviceImpl.strategy.DoubleTiltStrategy;
-import korshak.com.screener.serviceImpl.strategy.OptimizatorDoubleTilt;
 import korshak.com.screener.serviceImpl.strategy.StopLossPercentStrategy;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
 import korshak.com.screener.serviceImpl.strategy.TiltCombinedStrategy;
@@ -101,9 +100,6 @@ public class ScreenerApplication implements CommandLineRunner {
   @Qualifier("BuyAndHoldStrategy")
   private Strategy buyAndHoldStrategy;
   @Autowired
-  @Qualifier("OptimizatorDoubleTilt")
-  private OptimizatorDoubleTilt optimizatorDoubleTilt;
-  @Autowired
   private TrendService trendService;
   @Autowired
   private FuturePriceByTiltCalculator futurePriceByTiltCalculator;
@@ -126,7 +122,7 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     //TMOS LKOH SBER MGNT  TINKOFF
     List<String> strategyNames = List.of("TiltFromBaseStrategy");
@@ -135,16 +131,16 @@ public class ScreenerApplication implements CommandLineRunner {
    // for (String ticker : Portfolios.NAME_TO_TICKERS.get(Portfolios.US)){
    //   trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
    // }
-    reporter.findOptParamAndSaveGeneric("QQQ", startDate, endDate, TimeFrame.DAY, "onlyShort");
-    //reporter.readOptParamsGenericAndShow("QQQ", startDate, endDate, TimeFrame.DAY,"onlyShort");
+    reporter.findOptParamAndSaveGeneric("SPY", startDate, endDate, TimeFrame.DAY, "onlyShort4");
+    //reporter.readOptParamsGenericAndShow("SPY", startDate, endDate, TimeFrame.DAY,"onlyShort2");
     //reporter.findResultFor2strategies("QQQ", startDate, endDate, TimeFrame.WEEK, TimeFrame.DAY);
     //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 
-    LocalDateTime startDateEval = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDateEval = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDateEval = LocalDateTime.of(2025, Month.APRIL, 1, 0, 0);
     String ticker = "SBER_MOEX";
     //reporter.createExcelReport(List.of(ticker), startDateEval, endDateEval, TimeFrame.DAY,ticker);
-    Reporter.STOP_LOSS_MAX_PERCENT = .9;
+    //Reporter.STOP_LOSS_MAX_PERCENT = .9;
    // reporter.evaluateAndShow(buyCloseHigherPrevClose, ticker, startDateEval, endDateEval,
     //    TimeFrame.WEEK);
 
@@ -171,23 +167,22 @@ public class ScreenerApplication implements CommandLineRunner {
 
   //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.ALL),
    //     2025, 2,2025, 3, yahooDownloader);
-    // downloadSeriesFromToTomorrow(Portfolios.US_SECTOR_ETF,
-     //    LocalDate.now().minusDays(18), yahooDownloader);
+   //  downloadSeriesFromToTomorrow(Portfolios.ALL,
+   //      LocalDate.now().minusDays(8), yahooDownloader);
 
 
     // downloadSeries("AAXJ", 2024, 1,2025, 1, alphaVintageDownloader);
     //https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=Tencent&apikey=2NYM2EF6HJZUCXAL
     //test https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&month=2024-01&outputsize=full&apikey=2NYM2EF6HJZUCXAL
     //https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=TCEHY&outputsize=full&apikey=YOUR_API_KEY
-    //downloadSeries(Portfolios.US_WATCH, 2024, 1, 2025, 1, alphaVintageDownloader);
+    //downloadSeries(Portfolios.US_SECTOR_ETF, 2024, 1, 2025, 2, alphaVintageDownloader);
 
     //downloadSeriesUnsafe("MOMO", "2024-", 1, 12);
-    //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.US_WATCH),
-    //      "2025-", 1, 3, yahooDownloader);
+    //  downloadSeries(Portfolios.US_WATCH, 2025, 3,2025, 4, yahooDownloader);
     //downloadSeries("QQQ", "2025-01-01", yahooDownloader);
 //    downloadSeries("SNGS", "2018-01-01", moexDownloader);
-     //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.MOEX),
-      //   2025, 3,2025, 3, moexDownloader);
+    //   downloadSeries(Portfolios.MOEX,
+    //     2025, 4,2025, 4, moexDownloader);
 
     //downloadSeriesUnsafe("VALE", "2025-", 2, 2);
 
@@ -522,9 +517,9 @@ public class ScreenerApplication implements CommandLineRunner {
     }
   }
 
-  private void downloadSeries(final List<String> tickers, int startYear, int startMonth,
-                              int endYear,
-                              int finalMonth,
+  private void downloadSeries(final List<String> tickers,
+                              int startYear, int startMonth,
+                              int endYear,int finalMonth,
                               SharePriceDownLoaderService sharePriceDownLoaderService) {
     for (String ticker : tickers) {
       downloadSeries(ticker, startYear, startMonth, endYear, finalMonth,

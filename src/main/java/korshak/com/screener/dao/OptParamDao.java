@@ -6,11 +6,11 @@ import java.util.Map;
 public interface OptParamDao {
   void deleteByTickerAndTimeframe(String ticker, TimeFrame timeframe);
 
-  void saveAll(List<OptParam> optParams);
+  void saveAll(List<Param> optParams);
 
-  void save(OptParam optParam);
+  void save(Param optParam);
 
-  List<OptParam> findByTicker(String ticker);
+  List<Param> findByTicker(String ticker);
 
   Map<String, Double> findValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe);
 
@@ -19,7 +19,7 @@ public interface OptParamDao {
   Map<String, Object> findAllValuesByTickerAndTimeframe(String ticker, TimeFrame timeframe);
 
   // Methods for case_id support
-  List<OptParam> findByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
+  List<Param> findByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
 
   Map<String, Double> findValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
 
@@ -28,23 +28,23 @@ public interface OptParamDao {
   Map<String, Object> findAllValuesByTickerAndTimeframeAndCaseId(String ticker, TimeFrame timeframe, String caseId);
 
   // New methods for finding by caseId
-  List<OptParam> findByCaseId(String caseId);
+  List<Param> findByCaseId(String caseId);
 
-  List<OptParam> findByTickerAndCaseId(String ticker, String caseId);
+  List<Param> findByTickerAndCaseId(String ticker, String caseId);
 
   Map<String, Double> findValuesByTickerAndStrategy(String ticker, String strategy);
 
   Map<String, Double> findValuesByTickerAndTimeframeAndStrategyAsMap(String ticker, TimeFrame timeframe,
                                                                      String strategy);
 
-  List<OptParam> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe, String strategy);
+  List<Param> findValuesByTickerAndTimeframeAndStrategy(String ticker, TimeFrame timeframe, String strategy);
 
   // New methods for strategyClass
-  List<OptParam> findByStrategyClass(String strategyClass);
+  List<Param> findByStrategyClass(String strategyClass);
 
-  List<OptParam> findByTickerAndStrategyClass(String ticker, String strategyClass);
+  List<Param> findByTickerAndStrategyClass(String ticker, String strategyClass);
 
-  List<OptParam> findByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass);
+  List<Param> findByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass);
 
   Map<String, Double> findValuesByTickerAndTimeframeAndStrategyClass(String ticker, TimeFrame timeframe, String strategyClass);
 
@@ -59,5 +59,5 @@ public interface OptParamDao {
    * @param caseId The caseId value
    * @return Map of strategy names to their corresponding parameter lists
    */
-  Map<String, List<OptParam>> findByTickerAndCaseIdGroupedByStrategy(String ticker, String caseId);
+  Map<String, List<Param>> findByTickerAndCaseIdGroupedByStrategy(String ticker, String caseId);
 }

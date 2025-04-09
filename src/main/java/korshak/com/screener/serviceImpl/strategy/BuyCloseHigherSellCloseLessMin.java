@@ -2,7 +2,7 @@ package korshak.com.screener.serviceImpl.strategy;
 
 import java.util.Map;
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.utils.Utils;
@@ -44,7 +44,7 @@ public class BuyCloseHigherSellCloseLessMin extends BaseStrategy {
   }
 
   @Override
-  public void configure(Map<String, OptParam> optParamsMap) {
+  public void configure(Map<String, Param> nameToParam) {
 
   }
 }

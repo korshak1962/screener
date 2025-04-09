@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.vo.Signal;
 
@@ -38,7 +38,6 @@ public interface Strategy {
 
   void calcSignals();
 
-
-   Map<String, OptParam> getOptParams() ;
-   void configure(Map<String, OptParam> optParamsMap) ;
+   Map<String, Param> getParams() ;
+   void configure(Map<String, Param> nameToParam) ;
 }

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
@@ -33,7 +33,7 @@ public class StrategyMerger implements Strategy {
   List<? extends BasePrice> prices;
   List<Signal> signalsLong;
   List<Signal> signalsShort = new ArrayList<>();
-  Map<String, OptParam> optParamsMap = new HashMap<>();
+  Map<String, Param> optParamsMap = new HashMap<>();
   Map<LocalDateTime, List<Signal>> dateToSignals;
   Comparator<Signal> signalComparator = (s1, s2) -> {
     // First compare by SignalType value
@@ -75,7 +75,6 @@ public class StrategyMerger implements Strategy {
         endDate,
         timeFrame
     );
-    createDefaultOptParams();
     for (Strategy strategy : subStrategies) {
       strategy.init(ticker, strategy.getTimeFrame(), startDate, endDate);
     }
@@ -176,8 +175,8 @@ public class StrategyMerger implements Strategy {
       subStrategy.calcSignals();
       List<? extends Signal> signalsOfStrategy = subStrategy.getAllSignals(timeFrame);
       if (signalsOfStrategy.isEmpty()) {
-        throw new RuntimeException(
-            "Strategy " + subStrategy.getStrategyName() + " has no signals");
+       System.out.println("Strategy " + subStrategy.getStrategyName() + " has no signals");
+           return;
       }
       signalsOfStrategy.forEach(signal -> {
         if (!dateToSignals.containsKey(signal.getDate())) {
@@ -199,6 +198,7 @@ public class StrategyMerger implements Strategy {
 
   private List<Signal> getSignalsWithStopLoss(BasePrice price, Signal lastSignal) {
     // stopLoss
+   // System.out.println("stopLossMaxPercent = " + stopLossMaxPercent);
     Signal signalStopLoss = null;
     if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen &&
         price.getLow() < stopLossMaxPercent * lastSignal.getPrice()) {
@@ -224,7 +224,7 @@ public class StrategyMerger implements Strategy {
     this.stopLossMaxPercent = stopLossMaxPercent;
     return this;
   }
-
+/*
   public void createDefaultOptParams() {
     if (!optParamsMap.isEmpty()) {
       return;
@@ -241,17 +241,20 @@ public class StrategyMerger implements Strategy {
     configure(optParamsMap);
   }
 
-  public Map<String, OptParam> getOptParams() {
+ */
+
+  public Map<String, Param> getParams() {
     return optParamsMap;
   }
 
   @Override
-  public void configure(Map<String, OptParam> optParamsMap) {
-    if (optParamsMap != null && optParamsMap.get(STOP_LOSS_PERCENT) != null) {
-      this.setStopLossPercent(optParamsMap.get(STOP_LOSS_PERCENT).getValue());
+  public void configure(Map<String, Param> nameToParam) {
+    if (nameToParam != null && nameToParam.get(STOP_LOSS_PERCENT) != null) {
+      this.setStopLossPercent(nameToParam.get(STOP_LOSS_PERCENT).getValue());
     } else {
       throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
           " ticker = " + ticker + " timeframe = " + timeFrame);
     }
+    this.optParamsMap = nameToParam;
   }
 }

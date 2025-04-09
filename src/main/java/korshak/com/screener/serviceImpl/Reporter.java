@@ -2,7 +2,6 @@ package korshak.com.screener.serviceImpl;
 
 import static korshak.com.screener.serviceImpl.strategy.StrategyMerger.END_DATE;
 import static korshak.com.screener.serviceImpl.strategy.StrategyMerger.START_DATE;
-import static korshak.com.screener.serviceImpl.strategy.StrategyMerger.STOP_LOSS_PERCENT;
 import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.LENGTH;
 import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.TILT_BUY;
 import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.TILT_SELL;
@@ -20,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.Trend;
@@ -31,8 +30,6 @@ import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.GenericOptimizator;
-import korshak.com.screener.serviceImpl.strategy.Optimizator;
-import korshak.com.screener.serviceImpl.strategy.OptimizatorTilt;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
 import korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.TrendChangeStrategy;
@@ -54,7 +51,6 @@ public class Reporter {
   private static final String STRATAGY_RESULT = "StratRes";
   public static double STOP_LOSS_MAX_PERCENT = .97;
   private final StrategyProvider strategyProvider;
-  private final OptimizatorTilt optimizatorTilt;
   private final GenericOptimizator genericOptimizator;
   private final StrategyMerger strategyMerger;
   private final FuturePriceByTiltCalculator futurePriceByTiltCalculator;
@@ -67,7 +63,6 @@ public class Reporter {
   public Map<String, StrategyResult> tickerToResult = new HashMap<>();
 
   public Reporter(StrategyProvider strategyProvider,
-                  @Qualifier("OptimizatorTilt") OptimizatorTilt optimizatorTilt,
                   @Qualifier("GenericOptimizator") GenericOptimizator genericOptimizator,
                   @Qualifier("StrategyMerger") StrategyMerger strategyMerger,
                   FuturePriceByTiltCalculator futurePriceByTiltCalculator,
@@ -78,7 +73,6 @@ public class Reporter {
                   OptParamDao optParamDao,
                   @Qualifier("TrendChangeStrategy") TrendChangeStrategy trendChangeStrategy) {
     this.strategyProvider = strategyProvider;
-    this.optimizatorTilt = optimizatorTilt;
     this.strategyMerger = strategyMerger;
     this.futurePriceByTiltCalculator = futurePriceByTiltCalculator;
     this.tradeService = tradeService;
@@ -111,10 +105,10 @@ public class Reporter {
     }
   }
 
-  private static List<OptParam> fillOptParamList(List<OptParam> optParamList,
-                                                 Map<String, Double> paramToDouble,
-                                                 Map<String, String> paramToString) {
-    for (OptParam param : optParamList) {
+  private static List<Param> fillOptParamList(List<Param> optParamList,
+                                              Map<String, Double> paramToDouble,
+                                              Map<String, String> paramToString) {
+    for (Param param : optParamList) {
       Double value = paramToDouble.get(param.getId().getParam());
       if (value != null) {
         param.setValue(value);
@@ -214,20 +208,6 @@ public class Reporter {
     return tickerToResult;
   }
 
-
-  public StrategyResult opt(String ticker, LocalDateTime startDate, LocalDateTime endDate,
-                            TimeFrame timeFrame) throws IOException {
-
-    Map<String, Double> optParams = findSaveOptParams(ticker, startDate, endDate, timeFrame);
-    //  StrategyResult strategyResult =
-    //      getStrategyResult(ticker, startDate, endDate, timeFrame);
-    StrategyResult strategyResult =
-        readParamsGetStrategyResult(ticker, startDate, endDate, timeFrame);
-    futurePriceCalc(ticker, optParams);
-    strategyResult.setOptParams(optParams);
-    return strategyResult;
-  }
-
   public StrategyResult getStrategyResult(List<Strategy> subStrategies, String ticker,
                                           LocalDateTime startDate,
                                           LocalDateTime endDate, TimeFrame timeFrame) {
@@ -273,14 +253,14 @@ public class Reporter {
     strategyMerger.init(ticker, timeFrame, startDate, endDate);
     strategyProvider.init(ticker, startDate, endDate, timeFrame);
     for (String strategyName : strategies) {
-      List<OptParam> params = optParamDao
+      List<Param> params = optParamDao
           .findValuesByTickerAndTimeframeAndStrategy(ticker, timeFrame, strategyName);
       Strategy strategy = strategyProvider.getStrategy(strategyName);
       strategy.configure(getOptParamsAsMap(params));
       //  strategyMerger.configure(getOptParamsAsMap(params));
       strategyMerger.addStrategy(strategy, timeFrame);
     }
-    List<OptParam> params = optParamDao
+    List<Param> params = optParamDao
         .findValuesByTickerAndTimeframeAndStrategy(ticker, timeFrame,
             strategyMerger.getClass().getSimpleName());
     strategyMerger.configure(getOptParamsAsMap(params));
@@ -304,8 +284,8 @@ public class Reporter {
     Map<String, Double> optParams = new HashMap<>();
     for (Strategy strategy : strategies) {
       strategyMerger.addStrategy(strategy, timeFrame);
-      Map<String, OptParam> optParamsMap = strategy.getOptParams();
-      for (Map.Entry<String, OptParam> entry : optParamsMap.entrySet()) {
+      Map<String, Param> optParamsMap = strategy.getParams();
+      for (Map.Entry<String, Param> entry : optParamsMap.entrySet()) {
         optParams.put(entry.getKey(), entry.getValue().getValue());
       }
     }
@@ -390,51 +370,6 @@ public class Reporter {
     return optParams;
   }
 
-  private Map<String, Double> findSaveOptParams(String ticker, LocalDateTime startDate,
-                                                LocalDateTime endDate, TimeFrame timeFrame) {
-    List<OptParam> optParamList = new ArrayList<>();
-    optParamList.add(new OptParam(ticker, START_DATE, "TiltFromBaseStrategy", "single",
-        timeFrame, "TiltFromBaseStrategy",
-        0d, startDate.toString(), 0f, 0f, 0f));
-    optParamList.add(new OptParam(ticker, END_DATE, "TiltFromBaseStrategy", "single",
-        timeFrame, "TiltFromBaseStrategy",
-        0d, endDate.toString(), 0f, 0f, 0f));
-    OptParam optParam = new OptParam(ticker, LENGTH, "TiltFromBaseStrategy", "single",
-        timeFrame, "TiltFromBaseStrategy",
-        4.0, "", 4.0f, 10.0f, 1.0f);
-    optParamList.add(optParam);
-    optParam = new OptParam(ticker, TILT_BUY, "TiltFromBaseStrategy", "single",
-        timeFrame, "TiltFromBaseStrategy",
-        -0.02, "", -0.05f, 0.0f, 0.01f);
-    optParamList.add(optParam);
-    optParam = new OptParam(ticker, TILT_SELL, "TiltFromBaseStrategy", "single",
-        timeFrame, "TiltFromBaseStrategy",
-        -0.05, "", -0.2f, 0.1f, 0.01f);
-    optParamList.add(optParam);
-
-    optParam = new OptParam(ticker, STOP_LOSS_PERCENT, "StrategyMerger", "single",
-        timeFrame, "StrategyMerger",
-        .98, "", .8f, 0.99f, 0.01f);
-    optParamList.add(optParam);
-
-    optimizatorTilt.configureTiltFromBaseStrategy(optParamList);
-
-    double minStopLossPercent = .8;
-    double maxStopLossPercent = .99;
-    double stepOfStopLoss = 0.005;
-    Map<String, Double> paramToDouble =
-        optimazeStrategy(optimizatorTilt, ticker, timeFrame, startDate, endDate,
-            minStopLossPercent,
-            maxStopLossPercent, stepOfStopLoss);
-    Map<String, String> paramToString = new HashMap<>();
-    paramToString.put("startDate", startDate.toString());
-    paramToString.put("endDate", endDate.toString());
-    fillOptParamList(optParamList, paramToDouble, paramToString);
-    optParamDao.saveAll(optParamList);
-    return paramToDouble;
-  }
-
-
   public void findResultFor2strategies(String ticker,
                                        LocalDateTime startDate,
                                        LocalDateTime endDate,
@@ -458,22 +393,37 @@ public class Reporter {
   }
 
 
-  public Map<Strategy, Map<String, OptParam>> findOptParamAndSaveGeneric(String ticker,
-                                                                         LocalDateTime startDate,
-                                                                         LocalDateTime endDate,
-                                                                         TimeFrame timeFrame,
-                                                                         String caseId) {
+  public Map<Strategy, Map<String, Param>> findOptParamAndSaveGeneric(String ticker,
+                                                                      LocalDateTime startDate,
+                                                                      LocalDateTime endDate,
+                                                                      TimeFrame timeFrame,
+                                                                      String caseId) {
+    Param stopLossParam = new Param(
+        ticker,
+        StrategyMerger.STOP_LOSS_PERCENT,
+        strategyMerger.getClass().getSimpleName(),
+        caseId,
+        timeFrame,
+        strategyMerger.getClass().getSimpleName(),
+        0.9,  // Start value
+        "",
+        0.9f, // Min value
+        .96f, // Max value
+        0.02f  // Step
+    );
+    Map<String, Param> mergerParams = new HashMap<>();
+    mergerParams.put(StrategyMerger.STOP_LOSS_PERCENT, stopLossParam);
+    strategyMerger.configure(mergerParams);
     strategyMerger.getSubStrategies().clear();
-    // strategyMerger.init(ticker, timeFrame, startDate, endDate);
     strategyProvider.init(ticker, startDate, endDate, timeFrame);
 
     TiltFromBaseStrategy shortStrategy = (TiltFromBaseStrategy) strategyProvider
         .getStrategy("TiltFromBaseStrategy");
-    List<OptParam> optParamListShort =
+    List<Param> optParamListShort =
         buildOptParamsTilt(ticker, timeFrame, caseId,
-            5, 10, 1,
-            -0.5f, 0.8f, 0.1f,
-            -0.5f, 0.2f, 0.1f);
+            7, 10, 1,
+            -1f, 1f, 0.1f,
+            -1f, 1f, 0.1f);
     shortStrategy.configure(getOptParamsAsMap(optParamListShort));
     strategyMerger.addStrategy(shortStrategy, timeFrame);
     strategyMerger.init(ticker, timeFrame, startDate, endDate);
@@ -481,7 +431,7 @@ public class Reporter {
     TiltFromBaseStrategy longStrategy = (TiltFromBaseStrategy) strategyProvider
         .getStrategy("TiltFromBaseStrategy");
 
-    List<OptParam> optParamListLong =
+    List<Param> optParamListLong =
         buildOptParamsTilt(ticker, timeFrame, caseId, 24.0, 36, 4,
             0.01f, 0.01f, 0.01f,
             0.01f, 0.01f, 0.01f);
@@ -489,15 +439,15 @@ public class Reporter {
     longStrategy.configure(getOptParamsAsMap(optParamListLong));
     //strategyMerger.addStrategy(longStrategy);
 
-    genericOptimizator.init(strategyMerger);
-    Map<Strategy, Map<String, OptParam>> strategyToParams =
+    //genericOptimizator.init(strategyMerger);
+    Map<Strategy, Map<String, Param>> strategyToParams =
         genericOptimizator.findOptimalParametersForAllStrategies();
-    List<OptParam> optParamListToDB = new ArrayList<>();
-    for (Map.Entry<Strategy, Map<String, OptParam>> entry : strategyToParams.entrySet()) {
+    List<Param> optParamListToDB = new ArrayList<>();
+    for (Map.Entry<Strategy, Map<String, Param>> entry : strategyToParams.entrySet()) {
       Strategy strategy = entry.getKey();
-      Map<String, OptParam> optParams = entry.getValue();
-      for (Map.Entry<String, OptParam> nameToParamEntry : optParams.entrySet()) {
-        OptParam optParamToStore = nameToParamEntry.getValue();
+      Map<String, Param> optParams = entry.getValue();
+      for (Map.Entry<String, Param> nameToParamEntry : optParams.entrySet()) {
+        Param optParamToStore = nameToParamEntry.getValue();
         optParamToStore.setValue(
             strategyToParams.get(strategy).get(nameToParamEntry.getKey()).getValue());
         optParamToStore.setValueString(
@@ -508,12 +458,12 @@ public class Reporter {
       }
     }
     optParamListToDB.add(
-        new OptParam(ticker, START_DATE, strategyMerger.getClass().getSimpleName(), caseId,
+        new Param(ticker, START_DATE, strategyMerger.getClass().getSimpleName(), caseId,
             timeFrame, strategyMerger.getClass().getSimpleName(),
             0d, strategyMerger.getStartDate().toString(), 1f, 0f, 1f)
     );
     optParamListToDB.add(
-        new OptParam(ticker, END_DATE, strategyMerger.getClass().getSimpleName(), caseId,
+        new Param(ticker, END_DATE, strategyMerger.getClass().getSimpleName(), caseId,
             timeFrame, strategyMerger.getClass().getSimpleName(),
             0d, strategyMerger.getEndDate().toString(), 1f, 0f, 1f)
     );
@@ -523,48 +473,28 @@ public class Reporter {
     return strategyToParams;
   }
 
-  private static List<OptParam> buildOptParamsTilt(String ticker, TimeFrame timeFrame,
-                                                   String caseId,
-                                                   double lengthStart, float lengthMax,
-                                                   float lengthStep,
-                                                   double tiltBuyStart, float tiltBuyMax,
-                                                   float tiltBuyStep,
-                                                   double tiltSellStart, float tiltSellMax,
-                                                   float tiltSellStep) {
-    List<OptParam> optParamListLong = List.of(
-        new OptParam(ticker, LENGTH, "TiltFromBaseStrategy", caseId, timeFrame,
+  private static List<Param> buildOptParamsTilt(String ticker, TimeFrame timeFrame,
+                                                String caseId,
+                                                double lengthStart, float lengthMax,
+                                                float lengthStep,
+                                                double tiltBuyStart, float tiltBuyMax,
+                                                float tiltBuyStep,
+                                                double tiltSellStart, float tiltSellMax,
+                                                float tiltSellStep) {
+    List<Param> optParamListLong = List.of(
+        new Param(ticker, LENGTH, "TiltFromBaseStrategy", caseId, timeFrame,
             "TiltFromBaseStrategy",
             lengthStart, "", (float) lengthStart, lengthMax, lengthStep),
 
-        new OptParam(ticker, TILT_BUY, "TiltFromBaseStrategy", caseId, timeFrame,
+        new Param(ticker, TILT_BUY, "TiltFromBaseStrategy", caseId, timeFrame,
             "TiltFromBaseStrategy",
             tiltBuyStart, "", (float) tiltBuyStart, tiltBuyMax, tiltBuyStep),
 
-        new OptParam(ticker, TILT_SELL, "TiltFromBaseStrategy", caseId, timeFrame,
+        new Param(ticker, TILT_SELL, "TiltFromBaseStrategy", caseId, timeFrame,
             "TiltFromBaseStrategy",
             tiltSellStart, "", (float) tiltSellStart, tiltSellMax, tiltSellStep)
     );
     return optParamListLong;
-  }
-
-  private Map<String, Double> optimazeStrategy(Optimizator optimizator, String ticker,
-                                               TimeFrame timeFrame,
-                                               LocalDateTime startDate, LocalDateTime endDate,
-                                               double minPercent,
-                                               double maxPercent, double step) {
-    optimizator.init(ticker, timeFrame, startDate, endDate);
-    Map<String, Double> params =
-        optimizator.findOptimumParametersWithStopLoss(minPercent, maxPercent, step);
-    System.out.println(" " + ticker + " " + params.remove(Optimizator.MAX_PNL) + " " + params);
-    buyAndHoldStrategy.init(ticker, timeFrame, startDate, endDate);
-    StrategyResult buyAndHoldstrategyResult =
-        tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, ticker,
-            startDate,
-            endDate,
-            timeFrame);
-    System.out.println("Buy and hold pnl = " + buyAndHoldstrategyResult.getLongPnL());
-    //System.exit(0);
-    return params;
   }
 
   private void futurePriceCalc(String ticker, Map<String, Double> optParams) {
@@ -645,11 +575,11 @@ public class Reporter {
                                           LocalDateTime endDate,
                                           TimeFrame timeFrame,
                                           String caseId) {
-    Map<String, List<OptParam>> strategyToParams =
+    Map<String, List<Param>> strategyToParams =
         optParamDao.findByTickerAndCaseIdGroupedByStrategy(ticker, caseId);
     strategyMerger.getSubStrategies().clear();
     strategyProvider.init(ticker, startDate, endDate, timeFrame);
-    for (Map.Entry<String, List<OptParam>> entiesStrategyToParams : strategyToParams.entrySet()) {
+    for (Map.Entry<String, List<Param>> entiesStrategyToParams : strategyToParams.entrySet()) {
       String strategyClass = entiesStrategyToParams.getValue().getFirst().getStrategyClass();
       if (!strategyClass.equals(strategyMerger.getClass().getSimpleName())) {
         Strategy strategy = strategyProvider.getStrategy(strategyClass);

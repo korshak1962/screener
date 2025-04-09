@@ -12,7 +12,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.TimeFrame;
@@ -71,12 +71,12 @@ public class TiltCombinedStrategy implements Strategy {
   }
 
   @Override
-  public Map<String, OptParam> getOptParams() {
+  public Map<String, Param> getParams() {
     return Map.of();
   }
 
   @Override
-  public void configure(Map<String, OptParam> optParamsMap) {
+  public void configure(Map<String, Param> nameToParam) {
 
   }
 

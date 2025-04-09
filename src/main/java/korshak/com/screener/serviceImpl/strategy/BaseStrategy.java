@@ -8,12 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Strategy;
-import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
 
 public abstract class BaseStrategy implements Strategy {
@@ -23,7 +22,7 @@ public abstract class BaseStrategy implements Strategy {
   LocalDateTime startDate;
   LocalDateTime endDate;
   String ticker;
-  Map<String, OptParam> optParamsMap = new HashMap<>();
+  Map<String, Param> optParamsMap = new HashMap<>();
   List<? extends BasePrice> prices;
   List<Signal> signalsLong = new ArrayList<>();
   List<Signal> signalsShort = new ArrayList<>();
@@ -129,8 +128,8 @@ public abstract class BaseStrategy implements Strategy {
     return allSignals;
   }
 
-  public void configure(Map<String, OptParam> optParamsMap) {
-    this.optParamsMap = optParamsMap;
+  public void configure(Map<String, Param> nameToParam) {
+    this.optParamsMap = nameToParam;
   }
 
   @Override
@@ -201,7 +200,7 @@ public abstract class BaseStrategy implements Strategy {
     return (List<BasePrice>) specialPrices;
   }
 
-  public Map<String, OptParam> getOptParams() {
+  public Map<String, Param> getParams() {
     return optParamsMap;
   }
 }

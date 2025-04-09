@@ -1,13 +1,12 @@
 package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
@@ -148,16 +147,16 @@ public class TiltFromBaseStrategy extends BaseStrategy {
     throw new IllegalArgumentException("Wrong time frame for signal");
   }
 
-  public void configure(Map<String, OptParam> optParamsMap) {
-    if (optParamsMap != null && optParamsMap.get(LENGTH) != null) {
-      this.timeFrame = optParamsMap.get(LENGTH).getTimeframe();
-      setLength((int)optParamsMap.get(LENGTH).getValue());
-      tiltBuy = optParamsMap.get(TILT_BUY).getValue();
-      tiltSell = optParamsMap.get(TILT_SELL).getValue();
+  public void configure(Map<String, Param> nameToParam) {
+    if (nameToParam != null && nameToParam.get(LENGTH) != null) {
+      this.timeFrame = nameToParam.get(LENGTH).getTimeframe();
+      setLength((int) nameToParam.get(LENGTH).getValue());
+      tiltBuy = nameToParam.get(TILT_BUY).getValue();
+      tiltSell = nameToParam.get(TILT_SELL).getValue();
     } else {
       throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
           " ticker = " + ticker + " timeframe = " + timeFrame);
     }
-    this.optParamsMap = optParamsMap;
+    this.optParamsMap = nameToParam;
   }
 }

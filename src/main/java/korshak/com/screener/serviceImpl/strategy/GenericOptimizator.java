@@ -5,19 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import korshak.com.screener.dao.OptParam;
+import korshak.com.screener.dao.Param;
 import korshak.com.screener.service.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.stereotype.Service;
 
 @Service("GenericOptimizator")
-public class GenericOptimizator extends Optimizator {
+public class GenericOptimizator  {
 
-  // Member variables for optimization state
+  StrategyMerger merger;
+  TradeService tradeService;
   private List<Strategy> strategiesToOptimize;
-  private Map<Strategy, Map<String, OptParam>> currentParams;
-  private Map<Strategy, Map<String, OptParam>> bestParams;
+  private Map<Strategy, Map<String, Param>> currentParams;
+  private Map<Strategy, Map<String, Param>> bestParams;
   private double bestOverallPnL;
   private StrategyResult bestOverallResult;
   private long combinationsTested;
@@ -25,7 +26,7 @@ public class GenericOptimizator extends Optimizator {
 
   // Parameter structures for optimization
   private Map<Strategy, List<String>> strategyParamNames;
-  private Map<Strategy, List<List<OptParam>>> strategyParamValues;
+  private Map<Strategy, List<List<Param>>> strategyParamValues;
 
   // Track progress statistics
   private long lastProgressReport = 0;
@@ -33,43 +34,8 @@ public class GenericOptimizator extends Optimizator {
   private long startTime;
 
   public GenericOptimizator(StrategyMerger merger, TradeService tradeService) {
-    super(merger, tradeService);
-  }
-
-  @Override
-  public Map<String, Double> findOptimumParameters() {
-    // Get optimal parameters for all strategies
-    Map<Strategy, Map<String, OptParam>> optimalParamsByStrategy = findOptimalParametersForAllStrategies();
-
-    // Convert to a flat map of parameter names to values for compatibility with existing code
-    Map<String, Double> result = new HashMap<>();
-    double maxPnL = -Double.MAX_VALUE;
-
-    // Apply the optimal parameters to all strategies and calculate the final PnL
-    for (Map.Entry<Strategy, Map<String, OptParam>> entry : optimalParamsByStrategy.entrySet()) {
-      Strategy strategy = entry.getKey();
-
-      // Apply optimal parameters
-      strategy.configure(entry.getValue());
-
-      // Add parameters to result map
-      for (OptParam param : entry.getValue().values()) {
-        String paramKey = strategy.getStrategyName() + "_" + param.getId().getParam();
-        result.put(paramKey, param.getValue());
-      }
-    }
-
-    // Run merger with optimal parameters to get final PnL
-    merger.mergeSignals();
-    StrategyResult finalResult = tradeService.calculateProfitAndDrawdownLong(merger);
-    if (finalResult != null) {
-      maxPnL = finalResult.getLongPnL();
-    }
-
-    // Add max PnL to result
-    result.put(MAX_PNL, maxPnL);
-
-    return result;
+    this.merger = merger;
+    this.tradeService = tradeService;
   }
 
   /**
@@ -77,7 +43,7 @@ public class GenericOptimizator extends Optimizator {
    * to maximize the overall PnL of the merged strategy
    * @return Map of strategies to their optimal parameters
    */
-  public Map<Strategy, Map<String, OptParam>> findOptimalParametersForAllStrategies() {
+  public Map<Strategy, Map<String, Param>> findOptimalParametersForAllStrategies() {
     // Initialize member variables
     initializeOptimization();
     startTime = System.currentTimeMillis();
@@ -100,19 +66,19 @@ public class GenericOptimizator extends Optimizator {
       strategyParamNames.put(strategy, new ArrayList<>());
       strategyParamValues.put(strategy, new ArrayList<>());
 
-      for (Map.Entry<String, OptParam> entry : strategy.getOptParams().entrySet()) {
+      for (Map.Entry<String, Param> entry : strategy.getParams().entrySet()) {
         String paramName = entry.getKey();
-        OptParam baseParam = entry.getValue();
+        Param baseParam = entry.getValue();
 
         // Add parameter name
         strategyParamNames.get(strategy).add(paramName);
 
         // Generate all possible values for this parameter
-        List<OptParam> paramValues = new ArrayList<>();
+        List<Param> paramValues = new ArrayList<>();
         double paramValue = baseParam.getMin();
         while (paramValue <= baseParam.getMax()) {
           // Create param with this value
-          OptParam newParam = new OptParam(
+          Param newParam = new Param(
               baseParam.getId().getTicker(),
               baseParam.getId().getParam(),
               baseParam.getId().getStrategy(),
@@ -149,7 +115,7 @@ public class GenericOptimizator extends Optimizator {
     System.out.println("Best parameters:");
     for (Strategy strategy : strategiesToOptimize) {
       System.out.println("Strategy: " + strategy.getStrategyName());
-      for (Map.Entry<String, OptParam> entry : bestParams.get(strategy).entrySet()) {
+      for (Map.Entry<String, Param> entry : bestParams.get(strategy).entrySet()) {
         System.out.println("  " + entry.getKey() + " = " + entry.getValue().getValue());
       }
     }
@@ -171,19 +137,19 @@ public class GenericOptimizator extends Optimizator {
 
     // Identify strategies that have optimizable parameters
     for (Strategy strategy : merger.getSubStrategies()) {
-      if (!strategy.getOptParams().isEmpty()) {
+      if (!strategy.getParams().isEmpty()) {
         strategiesToOptimize.add(strategy);
         // Initialize parameter maps
-        currentParams.put(strategy, new HashMap<>(strategy.getOptParams()));
-        bestParams.put(strategy, new HashMap<>(strategy.getOptParams()));
+        currentParams.put(strategy, new HashMap<>(strategy.getParams()));
+        bestParams.put(strategy, new HashMap<>(strategy.getParams()));
       }
     }
 
     // Add merger itself if it has parameters
-    if (!merger.getOptParams().isEmpty()) {
+    if (!merger.getParams().isEmpty()) {
       strategiesToOptimize.add(merger);
-      currentParams.put(merger, new HashMap<>(merger.getOptParams()));
-      bestParams.put(merger, new HashMap<>(merger.getOptParams()));
+      currentParams.put(merger, new HashMap<>(merger.getParams()));
+      bestParams.put(merger, new HashMap<>(merger.getParams()));
     }
   }
 
@@ -221,7 +187,7 @@ public class GenericOptimizator extends Optimizator {
         System.out.println("New best overall PnL: " + bestOverallPnL);
         for (Strategy strategy : strategiesToOptimize) {
           System.out.println("Strategy: " + strategy.getStrategyName());
-          for (Map.Entry<String, OptParam> param : currentParams.get(strategy).entrySet()) {
+          for (Map.Entry<String, Param> param : currentParams.get(strategy).entrySet()) {
             System.out.println("  " + param.getKey() + " = " + param.getValue().getValue());
           }
         }
@@ -266,10 +232,10 @@ public class GenericOptimizator extends Optimizator {
 
     // Get current parameter name and its possible values
     String paramName = paramNames.get(paramIndex);
-    List<OptParam> paramValues = strategyParamValues.get(currentStrategy).get(paramIndex);
+    List<Param> paramValues = strategyParamValues.get(currentStrategy).get(paramIndex);
 
     // Try each value for the current parameter
-    for (OptParam paramValue : paramValues) {
+    for (Param paramValue : paramValues) {
       // Set this parameter value
       currentParams.get(currentStrategy).put(paramName, paramValue);
 
@@ -283,7 +249,7 @@ public class GenericOptimizator extends Optimizator {
     }
 
     // Reset parameter to original value before continuing
-    currentParams.get(currentStrategy).put(paramName, currentStrategy.getOptParams().get(paramName));
+    currentParams.get(currentStrategy).put(paramName, currentStrategy.getParams().get(paramName));
   }
 
   /**
@@ -293,11 +259,11 @@ public class GenericOptimizator extends Optimizator {
     long total = 1;
 
     for (Strategy strategy : strategiesToOptimize) {
-      Map<String, OptParam> params = strategy.getOptParams();
+      Map<String, Param> params = strategy.getParams();
       long strategyTotal = 1;
 
       // Consider all parameters for this strategy
-      for (OptParam param : params.values()) {
+      for (Param param : params.values()) {
         long numValues = 1 + Math.round((param.getMax() - param.getMin()) / param.getStep());
         strategyTotal *= numValues;
       }
@@ -306,39 +272,6 @@ public class GenericOptimizator extends Optimizator {
     }
 
     return total;
-  }
-
-  @Override
-  public Map<String, Double> findOptimumParametersWithStopLoss(double minPercent, double maxPercent, double step) {
-    // Store original stop loss value
-    double originalStopLoss = merger.getStopLossMaxPercent();
-
-    Map<String, Double> bestParams = null;
-    double bestPnL = -Double.MAX_VALUE;
-
-    // Try different stop loss values
-    for (double stopLoss = minPercent; stopLoss <= maxPercent; stopLoss += step) {
-      System.out.println("Testing stop loss: " + stopLoss);
-
-      // Set stop loss
-      merger.setStopLossPercent(stopLoss);
-
-      // Find optimal parameters with this stop loss
-      Map<String, Double> params = findOptimumParameters();
-      double pnl = params.getOrDefault(MAX_PNL, -Double.MAX_VALUE);
-
-      // Update best parameters if better
-      if (pnl > bestPnL) {
-        bestPnL = pnl;
-        bestParams = new HashMap<>(params);
-        bestParams.put(STOP_LOSS, stopLoss);
-      }
-    }
-
-    // Restore original stop loss
-    merger.setStopLossPercent(originalStopLoss);
-
-    return bestParams;
   }
 
   public StrategyResult getBestOverallResult() {
