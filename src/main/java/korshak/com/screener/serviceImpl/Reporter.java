@@ -2,9 +2,9 @@ package korshak.com.screener.serviceImpl;
 
 import static korshak.com.screener.serviceImpl.strategy.StrategyMerger.END_DATE;
 import static korshak.com.screener.serviceImpl.strategy.StrategyMerger.START_DATE;
-import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.LENGTH;
-import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.TILT_BUY;
-import static korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy.TILT_SELL;
+import static korshak.com.screener.serviceImpl.strategy.TiltStrategy.LENGTH;
+import static korshak.com.screener.serviceImpl.strategy.TiltStrategy.TILT_BUY;
+import static korshak.com.screener.serviceImpl.strategy.TiltStrategy.TILT_SELL;
 import static korshak.com.screener.utils.Utils.getOptParamsAsMap;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.GenericOptimizator;
 import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
-import korshak.com.screener.serviceImpl.strategy.TiltFromBaseStrategy;
+import korshak.com.screener.serviceImpl.strategy.TiltStrategy;
 import korshak.com.screener.serviceImpl.strategy.TrendChangeStrategy;
 import korshak.com.screener.utils.ExcelExportService;
 import korshak.com.screener.vo.StrategyResult;
@@ -55,7 +55,7 @@ public class Reporter {
   private final StrategyMerger strategyMerger;
   private final FuturePriceByTiltCalculator futurePriceByTiltCalculator;
   private final TradeService tradeService;
-  private final TiltFromBaseStrategy tiltFromBaseStrategy;
+  private final TiltStrategy tiltStrategy;
   private final Strategy buyAndHoldStrategy;
   private final TrendService trendService;
   private final OptParamDao optParamDao;
@@ -67,7 +67,7 @@ public class Reporter {
                   @Qualifier("StrategyMerger") StrategyMerger strategyMerger,
                   FuturePriceByTiltCalculator futurePriceByTiltCalculator,
                   TradeService tradeService,
-                  @Qualifier("TiltFromBaseStrategy") TiltFromBaseStrategy tiltFromBaseStrategy,
+                  @Qualifier("TiltStrategy") TiltStrategy tiltStrategy,
                   @Qualifier("BuyAndHoldStrategy") Strategy buyAndHoldStrategy,
                   TrendService trendService,
                   OptParamDao optParamDao,
@@ -76,7 +76,7 @@ public class Reporter {
     this.strategyMerger = strategyMerger;
     this.futurePriceByTiltCalculator = futurePriceByTiltCalculator;
     this.tradeService = tradeService;
-    this.tiltFromBaseStrategy = tiltFromBaseStrategy;
+    this.tiltStrategy = tiltStrategy;
     this.buyAndHoldStrategy = buyAndHoldStrategy;
     this.trendService = trendService;
     this.optParamDao = optParamDao;
@@ -239,7 +239,7 @@ public class Reporter {
                                           LocalDateTime endDate, TimeFrame timeFrame) {
 
     BaseStrategy baseStrategy =
-        initStrategy(tiltFromBaseStrategy, timeFrame, ticker, startDate, endDate);
+        initStrategy(tiltStrategy, timeFrame, ticker, startDate, endDate);
     List<Strategy> strategies = new ArrayList<>();
     strategies.add(baseStrategy);
     return getStrategyResult(ticker, startDate, endDate, timeFrame,
@@ -408,8 +408,8 @@ public class Reporter {
         0.9,  // Start value
         "",
         0.9f, // Min value
-        .96f, // Max value
-        0.02f  // Step
+        .98f, // Max value
+        0.04f  // Step
     );
     Map<String, Param> mergerParams = new HashMap<>();
     mergerParams.put(StrategyMerger.STOP_LOSS_PERCENT, stopLossParam);
@@ -417,19 +417,19 @@ public class Reporter {
     strategyMerger.getSubStrategies().clear();
     strategyProvider.init(ticker, startDate, endDate, timeFrame);
 
-    TiltFromBaseStrategy shortStrategy = (TiltFromBaseStrategy) strategyProvider
-        .getStrategy("TiltFromBaseStrategy");
+    TiltStrategy shortStrategy = (TiltStrategy) strategyProvider
+        .getStrategy("TiltStrategy");
     List<Param> optParamListShort =
         buildOptParamsTilt(ticker, timeFrame, caseId,
-            7, 10, 1,
-            -1f, 1f, 0.1f,
-            -1f, 1f, 0.1f);
+            40, 50, 2,
+            -0.4f, 0.4f, 0.1f,
+            -0.4f, 0.4f, 0.1f);
     shortStrategy.configure(getOptParamsAsMap(optParamListShort));
     strategyMerger.addStrategy(shortStrategy, timeFrame);
     strategyMerger.init(ticker, timeFrame, startDate, endDate);
 
-    TiltFromBaseStrategy longStrategy = (TiltFromBaseStrategy) strategyProvider
-        .getStrategy("TiltFromBaseStrategy");
+    TiltStrategy longStrategy = (TiltStrategy) strategyProvider
+        .getStrategy("TiltStrategy");
 
     List<Param> optParamListLong =
         buildOptParamsTilt(ticker, timeFrame, caseId, 24.0, 36, 4,
@@ -482,16 +482,16 @@ public class Reporter {
                                                 double tiltSellStart, float tiltSellMax,
                                                 float tiltSellStep) {
     List<Param> optParamListLong = List.of(
-        new Param(ticker, LENGTH, "TiltFromBaseStrategy", caseId, timeFrame,
-            "TiltFromBaseStrategy",
+        new Param(ticker, LENGTH, "TiltStrategy", caseId, timeFrame,
+            "TiltStrategy",
             lengthStart, "", (float) lengthStart, lengthMax, lengthStep),
 
-        new Param(ticker, TILT_BUY, "TiltFromBaseStrategy", caseId, timeFrame,
-            "TiltFromBaseStrategy",
+        new Param(ticker, TILT_BUY, "TiltStrategy", caseId, timeFrame,
+            "TiltStrategy",
             tiltBuyStart, "", (float) tiltBuyStart, tiltBuyMax, tiltBuyStep),
 
-        new Param(ticker, TILT_SELL, "TiltFromBaseStrategy", caseId, timeFrame,
-            "TiltFromBaseStrategy",
+        new Param(ticker, TILT_SELL, "TiltStrategy", caseId, timeFrame,
+            "TiltStrategy",
             tiltSellStart, "", (float) tiltSellStart, tiltSellMax, tiltSellStep)
     );
     return optParamListLong;
@@ -549,10 +549,10 @@ public class Reporter {
     return strategyResult;
   }
 
-  private TiltFromBaseStrategy initStrategy(TiltFromBaseStrategy tiltStrategy, TimeFrame timeFrame,
-                                            String ticker,
-                                            LocalDateTime startDate,
-                                            LocalDateTime endDate
+  private TiltStrategy initStrategy(TiltStrategy tiltStrategy, TimeFrame timeFrame,
+                                    String ticker,
+                                    LocalDateTime startDate,
+                                    LocalDateTime endDate
   ) {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
     //{Length=44.0, TiltBuy=0.01, TiltSell=-0.05}

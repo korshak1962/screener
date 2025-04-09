@@ -1,16 +1,13 @@
 package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
 import korshak.com.screener.dao.Param;
+import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.TimeFrame;
@@ -18,144 +15,56 @@ import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 @Service("TiltStrategy")
-public class TiltStrategy implements Strategy {
+@Scope("prototype")
+public class TiltStrategy extends BaseStrategy {
+
+  public static final String LENGTH = "Length";
+  public static final String TILT_BUY = "TiltBuy";
+  public static final String TILT_SELL = "TiltSell";
   final SmaDao smaDao;
-  final PriceDao priceDao;
-  double tiltBuy = 1;
-  double tiltSell = -1;
+  Map<LocalDateTime, BaseSma> smaMap;
+  double tiltBuy = 0;
+  double tiltSell = 0;
   int length;
-  TimeFrame timeFrame;
-  LocalDateTime startDate;
-  LocalDateTime endDate;
   List<? extends BaseSma> smaList;
-  String ticker;
-  List<? extends BasePrice> prices;
-  TreeMap<LocalDateTime, Double> dateToTiltValue = new TreeMap<>();
 
-  public TiltStrategy(SmaDao smaDao, PriceDao priceDao) {
+  public TiltStrategy(SmaDao smaDao, PriceDao priceDao, OptParamDao optParamDao) {
+    super(priceDao, optParamDao);
     this.smaDao = smaDao;
-    this.priceDao = priceDao;
+
   }
 
-  @Override
-  public List<Signal> getSignalsLong() {
-    List<Signal> signals = new ArrayList<>();
-    if (prices == null || prices.isEmpty()) {
-      return signals;
-    }
-    Map<LocalDateTime, BaseSma> smaMap = smaList.stream()
-        .collect(Collectors.toMap(
-            sma -> sma.getId().getDate(),
-            sma -> sma
-        ));
-    boolean inPosition = false;
-    double previousTilt = 0;
-    // Iterate through prices and check stored tilt values
-    for (BasePrice price : prices) {
-      LocalDateTime currentDate = price.getId().getDate();
-      BaseSma currentSma = smaMap.get(currentDate);
-      if (currentSma == null) {
-        continue;
-      }
-      double currentTilt = currentSma.getTilt();
-      dateToTiltValue.put(currentDate, currentTilt);
-      // Generate signals based on tilt thresholds
-      if (!inPosition && currentTilt > tiltBuy && previousTilt <= tiltBuy) {
-        signals.add(new Signal(
-            currentDate,
-            price.getClose(),
-            SignalType.LongOpen, "currentTilt = " + currentTilt + " > tiltBuy =" + tiltBuy
-        ));
-        inPosition = true;
-      } else if (inPosition && currentTilt < tiltSell && previousTilt >= tiltSell) {
-        signals.add(new Signal(
-            currentDate,
-            price.getClose(),
-            SignalType.LongClose, "currentTilt = " + currentTilt + " < tiltSell =" + tiltSell
-        ));
-        inPosition = false;
-      }
-      previousTilt = currentTilt;
-    }
-    return signals;
-  }
-
-  @Override
-  public List<? extends Signal> getSignalsShort() {
-    return List.of();
-  }
-
-  @Override
   public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                        LocalDateTime endDate) {
-    this.timeFrame = timeFrame;
-    this.ticker = ticker;
-    this.startDate = startDate;
-    this.endDate = endDate;
-    this.prices = priceDao.findByDateRange(
-        ticker,
-        startDate,
-        endDate,
-        timeFrame
-    );
+    super.init(ticker, timeFrame, startDate, endDate);
+
     return this;
   }
 
   @Override
-  public String getStrategyName() {
-    return "TiltSmaStrategy";
-  }
-
-  @Override
-  public List<? extends BasePrice> getPrices() {
-    return prices;
-  }
-
-  @Override
-  public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
-    Map<String, NavigableMap<LocalDateTime, Double>> indicators = new HashMap<>();
-    indicators.put("Tilt", getDateToTiltValue());
-    return indicators;
-  }
-
-  @Override
-  public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
-    Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();
-    priceIndicators.put("SMA_" + smaList.getFirst().getId().getLength(),
-        Utils.convertBaseSmaListToTreeMap(smaList));
-    return priceIndicators;
-  }
-
-  // Getters and setters
-  public double getTiltBuy() {
-    return tiltBuy;
-  }
-
-  public void setTiltBuy(double tiltBuy) {
-    if (tiltBuy <= tiltSell) {
-      throw new IllegalArgumentException(
-          "Tilt buy threshold must be greater than tilt sell threshold");
+  public Signal getSignal(BasePrice price) {
+    Signal signalToAdd = null;
+    BaseSma currentSma = smaMap.get(price.getId().getDate());
+    if (currentSma == null) {
+      return signalToAdd;
     }
-    this.tiltBuy = tiltBuy;
-  }
-
-  public double getTiltSell() {
-    return tiltSell;
-  }
-
-  public void setTiltSell(double tiltSell) {
-    if (tiltSell >= tiltBuy) {
-      throw new IllegalArgumentException(
-          "Tilt sell threshold must be less than tilt buy threshold");
+    if (currentSma.getTilt() > tiltBuy) {
+      signalToAdd =
+          Utils.createSignal(price, SignalType.LongOpen, "TiltBuy = " + currentSma.getTilt());
+    } else if (currentSma.getTilt() < tiltSell) {
+      signalToAdd =
+          Utils.createSignal(price, SignalType.ShortOpen, "tiltSell = " + currentSma.getTilt());
     }
-    this.tiltSell = tiltSell;
+    return signalToAdd;
   }
 
-  public int getLength() {
-    return length;
+  @Override
+  public Signal getSignal(BasePrice priceOfBackupTimeframe, BasePrice price) {
+    return null;
   }
 
   public void setLength(int length) {
@@ -171,60 +80,36 @@ public class TiltStrategy implements Strategy {
         length
     );
     if (smaList.isEmpty() || prices.size() - smaList.size() > length) {
-      throw new RuntimeException("No SMAs found");
+      throw new RuntimeException(
+          "No SMAs found for ticker = " + ticker + " length = " + length + " timeframe = " +
+              timeFrame
+              + " startDate = " + startDate + " endDate = " + endDate);
     }
-  }
-
-  public TimeFrame getTimeFrame() {
-    return timeFrame;
-  }
-
-  @Override
-  public String getTicker() {
-    return ticker;
+    smaMap = smaList.stream()
+        .collect(Collectors.toMap(
+            sma -> sma.getId().getDate(),
+            sma -> sma
+        ));
   }
 
   @Override
-  public LocalDateTime getStartDate() {
-    return startDate;
+  public List<Signal> getAllSignals(TimeFrame signalTimeFrame) {
+    if (signalTimeFrame.ordinal() == this.timeFrame.ordinal()) {
+      return getAllSignals();
+    }
+    throw new IllegalArgumentException("Wrong time frame for signal");
   }
 
-  @Override
-  public LocalDateTime getEndDate() {
-    return endDate;
-  }
-
-  @Override
-  public List<Signal> getAllSignals() {
-    return getSignalsLong();
-  }
-
-  @Override
-  public List<Signal> getAllSignals(TimeFrame timeFrame) {
-    return List.of();
-  }
-
-  @Override
-  public void calcSignals() {
-
-  }
-
-  @Override
-  public Map<String, Param> getParams() {
-    return Map.of();
-  }
-
-  @Override
   public void configure(Map<String, Param> nameToParam) {
-
+    if (nameToParam != null && nameToParam.get(LENGTH) != null) {
+      this.timeFrame = nameToParam.get(LENGTH).getTimeframe();
+      setLength((int) nameToParam.get(LENGTH).getValue());
+      tiltBuy = nameToParam.get(TILT_BUY).getValue();
+      tiltSell = nameToParam.get(TILT_SELL).getValue();
+    } else {
+      throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
+          " ticker = " + ticker + " timeframe = " + timeFrame);
+    }
+    super.configure(nameToParam);
   }
-
-  public List<? extends BaseSma> getSmaList() {
-    return smaList;
-  }
-
-  public TreeMap<LocalDateTime, Double> getDateToTiltValue() {
-    return dateToTiltValue;
-  }
-
 }

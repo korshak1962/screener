@@ -30,7 +30,7 @@ public class TradeServiceImpl implements TradeService {
    * @param trades List of trades ordered by time
    * @param prices List of prices ordered by time
    */
-  public static void calculateMaxPainPercentages(List<Trade> trades,
+  private static void calculateMaxPainPercentages(List<Trade> trades,
                                                  List<? extends BasePrice> prices) {
     if (trades == null || trades.isEmpty() || prices == null || prices.isEmpty()) {
       return;

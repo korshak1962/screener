@@ -19,7 +19,7 @@ public class GenericOptimizator  {
   private List<Strategy> strategiesToOptimize;
   private Map<Strategy, Map<String, Param>> currentParams;
   private Map<Strategy, Map<String, Param>> bestParams;
-  private double bestOverallPnL;
+  private double bestFunctionalResult;
   private StrategyResult bestOverallResult;
   private long combinationsTested;
   private long totalCombinations;
@@ -77,6 +77,7 @@ public class GenericOptimizator  {
         List<Param> paramValues = new ArrayList<>();
         double paramValue = baseParam.getMin();
         while (paramValue <= baseParam.getMax()) {
+          //printMemory("paramValue = "+ paramValue);
           // Create param with this value
           Param newParam = new Param(
               baseParam.getId().getTicker(),
@@ -110,7 +111,7 @@ public class GenericOptimizator  {
 
     long totalTimeMs = System.currentTimeMillis() - startTime;
 
-    System.out.println("Optimization complete. Found best overall PnL: " + bestOverallPnL);
+    System.out.println("Optimization complete. Found best overall PnL: " + bestFunctionalResult);
     System.out.println("Tested " + combinationsTested + " combinations in " + (totalTimeMs / 1000) + " seconds");
     System.out.println("Best parameters:");
     for (Strategy strategy : strategiesToOptimize) {
@@ -126,10 +127,11 @@ public class GenericOptimizator  {
    * Initialize all optimization state variables
    */
   private void initializeOptimization() {
+    printMemory("initializeOptimization");
     strategiesToOptimize = new ArrayList<>();
     currentParams = new HashMap<>();
     bestParams = new HashMap<>();
-    bestOverallPnL = -Double.MAX_VALUE;
+    bestFunctionalResult = -Double.MAX_VALUE;
     combinationsTested = 0;
     lastProgressReport = 0;
     strategyParamNames = new HashMap<>();
@@ -151,6 +153,12 @@ public class GenericOptimizator  {
       currentParams.put(merger, new HashMap<>(merger.getParams()));
       bestParams.put(merger, new HashMap<>(merger.getParams()));
     }
+  }
+
+  private static void printMemory(String tag) {
+    Runtime runtime = Runtime.getRuntime();
+    long usedMemory = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
+    System.out.println(tag+" Memory usage before optimization: " + usedMemory + " MB");
   }
 
   /**
@@ -175,20 +183,23 @@ public class GenericOptimizator  {
       combinationsTested++;
 
       // Check if this gives better PnL
-      if (result != null && result.getLongPnL() > bestOverallPnL) {
-        bestOverallPnL = result.getLongPnL();
-        bestOverallResult = result;
-        // Store these parameters as best so far
-        for (Strategy strategy : strategiesToOptimize) {
-          bestParams.get(strategy).clear();
-          bestParams.get(strategy).putAll(currentParams.get(strategy));
-        }
+      if (result != null) {
+        double functionalValue = calcFunctional(result);
+        if (functionalValue > bestFunctionalResult) {
+          bestFunctionalResult = functionalValue;
+          bestOverallResult = result;
+          // Store these parameters as best so far
+          for (Strategy strategy : strategiesToOptimize) {
+            bestParams.get(strategy).clear();
+            bestParams.get(strategy).putAll(currentParams.get(strategy));
+          }
 
-        System.out.println("New best overall PnL: " + bestOverallPnL);
-        for (Strategy strategy : strategiesToOptimize) {
-          System.out.println("Strategy: " + strategy.getStrategyName());
-          for (Map.Entry<String, Param> param : currentParams.get(strategy).entrySet()) {
-            System.out.println("  " + param.getKey() + " = " + param.getValue().getValue());
+          System.out.println("New best overall PnL: " + bestFunctionalResult);
+          for (Strategy strategy : strategiesToOptimize) {
+            System.out.println("Strategy: " + strategy.getStrategyName());
+            for (Map.Entry<String, Param> param : currentParams.get(strategy).entrySet()) {
+              System.out.println("  " + param.getKey() + " = " + param.getValue().getValue());
+            }
           }
         }
       }
@@ -214,7 +225,7 @@ public class GenericOptimizator  {
             totalCombinations,
             elapsedTimeMs / 1000,
             remainingTimeMs / 1000,
-            bestOverallPnL));
+            bestFunctionalResult));
       }
 
       return;
@@ -250,6 +261,10 @@ public class GenericOptimizator  {
 
     // Reset parameter to original value before continuing
     currentParams.get(currentStrategy).put(paramName, currentStrategy.getParams().get(paramName));
+  }
+
+  private static double calcFunctional(StrategyResult result) {
+    return result.getLongPnL();
   }
 
   /**

@@ -22,7 +22,7 @@ public abstract class BaseStrategy implements Strategy {
   LocalDateTime startDate;
   LocalDateTime endDate;
   String ticker;
-  Map<String, Param> optParamsMap = new HashMap<>();
+  Map<String, Param> nameToParam = new HashMap<>();
   List<? extends BasePrice> prices;
   List<Signal> signalsLong = new ArrayList<>();
   List<Signal> signalsShort = new ArrayList<>();
@@ -129,7 +129,7 @@ public abstract class BaseStrategy implements Strategy {
   }
 
   public void configure(Map<String, Param> nameToParam) {
-    this.optParamsMap = nameToParam;
+    this.nameToParam = nameToParam;
   }
 
   @Override
@@ -201,6 +201,6 @@ public abstract class BaseStrategy implements Strategy {
   }
 
   public Map<String, Param> getParams() {
-    return optParamsMap;
+    return nameToParam;
   }
 }
