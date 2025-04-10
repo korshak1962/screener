@@ -1,12 +1,15 @@
 package korshak.com.screener.serviceImpl.download;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import korshak.com.screener.dao.BasePrice;
+import korshak.com.screener.dao.PriceDao;
+import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.download.SharePriceDownLoaderService;
 import korshak.com.screener.serviceImpl.calc.Calculator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -18,21 +21,25 @@ public class Downloader {
   public static final String ALPHA_VINTAGE_DOWNLOADER = "AlphaVintageDownloader";
   public static final String YAHOO_DOWNLOADER = "yahooDownloader";
   public static final String MOEX_DOWNLOADER = "moexDownloader";
-  private AlphaVintageDownloader alphaVintageDownloader;
-  private SharePriceDownLoaderService yahooDownloader;
-  private MoexSharePriceDownLoaderServiceImpl moexDownloader;
-  @Autowired
-  Calculator calculator;
+  private final AlphaVintageDownloader alphaVintageDownloader;
+  private final SharePriceDownLoaderService yahooDownloader;
+  private final MoexSharePriceDownLoaderServiceImpl moexDownloader;
+  private final Calculator calculator;
+  private final PriceDao priceDao;
 
   public Map<String, SharePriceDownLoaderService> nameToDownloadService = new HashMap<>();
 
   public Downloader(
       @Qualifier(ALPHA_VINTAGE_DOWNLOADER) AlphaVintageDownloader alphaVintageDownloader,
       @Qualifier(YAHOO_DOWNLOADER) SharePriceDownLoaderService yahooDownloader,
-      @Qualifier(MOEX_DOWNLOADER) MoexSharePriceDownLoaderServiceImpl moexDownloader) {
+      @Qualifier(MOEX_DOWNLOADER) MoexSharePriceDownLoaderServiceImpl moexDownloader,
+      Calculator calculator,
+      PriceDao priceDao) {
     this.alphaVintageDownloader = alphaVintageDownloader;
     this.yahooDownloader = yahooDownloader;
     this.moexDownloader = moexDownloader;
+    this.calculator = calculator;
+    this.priceDao = priceDao;
     nameToDownloadService.put(ALPHA_VINTAGE_DOWNLOADER, this.alphaVintageDownloader);
     //https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=Tencent&apikey=2NYM2EF6HJZUCXAL
     //test https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&month=2024-01&outputsize=full&apikey=2NYM2EF6HJZUCXAL
@@ -64,7 +71,7 @@ public class Downloader {
                                             SharePriceDownLoaderService sharePriceDownLoaderService) {
     int saved = 0;
     for (String ticker : tickers) {
-      saved = sharePriceDownLoaderService.downloadFromToTomorrow(ticker, startDate);
+      saved = sharePriceDownLoaderService.downloadFromDateUpToday(ticker, startDate);
       if (saved > 0) {
         calculator.agregateAndSmaCalc(LENGTH_MIN, LENGTH_MAX,
             sharePriceDownLoaderService.getDbTicker());
@@ -141,5 +148,80 @@ public class Downloader {
       calculator.agregateAndSmaCalc(LENGTH_MIN, LENGTH_MAX, alphaVintageDownloader.getDbTicker());
     }
     System.exit(0);
+  }
+
+
+
+
+
+
+  /**
+   * Downloads data for a single ticker starting from the last available date in the database
+   * to the current date if there is a gap.
+   *
+   * @param ticker The ticker symbol to update
+   * @param downloader The downloader service to use
+   * @return Number of records updated
+   */
+  public int updateTickerUpToday(final String ticker, SharePriceDownLoaderService downloader) {
+    // Check if we need to append _MOEX suffix for MOEX downloader
+    String dbTicker = ticker;
+    if (downloader == moexDownloader && !ticker.endsWith("_MOEX")) {
+      dbTicker = ticker + "_MOEX";
+    }
+
+    // Get the latest date from the database for this ticker using DAY timeframe
+    List<? extends BasePrice> latestPrices = priceDao.findAllByTicker(dbTicker, TimeFrame.DAY);
+
+    if (latestPrices.isEmpty()) {
+      System.out.println("No existing data for " + ticker);
+      return 0;
+    }
+
+    // Sort prices by date in descending order and get the latest date
+    BasePrice latestPrice = latestPrices.getLast();
+    LocalDateTime latestDateTime = latestPrice.getId().getDate();
+    LocalDate latestDate = latestDateTime.toLocalDate();
+    LocalDate today = LocalDate.now();
+
+    // Check if the data is already up to date (within 1 day)
+    if (latestDate.isEqual(today) ) {
+      System.out.println("Data for " + ticker + " is already up to date (latest: " + latestDate + ")");
+      return 0;
+    }
+    // Download data from the day after the latest date to today
+    LocalDate startDate = latestDate.plusDays(1);
+    System.out.println("Updating " + ticker + " from " + startDate + " to " + today);
+
+    int saved = downloader.downloadFromDateUpToday(ticker, startDate);
+
+    if (saved > 0) {
+      calculator.agregateAndSmaCalc(LENGTH_MIN, LENGTH_MAX, downloader.getDbTicker());
+      System.out.println("Updated " + saved + " records for " + ticker);
+    } else {
+      System.out.println("No new data available for " + ticker);
+    }
+    return saved;
+  }
+
+  /**
+   * Downloads data for a list of tickers starting from the last available date in the database
+   * to the current date if there is a gap.
+   *
+   * @param tickers List of ticker symbols to update
+   * @param downloader The downloader service to use
+   * @return Map of tickers to number of records updated
+   */
+  public Map<String, Integer> updateTickersUpToday(
+      final List<String> tickers,
+      SharePriceDownLoaderService downloader) {
+
+    Map<String, Integer> tickerToRecordsUpdated = new HashMap<>();
+
+    for (String ticker : tickers) {
+      int recordsUpdated = updateTickerUpToday(ticker, downloader);
+      tickerToRecordsUpdated.put(ticker, recordsUpdated);
+    }
+    return tickerToRecordsUpdated;
   }
 }

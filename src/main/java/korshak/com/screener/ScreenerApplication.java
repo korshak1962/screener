@@ -39,6 +39,12 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
+   // downloader.updateTickersUpToday(Portfolios.MOEX,
+   //     downloader.nameToDownloadService.get(MOEX_DOWNLOADER));
+
+    downloader.updateTickersUpToday(Portfolios.ALL,
+        downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
+
     LocalDateTime startDate = LocalDateTime.of(2018, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MAY, 1, 0, 0);
 
@@ -49,7 +55,7 @@ public class ScreenerApplication implements CommandLineRunner {
    //   trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
    // }
     //reporter.findOptParamAndSaveGeneric("SPY", startDate, endDate, TimeFrame.DAY, "only10");
-    reporter.readOptParamsGenericAndShow("SPY", startDate, endDate, TimeFrame.DAY,"only10");
+    //reporter.readOptParamsGenericAndShow("SPY", startDate, endDate, TimeFrame.DAY,"only10");
     //reporter.findResultFor2strategies("QQQ", startDate, endDate, TimeFrame.WEEK, TimeFrame.DAY);
     //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 
@@ -73,19 +79,14 @@ public class ScreenerApplication implements CommandLineRunner {
     //   reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
     //  ""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
 
-  //  downloadSeries(Portfolios.NAME_TO_TICKERS.get(Portfolios.ALL),
-   //     2025, 2,2025, 3, yahooDownloader);
-   //  downloadSeriesFromToTomorrow(Portfolios.ALL,
-   //      LocalDate.now().minusDays(8), yahooDownloader);
 
-    // downloadSeries("AAXJ", 2024, 1,2025, 1, alphaVintageDownloader);
-   /*
-    downloader.downloadSeries(Portfolios.US_SECTOR_ETF,
+/*
+    downloader.downloadSeries(Portfolios.CHINA,
         2024, 1,
         2025, 2,
         downloader.nameToDownloadService.get(ALPHA_VINTAGE_DOWNLOADER));
+*/
 
-    */
 /*
     downloader.downloadSeries(Portfolios.MOEX,
         2025, 4,
@@ -93,7 +94,10 @@ public class ScreenerApplication implements CommandLineRunner {
         downloader.nameToDownloadService.get(MOEX_DOWNLOADER));
 
  */
-
+/*
+    downloader.updateTickersUpToday(Portfolios.US_SECTOR_ETF,
+        downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
+*/
     //downloader.downloadSeriesFromToTomorrow(Portfolios.ALL,
     //          LocalDate.now().minusDays(8), downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
 

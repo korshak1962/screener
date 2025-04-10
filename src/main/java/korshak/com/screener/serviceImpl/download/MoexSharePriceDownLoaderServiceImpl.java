@@ -133,7 +133,7 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
   }
 
   @Override
-  public int downloadFromToTomorrow(String ticker, LocalDate startDate) {
+  public int downloadFromDateUpToday(String ticker, LocalDate startDate) {
     return 0;
   }
 

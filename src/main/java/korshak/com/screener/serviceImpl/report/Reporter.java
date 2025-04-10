@@ -557,13 +557,6 @@ public class Reporter {
                                     LocalDateTime endDate
   ) {
     tiltStrategy.init(ticker, timeFrame, startDate, endDate);
-    //{Length=44.0, TiltBuy=0.01, TiltSell=-0.05}
-    //tiltStrategy.setLength(9);
-    //tiltStrategy.setLength(params.get(OptimizatorTilt.LENGTH).intValue());
-    //tiltStrategy.setTiltBuy(0.02);
-    //tiltStrategy.setTiltBuy(params.get(OptimizatorTilt.TILT_BUY));
-    //tiltStrategy.setTiltSell(-0.02);
-    //tiltStrategy.setTiltSell(params.get(OptimizatorTilt.TILT_SELL));
     tiltStrategy.calcSignals();
     return tiltStrategy;
   }
