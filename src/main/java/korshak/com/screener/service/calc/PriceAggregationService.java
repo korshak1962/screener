@@ -1,4 +1,4 @@
-package korshak.com.screener.service;
+package korshak.com.screener.service.calc;
 
 import java.time.LocalTime;
 import korshak.com.screener.dao.TimeFrame;

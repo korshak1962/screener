@@ -1,4 +1,4 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.calc;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,8 +10,9 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.TradeService;
+import korshak.com.screener.service.calc.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
+import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
 import korshak.com.screener.vo.StrategyResult;
@@ -79,29 +80,30 @@ public class TradeServiceImpl implements TradeService {
 
   @Override
   public StrategyResult calculateProfitAndDrawdownLong(Strategy strategy) {
+    tradesLong = new ArrayList<>();
+    double longPnL = 0;
     if (strategy.getSignalsLong() == null || strategy.getSignalsLong().isEmpty()) {
       System.out.println("No signals found for ticker = " + strategy.getTicker()
           + " timeframe = " + strategy.getTimeFrame() + " startDate = " + strategy.getStartDate() +
           " endDate = " + strategy.getEndDate());
       return new StrategyResult(strategy.getPrices(), 0, 0,
-          0, Map.of(), Map.of(), tradesLong,
+          longPnL, Map.of(), Map.of(), tradesLong,
           List.of(), strategy.getSignalsLong(), 0, indicators, Map.of());
     }
-    tradesLong = new ArrayList<>();
-    double longPnL = 0;
     TreeMap<LocalDateTime, Double> currentPnL = new TreeMap<>();
     Map<LocalDateTime, Double> minLongPnl = new HashMap<>();
-    //========================= temporary
 
-    /*
+    //========================= temporary
     Signal last = strategy.getSignalsLong().getLast();
     if (last.getSignalType() == SignalType.LongOpen) {
       System.out.println("===== Last signal is LongOpen at price = " + last.getPrice()
           + " at " + last.getDate() + " cause " + last.getComment());
+    Signal signal =
+        Utils.createSignal(strategy.getPrices().getLast(), SignalType.LongClose, "tempopary close ");
+    strategy.getSignalsLong().add(signal);
     }
-
-     */
     //====================
+
     Iterator<? extends Signal> iteratorSignal = strategy.getSignalsLong().iterator();
     Signal prevSignal = iteratorSignal.next();
     Map<LocalDateTime, Double> worstLongTrade = new HashMap<>();

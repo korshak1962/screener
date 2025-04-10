@@ -1,4 +1,4 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.download;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +21,7 @@ import java.util.zip.GZIPInputStream;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.PriceMin5;
-import korshak.com.screener.service.SharePriceDownLoaderService;
+import korshak.com.screener.service.download.SharePriceDownLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

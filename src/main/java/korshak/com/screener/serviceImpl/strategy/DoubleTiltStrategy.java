@@ -23,9 +23,9 @@ import org.springframework.stereotype.Service;
 public class DoubleTiltStrategy implements Strategy {
   protected final SmaDao smaDao;
   protected final PriceDao priceDao;
-  protected List<SignalTilt> signals;
-  protected List<SignalTilt> signalsShort;
-  protected List<SignalTilt> signalsLong;
+  protected List<Signal> signals;
+  protected List<Signal> signalsShort;
+  protected List<Signal> signalsLong;
   protected TimeFrame timeFrame = TimeFrame.DAY;
   protected List<? extends BaseSma> smaShortList;
   protected List<? extends BaseSma> smaLongList;
@@ -48,7 +48,7 @@ public class DoubleTiltStrategy implements Strategy {
   }
 
   @Override
-  public List<SignalTilt> getSignalsLong() {
+  public List<Signal> getSignalsLong() {
     if (signalsLong == null) {
       calcSignals();
     }
@@ -179,13 +179,13 @@ public class DoubleTiltStrategy implements Strategy {
 
   private void logLastPositions() {
     if (!signalsLong.isEmpty()) {
-      SignalTilt lastLong = signalsLong.getLast();
+      SignalTilt lastLong = (SignalTilt)signalsLong.getLast();
       if (lastLong.getSignalType() == SignalType.LongOpen) {
         System.out.println("======== lastLong Signal " + lastLong);
       }
     }
     if (!signalsShort.isEmpty()) {
-      SignalTilt lastShort = signalsShort.getLast();
+      SignalTilt lastShort = (SignalTilt)signalsShort.getLast();
       if (lastShort.getSignalType() == SignalType.ShortOpen) {
         System.out.println("======== lastShort Signal " + lastShort);
       }

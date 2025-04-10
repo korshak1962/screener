@@ -1,4 +1,4 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.download;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +13,7 @@ import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.PriceHour;
 import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.SharePriceDownLoaderService;
+import korshak.com.screener.service.download.SharePriceDownLoaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;

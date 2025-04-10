@@ -95,7 +95,7 @@ public class TiltCombinedStrategy implements Strategy {
   }
 
   @Override
-  public List<? extends Signal> getSignalsLong() {
+  public List<Signal> getSignalsLong() {
     return signalsLong;
   }
 

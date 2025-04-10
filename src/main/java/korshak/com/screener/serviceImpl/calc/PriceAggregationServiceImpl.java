@@ -1,4 +1,4 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.calc;
 
 import jakarta.transaction.Transactional;
 import java.time.DayOfWeek;
@@ -18,7 +18,7 @@ import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.PriceMonth;
 import korshak.com.screener.dao.PriceWeek;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.PriceAggregationService;
+import korshak.com.screener.service.calc.PriceAggregationService;
 import org.springframework.stereotype.Service;
 
 @Service

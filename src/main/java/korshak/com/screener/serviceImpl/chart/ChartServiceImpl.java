@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import korshak.com.screener.dao.BasePrice;
-import korshak.com.screener.service.ChartService;
+import korshak.com.screener.service.chart.ChartService;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.Trade;
 import org.jfree.chart.ChartPanel;

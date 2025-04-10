@@ -1,4 +1,4 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.report;
 
 import static korshak.com.screener.serviceImpl.strategy.StrategyMerger.END_DATE;
 import static korshak.com.screener.serviceImpl.strategy.StrategyMerger.START_DATE;
@@ -23,10 +23,12 @@ import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.Trend;
-import korshak.com.screener.service.ChartService;
-import korshak.com.screener.service.TradeService;
-import korshak.com.screener.service.TrendService;
+import korshak.com.screener.service.chart.ChartService;
+import korshak.com.screener.service.calc.TradeService;
+import korshak.com.screener.service.calc.TrendService;
 import korshak.com.screener.service.strategy.Strategy;
+import korshak.com.screener.serviceImpl.calc.FuturePriceByTiltCalculator;
+import korshak.com.screener.serviceImpl.strategy.StrategyProvider;
 import korshak.com.screener.serviceImpl.chart.ChartServiceImpl;
 import korshak.com.screener.serviceImpl.strategy.BaseStrategy;
 import korshak.com.screener.serviceImpl.strategy.GenericOptimizator;
@@ -422,8 +424,8 @@ public class Reporter {
     List<Param> optParamListShort =
         buildOptParamsTilt(ticker, timeFrame, caseId,
             40, 50, 2,
-            -0.4f, 0.4f, 0.1f,
-            -0.4f, 0.4f, 0.1f);
+            -0.1f, 0.1f, 0.1f,
+            -0.1f, 0.1f, 0.1f);
     shortStrategy.configure(getOptParamsAsMap(optParamListShort));
     strategyMerger.addStrategy(shortStrategy, timeFrame);
     strategyMerger.init(ticker, timeFrame, startDate, endDate);

@@ -1,4 +1,4 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.calc;
 
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -28,7 +28,7 @@ import korshak.com.screener.dao.RsiRepository;
 import korshak.com.screener.dao.RsiWeek;
 import korshak.com.screener.dao.RsiWeekRepository;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.RsiService;
+import korshak.com.screener.service.calc.RsiService;
 import korshak.com.screener.utils.Utils;
 import org.springframework.stereotype.Service;
 

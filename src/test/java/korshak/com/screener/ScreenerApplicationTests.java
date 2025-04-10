@@ -1,6 +1,6 @@
 package korshak.com.screener;
 
-import korshak.com.screener.service.SharePriceDownLoaderService;
+import korshak.com.screener.service.download.SharePriceDownLoaderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

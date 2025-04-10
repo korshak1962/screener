@@ -50,7 +50,7 @@ public class StrategyMerger implements Strategy {
   }
 
   @Override
-  public List<? extends Signal> getSignalsLong() {
+  public List<Signal> getSignalsLong() {
     if (signalsLong.isEmpty()) {
       mergeSignals();
     }

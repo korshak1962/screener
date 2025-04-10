@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import korshak.com.screener.dao.Param;
-import korshak.com.screener.service.TradeService;
+import korshak.com.screener.service.calc.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.stereotype.Service;

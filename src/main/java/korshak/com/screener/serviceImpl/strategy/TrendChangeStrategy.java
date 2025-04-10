@@ -8,7 +8,7 @@ import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.Trend;
-import korshak.com.screener.service.TrendService;
+import korshak.com.screener.service.calc.TrendService;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;

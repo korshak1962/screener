@@ -82,13 +82,13 @@ public class BuyAndHoldStrategyMinusDownTrend extends DoubleTiltStrategy {
       }
     }
     if (!signalsLong.isEmpty()) {
-      SignalTilt lastLong = signalsLong.getLast();
+      SignalTilt lastLong = (SignalTilt)signalsLong.getLast();
       if (lastLong.getSignalType() == SignalType.LongOpen) {
         System.out.println("======== lastLong Signal " + lastLong);
       }
     }
     if (!signalsShort.isEmpty()) {
-      SignalTilt lastShort = signalsShort.getLast();
+      SignalTilt lastShort = (SignalTilt)signalsShort.getLast();
       if (lastShort.getSignalType() == SignalType.ShortOpen) {
         System.out.println("======== lastShort Signal " + lastShort);
       }

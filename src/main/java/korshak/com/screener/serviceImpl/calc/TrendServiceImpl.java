@@ -1,4 +1,4 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.calc;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.dao.Trend;
 import korshak.com.screener.dao.TrendKey;
 import korshak.com.screener.dao.TrendRepository;
-import korshak.com.screener.service.TrendService;
+import korshak.com.screener.service.calc.TrendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

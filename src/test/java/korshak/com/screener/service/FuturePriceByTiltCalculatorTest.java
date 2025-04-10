@@ -14,7 +14,7 @@ import korshak.com.screener.dao.PriceKey;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.SmaDay;
 import korshak.com.screener.dao.SmaKey;
-import korshak.com.screener.serviceImpl.FuturePriceByTiltCalculator;
+import korshak.com.screener.serviceImpl.calc.FuturePriceByTiltCalculator;
 import korshak.com.screener.utils.Utils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

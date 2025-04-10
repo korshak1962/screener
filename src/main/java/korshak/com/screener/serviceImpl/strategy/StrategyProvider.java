@@ -1,4 +1,4 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
 import korshak.com.screener.dao.TimeFrame;

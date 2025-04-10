@@ -1,4 +1,4 @@
-package korshak.com.screener.service;
+package korshak.com.screener.service.download;
 
 import java.time.LocalDate;
 

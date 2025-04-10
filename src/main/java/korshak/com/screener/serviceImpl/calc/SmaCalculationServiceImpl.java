@@ -1,4 +1,4 @@
-package korshak.com.screener.serviceImpl;
+package korshak.com.screener.serviceImpl.calc;
 
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -16,7 +16,7 @@ import korshak.com.screener.dao.PriceMin5;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.SmaKey;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.SmaCalculationService;
+import korshak.com.screener.service.calc.SmaCalculationService;
 import korshak.com.screener.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -10,7 +10,7 @@ import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.vo.Signal;
 
 public interface Strategy {
-  List<? extends Signal> getSignalsLong();
+  List<Signal> getSignalsLong();
 
   List<? extends Signal> getSignalsShort();
 
