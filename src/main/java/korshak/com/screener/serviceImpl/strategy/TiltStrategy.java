@@ -1,8 +1,10 @@
 package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
@@ -111,5 +113,13 @@ public class TiltStrategy extends BaseStrategy {
           " ticker = " + ticker + " timeframe = " + timeFrame);
     }
     super.configure(nameToParam);
+  }
+
+  @Override
+  public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
+    Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();
+    priceIndicators.put("SMA_" + smaList.getFirst().getId().getLength(),
+        Utils.convertBaseSmaListToTreeMap(smaList));
+    return priceIndicators;
   }
 }

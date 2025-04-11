@@ -23,9 +23,9 @@ public class Portfolios {
   public static List<String> EM =
       List.of("EEMV", "IEMG", "EWZ", "ARGT", "EWW", "GXG", "ECH", "AAXJ");
 
-  //"TCEHY", "XIACF",
+  //"TCEHY", "XIACF","YY",
   public static List<String> CHINA =
-      List.of("LI", "YMM", "KWEB", "FXI", "MOMO", "MCHI", "WB", "YY", "JD", "BABA",
+      List.of("LI", "YMM", "KWEB", "FXI", "MOMO", "MCHI", "WB",  "JD", "BABA",
            "BIDU", "YINN", "KTEC", "CHIQ");
 
   public static List<String> ALL = List.of("SPY", "QQQ", "SOXL", "TLT", "VALE", "T", "EPAM", "LYFT",

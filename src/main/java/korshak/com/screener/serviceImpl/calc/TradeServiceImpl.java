@@ -88,7 +88,7 @@ public class TradeServiceImpl implements TradeService {
           " endDate = " + strategy.getEndDate());
       return new StrategyResult(strategy.getPrices(), 0, 0,
           longPnL, Map.of(), Map.of(), tradesLong,
-          List.of(), strategy.getSignalsLong(), 0, indicators, Map.of());
+          List.of(), strategy.getSignalsLong(), 0, indicators,strategy.getPriceIndicators(), Map.of());
     }
     TreeMap<LocalDateTime, Double> currentPnL = new TreeMap<>();
     Map<LocalDateTime, Double> minLongPnl = new HashMap<>();
@@ -99,7 +99,8 @@ public class TradeServiceImpl implements TradeService {
       System.out.println("===== Last signal is LongOpen at price = " + last.getPrice()
           + " at " + last.getDate() + " cause " + last.getComment());
     Signal signal =
-        Utils.createSignal(strategy.getPrices().getLast(), SignalType.LongClose, "tempopary close ");
+        Utils.createSignal(strategy.getPrices().getLast(), SignalType.LongClose,
+            "tempopary close for calc only");
     strategy.getSignalsLong().add(signal);
     }
     //====================
@@ -133,7 +134,8 @@ public class TradeServiceImpl implements TradeService {
 
     return new StrategyResult(strategy.getPrices(), longPnL, 0,
         longPnL, minLongPnl, Map.of(), tradesLong,
-        List.of(), strategy.getSignalsLong(), maxPossibleLoss, indicators, worstLongTrade);
+        List.of(), strategy.getSignalsLong(), maxPossibleLoss,
+        indicators,strategy.getPriceIndicators(), worstLongTrade);
   }
 
   @Override
@@ -165,7 +167,7 @@ public class TradeServiceImpl implements TradeService {
     indicators.put("current PnL", currentPnL);
     return new StrategyResult(strategy.getPrices(), 0, shortPnL,
         shortPnL, Map.of(), minShortPnl, List.of(),
-        tradesShort, strategy.getSignalsShort(), maxPossibleLoss, indicators, Map.of());
+        tradesShort, strategy.getSignalsShort(), maxPossibleLoss, indicators,strategy.getPriceIndicators(), Map.of());
   }
 
   double calcMaxPossibleLossLong() {

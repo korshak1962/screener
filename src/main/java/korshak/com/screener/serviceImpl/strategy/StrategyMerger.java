@@ -104,13 +104,11 @@ public class StrategyMerger implements Strategy {
 
   @Override
   public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
-    if (this.subStrategies.isEmpty()) {
-      return Map.of();
+    Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();
+    for(Strategy strategy : subStrategies){
+      priceIndicators.putAll(strategy.getPriceIndicators());
     }
-    if (this.subStrategies.iterator().next().getPriceIndicators() != null) {
-      return this.subStrategies.iterator().next().getPriceIndicators();
-    }
-    return Map.of();
+    return priceIndicators;
   }
 
   @Override

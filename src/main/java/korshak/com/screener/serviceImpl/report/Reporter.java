@@ -87,14 +87,12 @@ public class Reporter {
   }
 
   private static void show(StrategyResult strategyResult,
-                           Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators,
-                           Map<String, NavigableMap<LocalDateTime, Double>> indicators,
                            String chartName) {
     System.setProperty("java.awt.headless", "false");
     ChartService chartService = new ChartServiceImpl(chartName);
     chartService.drawChart(strategyResult.getPrices(), strategyResult.getSignals()
-        , priceIndicators
-        , strategyResult.getTradesLong(), indicators);
+        , strategyResult.getPriceIndicators()
+        , strategyResult.getTradesLong(), strategyResult.getIndicators());
     pause();
   }
 
@@ -269,8 +267,7 @@ public class Reporter {
 
     strategyMerger.mergeSignals();
     StrategyResult strategyResult = evaluateStrategy(strategyMerger);
-    show(strategyResult, strategyMerger.getPriceIndicators(),
-        strategyMerger.getIndicators(), strategyMerger.getStrategyName());
+    show(strategyResult, strategyMerger.getStrategyName());
     System.out.println(strategyResult);
     return strategyResult;
   }
@@ -306,8 +303,7 @@ public class Reporter {
     StrategyResult strategyResult =
         getStrategyResult(ticker, startDate, endDate, signalTimeFrame, STOP_LOSS_MAX_PERCENT,
             strategies);
-    show(strategyResult, strategyMerger.getPriceIndicators(),
-        strategyMerger.getIndicators(), strategyMerger.getStrategyName());
+    show(strategyResult, strategyMerger.getStrategyName());
     return strategyResult;
   }
 
@@ -329,8 +325,7 @@ public class Reporter {
                                     TimeFrame timeFrame) throws IOException {
     StrategyResult strategyResult =
         readParamsGetStrategyResult(ticker, startDate, endDate, timeFrame);
-    show(strategyResult, strategyMerger.getPriceIndicators(),
-        strategyMerger.getIndicators(), strategyMerger.getStrategyName());
+    show(strategyResult, strategyMerger.getStrategyName());
     return strategyResult;
   }
 
@@ -340,8 +335,7 @@ public class Reporter {
                                         TimeFrame timeFrame) throws IOException {
     StrategyResult strategyResult =
         getStrategyResult(subStrategies, ticker, startDate, endDate, timeFrame);
-    show(strategyResult, strategyMerger.getPriceIndicators(),
-        strategyMerger.getIndicators(), strategyMerger.getStrategyName());
+    show(strategyResult, strategyMerger.getStrategyName());
     return strategyResult;
   }
 
@@ -352,8 +346,7 @@ public class Reporter {
     baseStrategy.init(ticker, timeFrame, startDate, endDate);
     StrategyResult strategyResult =
         getStrategyResult(baseStrategy, ticker, startDate, endDate, timeFrame);
-    show(strategyResult, strategyMerger.getPriceIndicators(),
-        strategyMerger.getIndicators(), strategyMerger.getStrategyName());
+    show(strategyResult,  strategyMerger.getStrategyName());
     return strategyResult;
   }
 
@@ -389,9 +382,7 @@ public class Reporter {
     subStrategies.add(strategyLow);
     StrategyResult strategyResult =
         getStrategyResult(subStrategies, ticker, startDate, endDate, timeframeLow);
-    show(strategyResult,
-        strategyMerger.getPriceIndicators(), strategyMerger.getIndicators(),
-        strategyMerger.getStrategyName());
+    show(strategyResult, strategyMerger.getStrategyName());
   }
 
 
@@ -470,7 +461,7 @@ public class Reporter {
             0d, strategyMerger.getEndDate().toString(), 1f, 0f, 1f)
     );
     optParamDao.saveAll(optParamListToDB);
-    show(genericOptimizator.getBestOverallResult(), Map.of(), Map.of(),
+    show(genericOptimizator.getBestOverallResult(),
         strategyMerger.getStrategyName());
     return strategyToParams;
   }
@@ -588,6 +579,6 @@ public class Reporter {
     strategyMerger.init(ticker, timeFrame, startDate, endDate);
     strategyMerger.mergeSignals();
     StrategyResult strategyResult = evaluateStrategy(strategyMerger);
-    show(strategyResult, Map.of(), Map.of(), strategyMerger.getStrategyName());
+    show(strategyResult, strategyMerger.getStrategyName());
   }
 }

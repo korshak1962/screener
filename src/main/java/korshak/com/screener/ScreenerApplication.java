@@ -39,23 +39,29 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
+    /*
+    downloader.downloadSeries(Portfolios.CHINA,
+        2024, 1,
+        2025, 2,
+        downloader.nameToDownloadService.get(ALPHA_VINTAGE_DOWNLOADER));
+     */
+
    // downloader.updateTickersUpToday(Portfolios.MOEX,
    //     downloader.nameToDownloadService.get(MOEX_DOWNLOADER));
 
-    downloader.updateTickersUpToday(Portfolios.ALL,
-        downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
+   // downloader.updateTickersUpToday(Portfolios.ALL,
+   //     downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
 
     LocalDateTime startDate = LocalDateTime.of(2018, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MAY, 1, 0, 0);
 
-    List<String> strategyNames = List.of("TiltStrategy");
     //reporter.readParamsGetStrategyResult("QQQ", startDate, endDate, TimeFrame.DAY,strategyNames);
     //reporter.findResultFor2strategies("QQQ", startDate, endDate, TimeFrame.DAY);
    // for (String ticker : Portfolios.US){
    //   trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
    // }
     //reporter.findOptParamAndSaveGeneric("SPY", startDate, endDate, TimeFrame.DAY, "only10");
-    //reporter.readOptParamsGenericAndShow("SPY", startDate, endDate, TimeFrame.DAY,"only10");
+    reporter.readOptParamsGenericAndShow("SPY", startDate, endDate, TimeFrame.DAY,"only10");
     //reporter.findResultFor2strategies("QQQ", startDate, endDate, TimeFrame.WEEK, TimeFrame.DAY);
     //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 
@@ -80,12 +86,7 @@ public class ScreenerApplication implements CommandLineRunner {
     //  ""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
 
 
-/*
-    downloader.downloadSeries(Portfolios.CHINA,
-        2024, 1,
-        2025, 2,
-        downloader.nameToDownloadService.get(ALPHA_VINTAGE_DOWNLOADER));
-*/
+
 
 /*
     downloader.downloadSeries(Portfolios.MOEX,

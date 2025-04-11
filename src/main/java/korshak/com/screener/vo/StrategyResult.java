@@ -22,6 +22,7 @@ public class StrategyResult {
   private final List<Trade> tradesShort;
   private final List<? extends Signal> signals;
   private final Map<String, NavigableMap<LocalDateTime, Double>> indicators;
+  private final Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators;
   DecimalFormat df = new DecimalFormat("#.##");
   private Map<String, Double> optParams;
   private int profitLongTradesQnty;
@@ -36,6 +37,7 @@ public class StrategyResult {
                         List<Trade> tradesShort, List<? extends Signal> signals,
                         double maxPossibleLoss,
                         Map<String, NavigableMap<LocalDateTime, Double>> indicators,
+                        Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators,
                         Map<LocalDateTime, Double> worstLongTrade) {
     this.prices = prices;
     this.longPnL = longPnL;
@@ -48,6 +50,7 @@ public class StrategyResult {
     this.tradesShort = tradesShort;
     this.signals = signals;
     this.indicators = indicators;
+    this.priceIndicators = priceIndicators;
     this.worstLongTrade = worstLongTrade;
     calcProfitAndLostRationLong();
   }
@@ -131,6 +134,10 @@ public class StrategyResult {
 
   public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
     return indicators;
+  }
+
+  public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
+    return priceIndicators;
   }
 
   public Map<String, Double> getOptParams() {
