@@ -4,8 +4,6 @@ import static korshak.com.screener.serviceImpl.download.Downloader.ALPHA_VINTAGE
 import static korshak.com.screener.serviceImpl.download.Downloader.MOEX_DOWNLOADER;
 import static korshak.com.screener.serviceImpl.download.Downloader.YAHOO_DOWNLOADER;
 
-import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.HashMap;
@@ -16,7 +14,6 @@ import korshak.com.screener.serviceImpl.download.Downloader;
 import korshak.com.screener.serviceImpl.report.Reporter;
 import korshak.com.screener.utils.Portfolios;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -39,20 +36,10 @@ public class ScreenerApplication implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    /*
-    downloader.downloadSeries(Portfolios.CHINA,
-        2024, 1,
-        2025, 2,
-        downloader.nameToDownloadService.get(ALPHA_VINTAGE_DOWNLOADER));
-     */
 
-   // downloader.updateTickersUpToday(Portfolios.MOEX,
-   //     downloader.nameToDownloadService.get(MOEX_DOWNLOADER));
+    //downloadAll();
 
-   // downloader.updateTickersUpToday(Portfolios.ALL,
-   //     downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
-
-    LocalDateTime startDate = LocalDateTime.of(2018, Month.JANUARY, 1, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 20, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MAY, 1, 0, 0);
 
     //reporter.readParamsGetStrategyResult("QQQ", startDate, endDate, TimeFrame.DAY,strategyNames);
@@ -60,8 +47,8 @@ public class ScreenerApplication implements CommandLineRunner {
    // for (String ticker : Portfolios.US){
    //   trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
    // }
-    //reporter.findOptParamAndSaveGeneric("SPY", startDate, endDate, TimeFrame.DAY, "only10");
-    reporter.readOptParamsGenericAndShow("SPY", startDate, endDate, TimeFrame.DAY,"only10");
+    //reporter.findOptParamAndSaveGeneric("TLT", startDate, endDate, TimeFrame.HOUR, "onlyTrend");
+    reporter.readOptParamsGenericAndShow("TLT", startDate, endDate, TimeFrame.WEEK,"onlyTrend");
     //reporter.findResultFor2strategies("QQQ", startDate, endDate, TimeFrame.WEEK, TimeFrame.DAY);
     //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 
@@ -70,7 +57,7 @@ public class ScreenerApplication implements CommandLineRunner {
     String ticker = "SBER_MOEX";
     //reporter.createExcelReport(List.of(ticker), startDateEval, endDateEval, TimeFrame.DAY,ticker);
    // reporter.evaluateAndShow(buyCloseHigherPrevClose, ticker, startDateEval, endDateEval,
-    //    TimeFrame.WEEK);
+     //   TimeFrame.WEEK);
 
     Map<TimeFrame, List<String>> timeFrameToStrategyNames = new HashMap<>();
 /*    List<String> strategyNames = List.of("TrendChangeStrategy");
@@ -84,24 +71,35 @@ public class ScreenerApplication implements CommandLineRunner {
     //     "_MOEX"), startDateEval, endDateEval, TimeFrame.DAY, Portfolios.MOEX);
     //   reporter.createExcelReport(Utils.addSuffix(Portfolios.NAME_TO_TICKERS.get(Portfolios.US),
     //  ""),startDateEval, endDateEval, TimeFrame.DAY, Portfolios.US);
+    System.exit(0);
+  }
 
+  private void downloadAll() {
 
+    downloader.downloadSeries(Portfolios.INDEXES,
+        2007, 1,
+        2025, 5,
+        downloader.nameToDownloadService.get(ALPHA_VINTAGE_DOWNLOADER));
 
+    downloader.updateTickersUpToday(Portfolios.INDEXES,
+        downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
 
-/*
-    downloader.downloadSeries(Portfolios.MOEX,
-        2025, 4,
-        2025, 4,
-        downloader.nameToDownloadService.get(MOEX_DOWNLOADER));
+    downloader.updateTickersUpToday(Portfolios.US_WATCH,
+        downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
 
- */
-/*
     downloader.updateTickersUpToday(Portfolios.US_SECTOR_ETF,
         downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
-*/
-    //downloader.downloadSeriesFromToTomorrow(Portfolios.ALL,
-    //          LocalDate.now().minusDays(8), downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
 
-    System.exit(0);
+    downloader.updateTickersUpToday(Portfolios.CHINA,
+        downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
+
+    downloader.updateTickersUpToday(Portfolios.ALL,
+        downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
+
+
+    downloader.downloadSeries(Portfolios.MOEX,
+        2025, 4,
+        2025, 5,
+        downloader.nameToDownloadService.get(MOEX_DOWNLOADER));
   }
 }

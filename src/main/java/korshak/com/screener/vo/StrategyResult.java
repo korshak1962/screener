@@ -57,7 +57,7 @@ public class StrategyResult {
 
   public String toExcelString() {
     return "PnL=" + df.format(longPnL) +
-      //  ", sPnL=" + df.format(shortPnL) +
+        //  ", sPnL=" + df.format(shortPnL) +
         ", BHPnL=" + df.format(buyAndHoldPnL) +
         ", P/L= " + df.format(profitToLostRatio);
   }
@@ -67,7 +67,7 @@ public class StrategyResult {
     return prices.getFirst().getId().getTicker() +
         " \n lPnL=" + df.format(longPnL) +
         ", BHPnL=" + df.format(buyAndHoldPnL) +
-         ", sPnL=" + df.format(shortPnL) +
+        ", sPnL=" + df.format(shortPnL) +
         //  ", totalPnL=" + df.format(totalPnL) +
         ", pToLRatio=" + df.format(profitToLostRatio) +
         ", prLTrQnty=" + profitLongTradesQnty +
@@ -76,7 +76,8 @@ public class StrategyResult {
         //  ", minLongPnl=" + minLongPnl +
         // ", worstLongTrade=" + worstLongTrade +
         //   ", minShortPnl=" + minShortPnl +
-        ", AnPercentRetLong =" + df.format(getAnnualPercentageReturnLong())
+        ", AnPercentRetLong =" + df.format(getAnnualPercentageReturnLong()) +
+        ", AnPercentRetLongInTrade =" + df.format(getAnnualPercentageReturnLongInTrade())
         // ", maxPossibleLossIfBuyAndHold=" + df.format(maxPossibleLoss)
         ;
   }
@@ -87,6 +88,20 @@ public class StrategyResult {
     }
     long days = ChronoUnit.DAYS.between(prices.get(0).getId().getDate(),
         prices.getLast().getId().getDate());
+    double profitPercent = longPnL / tradesLong.getFirst().getOpen().getPrice();
+    double years = 365.0 / days;
+    return (profitPercent * years) * 100;
+  }
+
+  public double getAnnualPercentageReturnLongInTrade() {
+    if (tradesLong.isEmpty()) {
+      return 0.0;
+    }
+    long days = 0;
+    for (Trade trade : tradesLong) {
+      days += ChronoUnit.DAYS.between(trade.getOpen().getDate(),
+          trade.getClose().getDate());
+    }
     double profitPercent = longPnL / tradesLong.getFirst().getOpen().getPrice();
     double years = 365.0 / days;
     return (profitPercent * years) * 100;

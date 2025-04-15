@@ -134,7 +134,9 @@ public class MoexSharePriceDownLoaderServiceImpl implements SharePriceDownLoader
 
   @Override
   public int downloadFromDateUpToday(String ticker, LocalDate startDate) {
-    return 0;
+    throw new UnsupportedOperationException("MOEX does not support this operation");
+   // return 0;
+    //return downloadForExactDates(ticker, startDate, LocalDate.now());
   }
 
   private List<PriceHour> extractPriceData(JsonNode root, String ticker) {

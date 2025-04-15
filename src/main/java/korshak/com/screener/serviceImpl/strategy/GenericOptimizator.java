@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import korshak.com.screener.dao.Param;
 import korshak.com.screener.service.calc.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
@@ -12,7 +11,7 @@ import korshak.com.screener.vo.StrategyResult;
 import org.springframework.stereotype.Service;
 
 @Service("GenericOptimizator")
-public class GenericOptimizator  {
+public class GenericOptimizator {
 
   StrategyMerger merger;
   TradeService tradeService;
@@ -41,6 +40,7 @@ public class GenericOptimizator  {
   /**
    * Finds the optimal parameters for all strategies by testing combinations
    * to maximize the overall PnL of the merged strategy
+   *
    * @return Map of strategies to their optimal parameters
    */
   public Map<Strategy, Map<String, Param>> findOptimalParametersForAllStrategies() {
@@ -112,7 +112,8 @@ public class GenericOptimizator  {
     long totalTimeMs = System.currentTimeMillis() - startTime;
 
     System.out.println("Optimization complete. Found best overall PnL: " + bestFunctionalResult);
-    System.out.println("Tested " + combinationsTested + " combinations in " + (totalTimeMs / 1000) + " seconds");
+    System.out.println(
+        "Tested " + combinationsTested + " combinations in " + (totalTimeMs / 1000) + " seconds");
     System.out.println("Best parameters:");
     for (Strategy strategy : strategiesToOptimize) {
       System.out.println("Strategy: " + strategy.getStrategyName());
@@ -158,7 +159,7 @@ public class GenericOptimizator  {
   private static void printMemory(String tag) {
     Runtime runtime = Runtime.getRuntime();
     long usedMemory = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
-    System.out.println(tag+" Memory usage before optimization: " + usedMemory + " MB");
+    System.out.println(tag + " Memory usage before optimization: " + usedMemory + " MB");
   }
 
   /**
@@ -166,7 +167,7 @@ public class GenericOptimizator  {
    * across all strategies and evaluating the overall PnL after each combination.
    *
    * @param strategyIndex Index of current strategy being optimized
-   * @param paramIndex Index of current parameter being optimized for the current strategy
+   * @param paramIndex    Index of current parameter being optimized for the current strategy
    */
   private void optimizeStrategyRecursive(int strategyIndex, int paramIndex) {
 
@@ -209,12 +210,12 @@ public class GenericOptimizator  {
           combinationsTested == totalCombinations) {
         lastProgressReport = combinationsTested;
         long elapsedTimeMs = System.currentTimeMillis() - startTime;
-        double percentComplete = (double)combinationsTested / totalCombinations * 100;
+        double percentComplete = (double) combinationsTested / totalCombinations * 100;
 
         // Estimate remaining time
         long estimatedTotalTimeMs = 0;
         if (combinationsTested > 0) {
-          estimatedTotalTimeMs = (long)(elapsedTimeMs * totalCombinations / combinationsTested);
+          estimatedTotalTimeMs = (long) (elapsedTimeMs * totalCombinations / combinationsTested);
         }
         long remainingTimeMs = estimatedTotalTimeMs - elapsedTimeMs;
 
@@ -272,20 +273,18 @@ public class GenericOptimizator  {
    */
   private long calculateTotalCombinations() {
     long total = 1;
-
     for (Strategy strategy : strategiesToOptimize) {
       Map<String, Param> params = strategy.getParams();
       long strategyTotal = 1;
-
       // Consider all parameters for this strategy
       for (Param param : params.values()) {
-        long numValues = 1 + Math.round((param.getMax() - param.getMin()) / param.getStep());
+        int round = Math.round((param.getMax() - param.getMin() )/ param.getStep());
+        round = round > 0 ? round : 0;
+        long numValues = 1 + round;
         strategyTotal *= numValues;
       }
-
       total *= strategyTotal;
     }
-
     return total;
   }
 

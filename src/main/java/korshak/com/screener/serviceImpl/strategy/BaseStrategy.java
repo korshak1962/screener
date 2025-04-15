@@ -1,5 +1,7 @@
 package korshak.com.screener.serviceImpl.strategy;
 
+import static korshak.com.screener.serviceImpl.strategy.TiltStrategy.LENGTH;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
