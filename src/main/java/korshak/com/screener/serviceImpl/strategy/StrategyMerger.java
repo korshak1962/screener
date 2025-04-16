@@ -12,20 +12,18 @@ import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.strategy.Configurable;
 import korshak.com.screener.service.strategy.PostTradeStrategy;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
-import korshak.com.screener.vo.SignalType;
 import org.springframework.stereotype.Service;
 
 @Service("StrategyMerger")
 public class StrategyMerger implements Strategy {
-  public static final String STOP_LOSS_PERCENT = "StopLoss";
   public static final String START_DATE = "startDate";
   public static final String END_DATE = "endDate";
   final PriceDao priceDao;
-  double stopLossMaxPercent;
   List<Strategy> subStrategies = new ArrayList<>();
   List<PostTradeStrategy> postTradeStrategies = new ArrayList<>();
   TimeFrame timeFrame;
@@ -187,7 +185,7 @@ public class StrategyMerger implements Strategy {
     }
     Signal lastSignal = null;
     for (BasePrice price : prices) {
-      List<Signal> signalsForPrice = getSignalsWithStopLoss(price, lastSignal);
+      List<Signal> signalsForPrice = getSignalsWithPostTrade(price, lastSignal);
       if (signalsForPrice == null || signalsForPrice.isEmpty()) {
         continue;
       }
@@ -196,7 +194,7 @@ public class StrategyMerger implements Strategy {
     }
   }
 
-  private List<Signal> getSignalsWithStopLoss(BasePrice price, Signal lastSignal) {
+  private List<Signal> getSignalsWithPostTrade(BasePrice price, Signal lastSignal) {
     List<Signal> postTradeSignals = getPostTradeSignals(price, lastSignal);
     List<Signal> signalsForPrice = dateToSignals.get(price.getId().getDate());
     if (!postTradeSignals.isEmpty()) {
@@ -210,26 +208,13 @@ public class StrategyMerger implements Strategy {
 
   private List<Signal> getPostTradeSignals(BasePrice price, Signal lastSignal) {
     List<Signal> postTradeSignals = new ArrayList<>();
-    // stopLoss
-    // System.out.println("stopLossMaxPercent = " + stopLossMaxPercent);
-    Signal postTradeSignal = null;
-    if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen &&
-        price.getLow() < stopLossMaxPercent * lastSignal.getPrice()) {
-      postTradeSignal = Utils.createSignal(price, SignalType.LongClose,
-          stopLossMaxPercent * lastSignal.getPrice(), "stop loss");
+    for (PostTradeStrategy strategy : postTradeStrategies){
+      Signal postTradeSignal = strategy.getPostTradeSignal(price, lastSignal);
+      if (postTradeSignal != null) {
+        postTradeSignals.add(postTradeSignal);
+      }
     }
-    if (postTradeSignal!=null){postTradeSignals.add(postTradeSignal);}
     return postTradeSignals;
-  }
-
-  public double getStopLossMaxPercent() {
-    return stopLossMaxPercent;
-  }
-
-  public StrategyMerger setStopLossPercent(double stopLossMaxPercent) {
-    //  System.out.println("stopLossMaxPercent = " + stopLossMaxPercent);
-    this.stopLossMaxPercent = stopLossMaxPercent;
-    return this;
   }
 
   public Map<String, Param> getParams() {
@@ -238,12 +223,25 @@ public class StrategyMerger implements Strategy {
 
   @Override
   public void configure(Map<String, Param> nameToParam) {
-    if (nameToParam != null && nameToParam.get(STOP_LOSS_PERCENT) != null) {
-      this.setStopLossPercent(nameToParam.get(STOP_LOSS_PERCENT).getValue());
-    } else {
-      throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
-          " ticker = " + ticker + " timeframe = " + timeFrame);
+
+  }
+
+  List<Configurable> getConfigurables(){
+    List<Configurable> configurables = new ArrayList<>();
+    for (Strategy strategy : subStrategies) {
+      if (strategy instanceof Configurable) {
+        configurables.add(strategy);
+      }
     }
-    this.paramsMap = nameToParam;
+    for (PostTradeStrategy strategy : postTradeStrategies) {
+      if (strategy instanceof Configurable) {
+        configurables.add(strategy);
+      }
+    }
+    return configurables;
+  }
+
+  public List<PostTradeStrategy> getPostTradeStrategies() {
+    return postTradeStrategies;
   }
 }

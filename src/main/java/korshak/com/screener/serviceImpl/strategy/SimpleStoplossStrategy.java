@@ -9,8 +9,10 @@ import korshak.com.screener.service.strategy.PostTradeStrategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
+import org.springframework.stereotype.Service;
 
-public class SimpleStoplossStrategy implements PostTradeStrategy, Configurable {
+@Service("SimpleStoplossStrategy")
+public class SimpleStoplossStrategy implements PostTradeStrategy {
   Map<String, Param> paramsMap = new HashMap<>();
   public static final String STOP_LOSS_PERCENT = "StopLoss";
   private float stopLossPercent = 1;

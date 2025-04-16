@@ -2,7 +2,6 @@ package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
 import korshak.com.screener.dao.TimeFrame;
-import korshak.com.screener.service.strategy.Configurable;
 import korshak.com.screener.service.strategy.Strategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -28,7 +27,7 @@ public class StrategyProvider {
     this.endDate = endDate;
   }
 
-  public Strategy getStrategy(String strategyClassName,TimeFrame timeFrame) {
+  public Strategy getStrategyAndInit(String strategyClassName, TimeFrame timeFrame) {
     try {
       // Get the fully qualified class name if only simple name is provided
       if (!strategyClassName.contains(".")) {

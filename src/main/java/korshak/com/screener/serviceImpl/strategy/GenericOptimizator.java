@@ -16,7 +16,7 @@ public class GenericOptimizator {
 
   StrategyMerger merger;
   TradeService tradeService;
-  private List<Strategy> strategiesToOptimize;
+  private List<Configurable> strategiesToOptimize;
   private Map<Configurable, Map<String, Param>> currentParams;
   private Map<Configurable, Map<String, Param>> bestParams;
   private double bestFunctionalResult;
@@ -116,8 +116,7 @@ public class GenericOptimizator {
     System.out.println(
         "Tested " + combinationsTested + " combinations in " + (totalTimeMs / 1000) + " seconds");
     System.out.println("Best parameters:");
-    for (Strategy strategy : strategiesToOptimize) {
-      System.out.println("Strategy: " + strategy.getStrategyName());
+    for (Configurable strategy : strategiesToOptimize) {
       for (Map.Entry<String, Param> entry : bestParams.get(strategy).entrySet()) {
         System.out.println("  " + entry.getKey() + " = " + entry.getValue().getValue());
       }
@@ -140,20 +139,13 @@ public class GenericOptimizator {
     strategyParamValues = new HashMap<>();
 
     // Identify strategies that have optimizable parameters
-    for (Strategy strategy : merger.getSubStrategies()) {
+    for (Configurable strategy : merger.getConfigurables()) {
       if (!strategy.getParams().isEmpty()) {
         strategiesToOptimize.add(strategy);
         // Initialize parameter maps
         currentParams.put(strategy, new HashMap<>(strategy.getParams()));
         bestParams.put(strategy, new HashMap<>(strategy.getParams()));
       }
-    }
-
-    // Add merger itself if it has parameters
-    if (!merger.getParams().isEmpty()) {
-      strategiesToOptimize.add(merger);
-      currentParams.put(merger, new HashMap<>(merger.getParams()));
-      bestParams.put(merger, new HashMap<>(merger.getParams()));
     }
   }
 
@@ -197,8 +189,7 @@ public class GenericOptimizator {
           }
 
           System.out.println("New best overall PnL: " + bestFunctionalResult);
-          for (Strategy strategy : strategiesToOptimize) {
-            System.out.println("Strategy: " + strategy.getStrategyName());
+          for (Configurable strategy : strategiesToOptimize) {
             for (Map.Entry<String, Param> param : currentParams.get(strategy).entrySet()) {
               System.out.println("  " + param.getKey() + " = " + param.getValue().getValue());
             }
