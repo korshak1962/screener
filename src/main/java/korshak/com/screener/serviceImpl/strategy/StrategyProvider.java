@@ -14,7 +14,7 @@ public class StrategyProvider {
   String ticker;
   LocalDateTime startDate;
   LocalDateTime endDate;
-  TimeFrame timeFrame;
+
 
   @Autowired
   public StrategyProvider(ApplicationContext applicationContext) {
@@ -22,15 +22,13 @@ public class StrategyProvider {
   }
 
   public void init(String ticker, LocalDateTime startDate,
-                   LocalDateTime endDate,
-                   TimeFrame timeFrame) {
+                   LocalDateTime endDate) {
     this.ticker = ticker;
     this.startDate = startDate;
     this.endDate = endDate;
-    this.timeFrame = timeFrame;
   }
 
-  public Strategy getStrategy(String strategyClassName) {
+  public Strategy getStrategy(String strategyClassName,TimeFrame timeFrame) {
     try {
       // Get the fully qualified class name if only simple name is provided
       if (!strategyClassName.contains(".")) {
