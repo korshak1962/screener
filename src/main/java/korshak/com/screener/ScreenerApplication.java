@@ -47,8 +47,8 @@ public class ScreenerApplication implements CommandLineRunner {
    // for (String ticker : Portfolios.US){
    //   trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
    // }
-    //reporter.findOptParamAndSaveGeneric("TLT", startDate, endDate, TimeFrame.HOUR, "onlyTrend");
-    reporter.readOptParamsGenericAndShow("TLT", startDate, endDate, TimeFrame.WEEK,"onlyTrend");
+    reporter.findOptParamAndSaveGeneric("TLT", startDate, endDate, TimeFrame.HOUR, "onlyTrend2");
+    //reporter.readOptParamsGenericAndShow("TLT", startDate, endDate, TimeFrame.WEEK,"onlyTrend");
     //reporter.findResultFor2strategies("QQQ", startDate, endDate, TimeFrame.WEEK, TimeFrame.DAY);
     //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 

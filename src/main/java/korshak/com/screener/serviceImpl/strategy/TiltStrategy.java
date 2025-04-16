@@ -13,6 +13,7 @@ import korshak.com.screener.dao.OptParamDao;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.strategy.Configurable;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
@@ -40,8 +41,8 @@ public class TiltStrategy extends BaseStrategy {
 
   }
 
-  public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
-                       LocalDateTime endDate) {
+  public Configurable init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+                           LocalDateTime endDate) {
     super.init(ticker, timeFrame, startDate, endDate);
 
     return this;

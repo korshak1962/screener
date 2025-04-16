@@ -9,12 +9,12 @@ import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.vo.Signal;
 
-public interface Strategy {
+public interface Strategy extends Configurable {
   List<Signal> getSignalsLong();
 
   List<? extends Signal> getSignalsShort();
 
-  Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate);
+  Configurable init(String ticker, TimeFrame timeFrame, LocalDateTime startDate, LocalDateTime endDate);
 
   String getStrategyName();
 
@@ -38,6 +38,4 @@ public interface Strategy {
 
   void calcSignals();
 
-   Map<String, Param> getParams() ;
-   void configure(Map<String, Param> nameToParam) ;
 }

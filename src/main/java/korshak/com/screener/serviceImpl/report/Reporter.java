@@ -25,6 +25,7 @@ import korshak.com.screener.dao.Trend;
 import korshak.com.screener.service.chart.ChartService;
 import korshak.com.screener.service.calc.TradeService;
 import korshak.com.screener.service.calc.TrendService;
+import korshak.com.screener.service.strategy.Configurable;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.serviceImpl.calc.FuturePriceByTiltCalculator;
 import korshak.com.screener.serviceImpl.strategy.StrategyProvider;
@@ -225,9 +226,7 @@ public class Reporter {
                                           LocalDateTime startDate,
                                           LocalDateTime endDate, TimeFrame timeFrame) {
     strategyMerger
-        .addStrategy(
-            baseStrategy, timeFrame
-        )
+        .addStrategy(baseStrategy)
         .setStopLossPercent(STOP_LOSS_MAX_PERCENT)
         .init(ticker, timeFrame, startDate, endDate)
         .mergeSignals();
@@ -254,7 +253,7 @@ public class Reporter {
     for (String strategyName : strategies) {
       List<Param> params = optParamDao
           .findValuesByTickerAndTimeframeAndStrategy(ticker, timeFrame, strategyName);
-      addStrategyToMerger(timeFrame, params);
+      addStrategyToMerger( params);
     }
     List<Param> params = optParamDao
         .findValuesByTickerAndTimeframeAndStrategy(ticker, timeFrame,
@@ -278,7 +277,7 @@ public class Reporter {
         .init(ticker, timeFrame, startDate, endDate);
     Map<String, Double> optParams = new HashMap<>();
     for (Strategy strategy : strategies) {
-      strategyMerger.addStrategy(strategy, timeFrame);
+      strategyMerger.addStrategy(strategy);
       Map<String, Param> optParamsMap = strategy.getParams();
       for (Map.Entry<String, Param> entry : optParamsMap.entrySet()) {
         optParams.put(entry.getKey(), entry.getValue().getValue());
@@ -304,8 +303,8 @@ public class Reporter {
   }
 
   private List<Strategy> getStrategies(Map<TimeFrame, List<String>> timeFrameToStrategyNames,
-                                       String ticker, LocalDateTime startDate,
-                                       LocalDateTime endDate) {
+                                           String ticker, LocalDateTime startDate,
+                                           LocalDateTime endDate) {
     List<Strategy> strategies = new ArrayList<>();
     for (Map.Entry<TimeFrame, List<String>> entry : timeFrameToStrategyNames.entrySet()) {
       strategyProvider.init(ticker, startDate, endDate, entry.getKey());
@@ -382,23 +381,25 @@ public class Reporter {
   }
 
 
-  public Map<Strategy, Map<String, Param>> findOptParamAndSaveGeneric(String ticker,
-                                                                      LocalDateTime startDate,
-                                                                      LocalDateTime endDate,
-                                                                      TimeFrame timeFrame,
-                                                                      String caseId) {
+  public Map<Configurable, Map<String, Param>> findOptParamAndSaveGeneric(String ticker,
+                                                                          LocalDateTime startDate,
+                                                                          LocalDateTime endDate,
+                                                                          TimeFrame timeFrame,
+                                                                          String caseId) {
     configureMerger(ticker, timeFrame, caseId, 0.9, 0.9f, .98f, 0.04f);
     strategyMerger.getSubStrategies().clear();
     strategyProvider.init(ticker, startDate, endDate, timeFrame);
 
-    addTiltStrats(ticker, timeFrame, caseId);
+    //addTiltStrats(ticker, timeFrame, caseId);
 
-    addStrategyToMerger(timeFrame, getParamsForTrendStrat(
+    addStrategyToMerger( getParamsForTrendStrat(
         ticker, timeFrame, caseId, "TrendChangeStrategy"));
+  //  addStrategyToMerger( getParamsForTrendStrat(
+  //      ticker, TimeFrame.DAY, caseId, "TrendChangeStrategy"));
 
     strategyMerger.init(ticker, timeFrame, startDate, endDate);
 
-    Map<Strategy, Map<String, Param>>
+    Map<Configurable, Map<String, Param>>
         strategyToParams = findAndSaveOptParam(ticker, timeFrame, caseId);
 
     show(genericOptimizator.getBestOverallResult(),
@@ -406,13 +407,13 @@ public class Reporter {
     return strategyToParams;
   }
 
-  private Map<Strategy, Map<String, Param>> findAndSaveOptParam(String ticker, TimeFrame timeFrame,
-                                                              String caseId) {
-    Map<Strategy, Map<String, Param>> strategyToParams =
+  private Map<Configurable, Map<String, Param>> findAndSaveOptParam(String ticker, TimeFrame timeFrame,
+                                                                    String caseId) {
+    Map<Configurable, Map<String, Param>> strategyToParams =
         genericOptimizator.findOptimalParametersForAllStrategies();
     List<Param> optParamListToDB = new ArrayList<>();
-    for (Map.Entry<Strategy, Map<String, Param>> entry : strategyToParams.entrySet()) {
-      Strategy strategy = entry.getKey();
+    for (Map.Entry<Configurable, Map<String, Param>> entry : strategyToParams.entrySet()) {
+      Configurable strategy = entry.getKey();
       Map<String, Param> optParams = entry.getValue();
       for (Map.Entry<String, Param> nameToParamEntry : optParams.entrySet()) {
         Param optParamToStore = nameToParamEntry.getValue();
@@ -454,7 +455,7 @@ public class Reporter {
         40, 50, 2,
         -0.1f, 0.1f, 0.1f,
         -0.1f, 0.1f, 0.1f);
-    addStrategyToMerger(timeFrame,  paramList);
+    addStrategyToMerger(  paramList);
 
     /*
     List<Param> optParamListLong =
@@ -466,10 +467,10 @@ public class Reporter {
      */
   }
 
-  private void addStrategyToMerger(TimeFrame timeFrame, List<Param> optParamList) {
+  private void addStrategyToMerger( List<Param> optParamList) {
     Strategy subStrategy = strategyProvider.getStrategy(optParamList.getFirst().getStrategyClass());
     subStrategy.configure(getOptParamsAsMap(optParamList));
-    strategyMerger.addStrategy(subStrategy, timeFrame);
+    strategyMerger.addStrategy(subStrategy);
   }
 
   private void configureMerger(String ticker, TimeFrame timeFrame, String caseId,
@@ -595,8 +596,7 @@ public class Reporter {
     for (Map.Entry<String, List<Param>> entiesStrategyToParams : strategyToParams.entrySet()) {
       String strategyClass = entiesStrategyToParams.getValue().getFirst().getStrategyClass();
       if (!strategyClass.equals(strategyMerger.getClass().getSimpleName())) {
-        addStrategyToMerger(entiesStrategyToParams.getValue().getFirst().getTimeframe(),
-             entiesStrategyToParams.getValue());
+        addStrategyToMerger(entiesStrategyToParams.getValue());
       } else {
         strategyMerger.configure(getOptParamsAsMap(entiesStrategyToParams.getValue()));
       }

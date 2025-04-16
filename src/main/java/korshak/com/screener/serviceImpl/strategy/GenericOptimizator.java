@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import korshak.com.screener.dao.Param;
 import korshak.com.screener.service.calc.TradeService;
+import korshak.com.screener.service.strategy.Configurable;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.StrategyResult;
 import org.springframework.stereotype.Service;
@@ -16,16 +17,16 @@ public class GenericOptimizator {
   StrategyMerger merger;
   TradeService tradeService;
   private List<Strategy> strategiesToOptimize;
-  private Map<Strategy, Map<String, Param>> currentParams;
-  private Map<Strategy, Map<String, Param>> bestParams;
+  private Map<Configurable, Map<String, Param>> currentParams;
+  private Map<Configurable, Map<String, Param>> bestParams;
   private double bestFunctionalResult;
   private StrategyResult bestOverallResult;
   private long combinationsTested;
   private long totalCombinations;
 
   // Parameter structures for optimization
-  private Map<Strategy, List<String>> strategyParamNames;
-  private Map<Strategy, List<List<Param>>> strategyParamValues;
+  private Map<Configurable, List<String>> strategyParamNames;
+  private Map<Configurable, List<List<Param>>> strategyParamValues;
 
   // Track progress statistics
   private long lastProgressReport = 0;
@@ -43,7 +44,7 @@ public class GenericOptimizator {
    *
    * @return Map of strategies to their optimal parameters
    */
-  public Map<Strategy, Map<String, Param>> findOptimalParametersForAllStrategies() {
+  public Map<Configurable, Map<String, Param>> findOptimalParametersForAllStrategies() {
     // Initialize member variables
     initializeOptimization();
     startTime = System.currentTimeMillis();
@@ -62,7 +63,7 @@ public class GenericOptimizator {
     strategyParamValues = new HashMap<>();
 
     // For each strategy, identify all parameters and their potential values
-    for (Strategy strategy : strategiesToOptimize) {
+    for (Configurable strategy : strategiesToOptimize) {
       strategyParamNames.put(strategy, new ArrayList<>());
       strategyParamValues.put(strategy, new ArrayList<>());
 
@@ -105,7 +106,7 @@ public class GenericOptimizator {
     optimizeStrategyRecursive(0, 0);
 
     // Apply best parameters to all strategies
-    for (Strategy strategy : strategiesToOptimize) {
+    for (Configurable strategy : strategiesToOptimize) {
       strategy.configure(bestParams.get(strategy));
     }
 
@@ -174,7 +175,7 @@ public class GenericOptimizator {
     // Base case: we've gone through all strategies
     if (strategyIndex >= strategiesToOptimize.size()) {
       // Apply all current parameters
-      for (Strategy strategy : strategiesToOptimize) {
+      for (Configurable strategy : strategiesToOptimize) {
         strategy.configure(currentParams.get(strategy));
       }
 
@@ -190,7 +191,7 @@ public class GenericOptimizator {
           bestFunctionalResult = functionalValue;
           bestOverallResult = result;
           // Store these parameters as best so far
-          for (Strategy strategy : strategiesToOptimize) {
+          for (Configurable strategy : strategiesToOptimize) {
             bestParams.get(strategy).clear();
             bestParams.get(strategy).putAll(currentParams.get(strategy));
           }
@@ -232,7 +233,7 @@ public class GenericOptimizator {
       return;
     }
 
-    Strategy currentStrategy = strategiesToOptimize.get(strategyIndex);
+    Configurable currentStrategy = strategiesToOptimize.get(strategyIndex);
     List<String> paramNames = strategyParamNames.get(currentStrategy);
 
     // If this strategy has no parameters or we've gone through all parameters
@@ -273,7 +274,7 @@ public class GenericOptimizator {
    */
   private long calculateTotalCombinations() {
     long total = 1;
-    for (Strategy strategy : strategiesToOptimize) {
+    for (Configurable strategy : strategiesToOptimize) {
       Map<String, Param> params = strategy.getParams();
       long strategyTotal = 1;
       // Consider all parameters for this strategy

@@ -12,6 +12,7 @@ import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.strategy.PostTradeStrategy;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
@@ -26,6 +27,7 @@ public class StrategyMerger implements Strategy {
   final PriceDao priceDao;
   double stopLossMaxPercent;
   List<Strategy> subStrategies = new ArrayList<>();
+  List<PostTradeStrategy> postTradeStrategies = new ArrayList<>();
   TimeFrame timeFrame;
   LocalDateTime startDate;
   LocalDateTime endDate;
@@ -33,7 +35,7 @@ public class StrategyMerger implements Strategy {
   List<? extends BasePrice> prices;
   List<Signal> signalsLong;
   List<Signal> signalsShort = new ArrayList<>();
-  Map<String, Param> optParamsMap = new HashMap<>();
+  Map<String, Param> paramsMap = new HashMap<>();
   Map<LocalDateTime, List<Signal>> dateToSignals;
   Comparator<Signal> signalComparator = (s1, s2) -> {
     // First compare by SignalType value
@@ -151,7 +153,7 @@ public class StrategyMerger implements Strategy {
 
   }
 
-  public StrategyMerger addStrategy(Strategy strategy, TimeFrame timeFrame) {
+  public StrategyMerger addStrategy(Strategy strategy) {
     subStrategies.add(strategy);
     return this;
   }
@@ -195,22 +197,29 @@ public class StrategyMerger implements Strategy {
   }
 
   private List<Signal> getSignalsWithStopLoss(BasePrice price, Signal lastSignal) {
-    // stopLoss
-   // System.out.println("stopLossMaxPercent = " + stopLossMaxPercent);
-    Signal signalStopLoss = null;
-    if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen &&
-        price.getLow() < stopLossMaxPercent * lastSignal.getPrice()) {
-      signalStopLoss = Utils.createSignal(price, SignalType.LongClose,
-          stopLossMaxPercent * lastSignal.getPrice(), "stop loss");
-    }
+    List<Signal> postTradeSignals = getPostTradeSignals(price, lastSignal);
     List<Signal> signalsForPrice = dateToSignals.get(price.getId().getDate());
-    if (signalStopLoss != null) {
+    if (!postTradeSignals.isEmpty()) {
       if (signalsForPrice == null) {
         signalsForPrice = new ArrayList<>();
       }
-      signalsForPrice.add(signalStopLoss);
+      signalsForPrice.addAll(postTradeSignals);
     }
     return signalsForPrice;
+  }
+
+  private List<Signal> getPostTradeSignals(BasePrice price, Signal lastSignal) {
+    List<Signal> postTradeSignals = new ArrayList<>();
+    // stopLoss
+    // System.out.println("stopLossMaxPercent = " + stopLossMaxPercent);
+    Signal postTradeSignal = null;
+    if (lastSignal != null && lastSignal.getSignalType() == SignalType.LongOpen &&
+        price.getLow() < stopLossMaxPercent * lastSignal.getPrice()) {
+      postTradeSignal = Utils.createSignal(price, SignalType.LongClose,
+          stopLossMaxPercent * lastSignal.getPrice(), "stop loss");
+    }
+    if (postTradeSignal!=null){postTradeSignals.add(postTradeSignal);}
+    return postTradeSignals;
   }
 
   public double getStopLossMaxPercent() {
@@ -222,27 +231,9 @@ public class StrategyMerger implements Strategy {
     this.stopLossMaxPercent = stopLossMaxPercent;
     return this;
   }
-/*
-  public void createDefaultOptParams() {
-    if (!optParamsMap.isEmpty()) {
-      return;
-    }
-    List<OptParam> optParams = new ArrayList<>();
-    double initStopLoss = .5;
-    optParams.add(
-        new OptParam(ticker, STOP_LOSS_PERCENT, this.getClass().getSimpleName(), "single",
-            timeFrame, this.getClass().getSimpleName(),
-            initStopLoss, "", .5f, .9f, 0.1f)
-    );
-    this.setStopLossPercent(initStopLoss);
-    optParamsMap = Utils.getOptParamsAsMap(optParams);
-    configure(optParamsMap);
-  }
-
- */
 
   public Map<String, Param> getParams() {
-    return optParamsMap;
+    return paramsMap;
   }
 
   @Override
@@ -253,6 +244,6 @@ public class StrategyMerger implements Strategy {
       throw new RuntimeException("No opt params for strategy = " + this.getClass().getSimpleName() +
           " ticker = " + ticker + " timeframe = " + timeFrame);
     }
-    this.optParamsMap = nameToParam;
+    this.paramsMap = nameToParam;
   }
 }

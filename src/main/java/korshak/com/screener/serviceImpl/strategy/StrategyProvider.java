@@ -2,6 +2,7 @@ package korshak.com.screener.serviceImpl.strategy;
 
 import java.time.LocalDateTime;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.strategy.Configurable;
 import korshak.com.screener.service.strategy.Strategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

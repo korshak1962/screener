@@ -9,6 +9,7 @@ import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.strategy.Configurable;
 import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
@@ -41,8 +42,8 @@ public class BuyAndHoldStrategy implements Strategy {
   }
 
   @Override
-  public Strategy init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
-                       LocalDateTime endDate) {
+  public Configurable init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
+                           LocalDateTime endDate) {
     this.ticker = ticker;
     this.prices = priceDao.findByDateRange(
         ticker,
