@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
@@ -14,7 +15,6 @@ import korshak.com.screener.dao.PriceDao;
 import korshak.com.screener.dao.SmaDao;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.strategy.Configurable;
-import korshak.com.screener.service.strategy.Strategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
@@ -114,6 +114,11 @@ public class TiltStrategy extends BaseStrategy {
           " ticker = " + ticker + " timeframe = " + timeFrame);
     }
     super.configure(nameToParam);
+  }
+
+  @Override
+  public Set<String> getParamNames() {
+    return Set.of(LENGTH,TILT_BUY,TILT_SELL);
   }
 
   @Override

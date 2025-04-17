@@ -12,6 +12,7 @@ import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.TimeFrame;
 import korshak.com.screener.service.calc.TradeService;
 import korshak.com.screener.service.strategy.Strategy;
+import korshak.com.screener.serviceImpl.strategy.StrategyMerger;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
 import korshak.com.screener.vo.SignalType;
@@ -63,23 +64,10 @@ public class TradeServiceImpl implements TradeService {
     }
   }
 
-  @Override
-  /**
-   * Calculate profit/loss and maximum drawdown from a list of trades
-   * @param trades List of trades in chronological order
-   * @return double[]{profit/loss, maxDrawdown}
-   */
-  public StrategyResult calculateProfitAndDrawdownLong(Strategy strategy,
-                                                       String ticker,
-                                                       LocalDateTime startDate,
-                                                       LocalDateTime endDate,
-                                                       TimeFrame timeFrame) {
-    //strategy.init(ticker, timeFrame, startDate, endDate);
-    return calculateProfitAndDrawdownLong(strategy);
-  }
+
 
   @Override
-  public StrategyResult calculateProfitAndDrawdownLong(Strategy strategy) {
+  public StrategyResult calculateProfitAndDrawdownLong(StrategyMerger strategy) {
     tradesLong = new ArrayList<>();
     double longPnL = 0;
     if (strategy.getSignalsLong() == null || strategy.getSignalsLong().isEmpty()) {
@@ -139,7 +127,67 @@ public class TradeServiceImpl implements TradeService {
   }
 
   @Override
-  public StrategyResult calculateProfitAndDrawdownShort(Strategy strategy) {
+  public StrategyResult calculateProfitAndDrawdownLong(Strategy strategy) {
+    tradesLong = new ArrayList<>();
+    double longPnL = 0;
+    if (strategy.getSignalsLong() == null || strategy.getSignalsLong().isEmpty()) {
+      System.out.println("No signals found for ticker = " + strategy.getTicker()
+          + " timeframe = " + strategy.getTimeFrame() + " startDate = " + strategy.getStartDate() +
+          " endDate = " + strategy.getEndDate());
+      return new StrategyResult(strategy.getPrices(), 0, 0,
+          longPnL, Map.of(), Map.of(), tradesLong,
+          List.of(), strategy.getSignalsLong(), 0, indicators,strategy.getPriceIndicators(), Map.of());
+    }
+    TreeMap<LocalDateTime, Double> currentPnL = new TreeMap<>();
+    Map<LocalDateTime, Double> minLongPnl = new HashMap<>();
+
+    //========================= temporary
+    Signal last = strategy.getSignalsLong().getLast();
+    if (last.getSignalType() == SignalType.LongOpen) {
+      System.out.println("===== Last signal is LongOpen at price = " + last.getPrice()
+          + " at " + last.getDate() + " cause " + last.getComment());
+      Signal signal =
+          Utils.createSignal(strategy.getPrices().getLast(), SignalType.LongClose,
+              "tempopary close for calc only");
+      strategy.getSignalsLong().add(signal);
+    }
+    //====================
+
+    Iterator<? extends Signal> iteratorSignal = strategy.getSignalsLong().iterator();
+    Signal prevSignal = iteratorSignal.next();
+    Map<LocalDateTime, Double> worstLongTrade = new HashMap<>();
+    worstLongTrade.put(strategy.getSignalsLong().getFirst().getDate(), Double.MIN_VALUE);
+    while (iteratorSignal.hasNext()) {
+      Signal currentSignal = iteratorSignal.next();
+      if (currentSignal.getSignalType() == SignalType.LongClose) {
+        Trade trade = new Trade(prevSignal, currentSignal);
+        if (worstLongTrade.values().iterator().next() > trade.getPnl()) {
+          worstLongTrade.clear();
+          worstLongTrade.put(trade.getClose().getDate(), trade.getPnl());
+        }
+        tradesLong.add(trade);
+        longPnL += trade.getPnl();
+        currentPnL.put(trade.getClose().getDate(), longPnL);
+        if (minLongPnl.isEmpty() || minLongPnl.values().iterator().next() > longPnL) {
+          minLongPnl.clear();
+          minLongPnl.put(trade.getClose().getDate(), longPnL);
+        }
+      }
+      prevSignal = currentSignal;
+    }
+
+    double maxPossibleLoss = calcMaxPossibleLossLong();
+    calculateMaxPainPercentages(tradesLong, strategy.getPrices());
+    indicators.put("long PnL", currentPnL);
+
+    return new StrategyResult(strategy.getPrices(), longPnL, 0,
+        longPnL, minLongPnl, Map.of(), tradesLong,
+        List.of(), strategy.getSignalsLong(), maxPossibleLoss,
+        indicators,strategy.getPriceIndicators(), worstLongTrade);
+  }
+
+  @Override
+  public StrategyResult calculateProfitAndDrawdownShort(StrategyMerger strategy) {
     double shortPnL = 0;
     TreeMap<LocalDateTime, Double> currentPnL = new TreeMap<>();
     Map<LocalDateTime, Double> minShortPnl = new HashMap<>();

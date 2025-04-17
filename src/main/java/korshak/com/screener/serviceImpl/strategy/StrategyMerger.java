@@ -20,7 +20,7 @@ import korshak.com.screener.vo.Signal;
 import org.springframework.stereotype.Service;
 
 @Service("StrategyMerger")
-public class StrategyMerger implements Strategy {
+public class StrategyMerger {
   public static final String START_DATE = "startDate";
   public static final String END_DATE = "endDate";
   final PriceDao priceDao;
@@ -49,7 +49,7 @@ public class StrategyMerger implements Strategy {
     this.priceDao = priceDao;
   }
 
-  @Override
+
   public List<Signal> getSignalsLong() {
     if (signalsLong.isEmpty()) {
       mergeSignals();
@@ -57,12 +57,12 @@ public class StrategyMerger implements Strategy {
     return signalsLong;
   }
 
-  @Override
+
   public List<? extends Signal> getSignalsShort() {
     return signalsShort;
   }
 
-  @Override
+
   public StrategyMerger init(String ticker, TimeFrame timeFrame, LocalDateTime startDate,
                              LocalDateTime endDate) {
     this.timeFrame = timeFrame;
@@ -81,7 +81,7 @@ public class StrategyMerger implements Strategy {
     return this;
   }
 
-  @Override
+
   public String getStrategyName() {
     return "StrategyMerger " +
         subStrategies.stream().reduce(" ",
@@ -89,12 +89,12 @@ public class StrategyMerger implements Strategy {
             String::concat);
   }
 
-  @Override
+
   public List<? extends BasePrice> getPrices() {
     return this.prices;
   }
 
-  @Override
+
   public Map<String, NavigableMap<LocalDateTime, Double>> getIndicators() {
     if (this.subStrategies.iterator().next().getIndicators() != null) {
       return this.subStrategies.iterator().next().getIndicators();
@@ -102,7 +102,7 @@ public class StrategyMerger implements Strategy {
     return Map.of();
   }
 
-  @Override
+
   public Map<String, NavigableMap<LocalDateTime, Double>> getPriceIndicators() {
     Map<String, NavigableMap<LocalDateTime, Double>> priceIndicators = new HashMap<>();
     for(Strategy strategy : subStrategies){
@@ -111,44 +111,24 @@ public class StrategyMerger implements Strategy {
     return priceIndicators;
   }
 
-  @Override
+
   public TimeFrame getTimeFrame() {
     return timeFrame;
   }
 
-  @Override
+
   public String getTicker() {
     return ticker;
   }
 
-  @Override
+
   public LocalDateTime getStartDate() {
     return startDate;
   }
 
-  @Override
+
   public LocalDateTime getEndDate() {
     return endDate;
-  }
-
-  @Override
-  public List<Signal> getAllSignals() {
-    if (signalsLong.isEmpty()) {
-      mergeSignals();
-    }
-    return dateToSignals.values().stream()
-        .flatMap(List::stream)
-        .toList();
-  }
-
-  @Override
-  public List<Signal> getAllSignals(TimeFrame timeFrame) {
-    return List.of();
-  }
-
-  @Override
-  public void calcSignals() {
-
   }
 
   public StrategyMerger addStrategy(Strategy strategy) {
@@ -215,15 +195,6 @@ public class StrategyMerger implements Strategy {
       }
     }
     return postTradeSignals;
-  }
-
-  public Map<String, Param> getParams() {
-    return paramsMap;
-  }
-
-  @Override
-  public void configure(Map<String, Param> nameToParam) {
-
   }
 
   List<Configurable> getConfigurables(){

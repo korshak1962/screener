@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.PriceDao;
@@ -112,6 +113,11 @@ public class BuyAndHoldStrategy implements Strategy {
   @Override
   public void calcSignals() {
 
+  }
+
+  @Override
+  public Set<String> getParamNames() {
+    return Set.of();
   }
 
   @Override

@@ -217,6 +217,7 @@ public class Reporter {
                                           LocalDateTime startDate,
                                           LocalDateTime endDate, TimeFrame timeFrame) {
     strategyMerger.getSubStrategies().clear();
+    strategyMerger.getPostTradeStrategies().clear();
     strategyMerger
         .addStrategies(
             subStrategies
@@ -251,6 +252,7 @@ public class Reporter {
                                                     LocalDateTime endDate, TimeFrame timeFrame,
                                                     List<String> strategies) {
     strategyMerger.getSubStrategies().clear();
+    strategyMerger.getPostTradeStrategies().clear();
     strategyMerger.init(ticker, timeFrame, startDate, endDate);
     strategyProvider.init(ticker, startDate, endDate);
     for (String strategyName : strategies) {
@@ -261,7 +263,6 @@ public class Reporter {
     List<Param> params = optParamDao
         .findValuesByTickerAndTimeframeAndStrategy(ticker, timeFrame,
             strategyMerger.getClass().getSimpleName());
-    strategyMerger.configure(getOptParamsAsMap(params));
 
     strategyMerger.mergeSignals();
     StrategyResult strategyResult = evaluateStrategy(strategyMerger);
@@ -388,18 +389,20 @@ public class Reporter {
                                                                           LocalDateTime endDate,
                                                                           TimeFrame timeFrame,
                                                                           String caseId) {
+    strategyMerger.getSubStrategies().clear();
+    strategyMerger.getPostTradeStrategies().clear();
     configurePostTradeStrategies(SimpleStoplossStrategy.class, ticker, timeFrame, caseId, 0.9, 0.9f,
         .98f, 0.04f);
-    strategyMerger.getSubStrategies().clear();
     strategyProvider.init(ticker, startDate, endDate);
 
-    //addTiltStrats(ticker, timeFrame, caseId);
+    addTiltStrats(ticker, timeFrame, caseId);
 
+    /*
     addStrategyToMerger(getParamsForTrendStrat(
-        ticker, timeFrame, caseId, "TrendChangeStrategy"));
+        ticker, timeFrame, caseId, "TrendChangeStrategyShort","TrendChangeStrategy", "short"));
     addStrategyToMerger(getParamsForTrendStrat(
-        ticker, TimeFrame.DAY, caseId, "TrendChangeStrategy"));
-
+        ticker, TimeFrame.DAY, caseId, "TrendChangeStrategyLong","TrendChangeStrategy", "long"));
+     */
     strategyMerger.init(ticker, timeFrame, startDate, endDate);
 
     Map<Configurable, Map<String, Param>>
@@ -425,8 +428,6 @@ public class Reporter {
             strategyToParams.get(strategy).get(nameToParamEntry.getKey()).getValue());
         optParamToStore.setValueString(
             strategyToParams.get(strategy).get(nameToParamEntry.getKey()).getValueString());
-        optParamToStore.getId().setStrategy(strategy.getClass().getSimpleName());
-        optParamToStore.getId().setCaseId(caseId);
         optParamListToDB.add(optParamToStore);
       }
     }
@@ -445,10 +446,10 @@ public class Reporter {
   }
 
   private static List<Param> getParamsForTrendStrat(String ticker, TimeFrame timeFrame,
-                                                    String caseId,
-                                                    String strategyClass) {
+                                                    String caseId,String strategyName,
+                                                    String strategyClass, String paramName) {
     List<Param> optParamList = new ArrayList<>();
-    Param param = new Param(ticker, "timeFrame", strategyClass, caseId, timeFrame,
+    Param param = new Param(ticker, paramName, strategyName, caseId, timeFrame,
         strategyClass,
         0, "", 0, 0, 1);
     optParamList.add(param);
@@ -473,11 +474,26 @@ public class Reporter {
   }
 
   private void addStrategyToMerger(List<Param> optParamList) {
-    Strategy subStrategy =
-        strategyProvider.getStrategyAndInit(optParamList.getFirst().getStrategyClass(),
-            optParamList.getFirst().getTimeframe());
-    subStrategy.configure(getOptParamsAsMap(optParamList));
-    strategyMerger.addStrategy(subStrategy);
+    String strategyClassName = optParamList.getFirst().getStrategyClass();
+    if (!strategyClassName.contains(".")) {
+      strategyClassName = "korshak.com.screener.serviceImpl.strategy." + strategyClassName;
+    }
+    try {
+      if (Strategy.class.isAssignableFrom(Class.forName(strategyClassName))) {
+        Strategy subStrategy =
+            strategyProvider.getStrategyAndInit(strategyClassName,
+                optParamList.getFirst().getTimeframe());
+        subStrategy.configure(getOptParamsAsMap(optParamList));
+        strategyMerger.addStrategy(subStrategy);
+      }
+      if (PostTradeStrategy.class.isAssignableFrom(Class.forName(strategyClassName))) {
+        PostTradeStrategy postTradeStrategy = (PostTradeStrategy)applicationContext.getBean(Class.forName(strategyClassName));
+        postTradeStrategy.configure(getOptParamsAsMap(optParamList));
+        strategyMerger.getPostTradeStrategies().add(postTradeStrategy);
+      }
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void configurePostTradeStrategies(Class<? extends PostTradeStrategy> postTradeClass,
@@ -544,14 +560,11 @@ public class Reporter {
     optParams.put(PRICE_TO_SELL, priceToSell);
   }
 
-  private StrategyResult evaluateStrategy(Strategy strategy) {
+  private StrategyResult evaluateStrategy(StrategyMerger strategy) {
     buyAndHoldStrategy.init(strategy.getTicker(), strategy.getTimeFrame(),
         strategy.getStartDate(), strategy.getEndDate());
     StrategyResult buyAndHoldstrategyResult =
-        tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy, strategy.getTicker(),
-            strategy.getStartDate(),
-            strategy.getEndDate(),
-            strategy.getTimeFrame());
+        tradeService.calculateProfitAndDrawdownLong(buyAndHoldStrategy);
     StrategyResult strategyResult =
         tradeService.calculateProfitAndDrawdownLong(strategy);
     StrategyResult strategyResultShort =
@@ -600,17 +613,13 @@ public class Reporter {
                                           LocalDateTime endDate,
                                           TimeFrame timeFrame,
                                           String caseId) {
+    strategyMerger.getSubStrategies().clear();
+    strategyMerger.getPostTradeStrategies().clear();
     Map<String, List<Param>> strategyToParams =
         optParamDao.findByTickerAndCaseIdGroupedByStrategy(ticker, caseId);
-    strategyMerger.getSubStrategies().clear();
     strategyProvider.init(ticker, startDate, endDate);
     for (Map.Entry<String, List<Param>> entiesStrategyToParams : strategyToParams.entrySet()) {
-      String strategyClass = entiesStrategyToParams.getValue().getFirst().getStrategyClass();
-      if (!strategyClass.equals(strategyMerger.getClass().getSimpleName())) {
-        addStrategyToMerger(entiesStrategyToParams.getValue());
-      } else {
-        strategyMerger.configure(getOptParamsAsMap(entiesStrategyToParams.getValue()));
-      }
+      addStrategyToMerger(entiesStrategyToParams.getValue());
     }
     strategyMerger.init(ticker, timeFrame, startDate, endDate);
     strategyMerger.mergeSignals();

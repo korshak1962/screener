@@ -5,10 +5,10 @@ import java.util.List;
 public class Portfolios {
 
   //"VOO", "VBR", "VHT", "VCR", "VDC", "VGT", "VHT", "VIS", "VGT", "VHT", "VDC", "VCR", "VBR", "VOO"
-  public static List<String> INDEXES = List.of("SPY", "QQQ", "SOXL", "TLT","GLD", "IBIT","MCHI");
+  public static List<String> INDEXES = List.of("SPY", "QQQ", "TLT","GLD","MCHI","SOXL");
 
   public static List<String> US_WATCH =
-      List.of( "GOOG", "TMDX", "NVDA", "TSLA", "AMZN");
+      List.of( "GOOG", "TMDX", "NVDA", "TSLA", "AMZN", "IBIT");
 
   public static List<String> US_SECTOR_ETF =
       List.of("XLB", "XLU", "XLI", "XLC", "XLK", "XLE", "XLP", "XLF", "XLV",

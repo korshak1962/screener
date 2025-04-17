@@ -2,9 +2,9 @@ package korshak.com.screener.serviceImpl.strategy;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.Param;
-import korshak.com.screener.service.strategy.Configurable;
 import korshak.com.screener.service.strategy.PostTradeStrategy;
 import korshak.com.screener.utils.Utils;
 import korshak.com.screener.vo.Signal;
@@ -34,8 +34,10 @@ public class SimpleStoplossStrategy implements PostTradeStrategy {
     this.stopLossPercent = stopLossPercent;
   }
 
-  public float getStopLossPercent() {
-    return stopLossPercent;
+
+  @Override
+  public Set<String> getParamNames() {
+    return Set.of(STOP_LOSS_PERCENT);
   }
 
   @Override

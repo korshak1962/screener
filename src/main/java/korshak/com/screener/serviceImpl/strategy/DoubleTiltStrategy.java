@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.TreeMap;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.BaseSma;
@@ -87,6 +88,11 @@ public class DoubleTiltStrategy implements Strategy {
       makeDecision(price, shortTilt, longTilt, currentDate);
     }
     logLastPositions();
+  }
+
+  @Override
+  public Set<String> getParamNames() {
+    return Set.of();
   }
 
   @Override

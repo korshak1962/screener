@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import korshak.com.screener.dao.BasePrice;
 import korshak.com.screener.dao.Param;
 import korshak.com.screener.dao.OptParamDao;
@@ -205,5 +206,10 @@ public abstract class BaseStrategy implements Strategy {
 
   public Map<String, Param> getParams() {
     return nameToParam;
+  }
+
+  @Override
+  public Set<String> getParamNames() {
+    return Set.of();
   }
 }

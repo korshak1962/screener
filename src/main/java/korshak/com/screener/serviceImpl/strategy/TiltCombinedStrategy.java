@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import korshak.com.screener.dao.BasePrice;
@@ -69,6 +70,11 @@ public class TiltCombinedStrategy implements Strategy {
 
       lastSignal = Utils.fillLongShortLists(signalMin, lastSignal, signalsShort, signalsLong);
     }
+  }
+
+  @Override
+  public Set<String> getParamNames() {
+    return Set.of();
   }
 
   @Override

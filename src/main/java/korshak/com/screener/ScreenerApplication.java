@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import korshak.com.screener.dao.TimeFrame;
+import korshak.com.screener.service.calc.TrendService;
 import korshak.com.screener.serviceImpl.download.Downloader;
 import korshak.com.screener.serviceImpl.report.Reporter;
 import korshak.com.screener.utils.Portfolios;
@@ -28,6 +29,8 @@ public class ScreenerApplication implements CommandLineRunner {
   Reporter reporter;
   @Autowired
   Downloader downloader;
+  @Autowired
+  TrendService trendService;
 
 
   public static void main(String[] args) {
@@ -35,11 +38,11 @@ public class ScreenerApplication implements CommandLineRunner {
   }
 
   @Override
-  public void run(String... args) throws Exception {
+  public void run(String... args) {
 
     //downloadAll();
 
-    LocalDateTime startDate = LocalDateTime.of(2020, Month.JANUARY, 20, 0, 0);
+    LocalDateTime startDate = LocalDateTime.of(2018, Month.JANUARY, 1, 0, 0);
     LocalDateTime endDate = LocalDateTime.of(2025, Month.MAY, 1, 0, 0);
 
     //reporter.readParamsGetStrategyResult("QQQ", startDate, endDate, TimeFrame.DAY,strategyNames);
@@ -47,8 +50,8 @@ public class ScreenerApplication implements CommandLineRunner {
    // for (String ticker : Portfolios.US){
    //   trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
    // }
-    reporter.findOptParamAndSaveGeneric("TLT", startDate, endDate, TimeFrame.HOUR, "onlyTrend3");
-    //reporter.readOptParamsGenericAndShow("TLT", startDate, endDate, TimeFrame.WEEK,"onlyTrend");
+    //reporter.findOptParamAndSaveGeneric("SPY", startDate, endDate, TimeFrame.DAY, "only111");
+    reporter.readOptParamsGenericAndShow("SPY", startDate, endDate, TimeFrame.DAY,"only111");
     //reporter.findResultFor2strategies("QQQ", startDate, endDate, TimeFrame.WEEK, TimeFrame.DAY);
     //reporter.opt("QQQ", startDate, endDate, TimeFrame.DAY);
 
@@ -83,23 +86,41 @@ public class ScreenerApplication implements CommandLineRunner {
 
     downloader.updateTickersUpToday(Portfolios.INDEXES,
         downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
+    for (String ticker : Portfolios.INDEXES){
+      trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
+    }
 
     downloader.updateTickersUpToday(Portfolios.US_WATCH,
         downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
+    for (String ticker : Portfolios.US_WATCH){
+      trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
+    }
 
     downloader.updateTickersUpToday(Portfolios.US_SECTOR_ETF,
         downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
+    for (String ticker : Portfolios.US_SECTOR_ETF){
+      trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
+    }
 
     downloader.updateTickersUpToday(Portfolios.CHINA,
         downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
+    for (String ticker : Portfolios.CHINA){
+      trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
+    }
 
     downloader.updateTickersUpToday(Portfolios.ALL,
         downloader.nameToDownloadService.get(YAHOO_DOWNLOADER));
-
+    for (String ticker : Portfolios.ALL){
+      trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
+    }
 
     downloader.downloadSeries(Portfolios.MOEX,
         2025, 4,
         2025, 5,
         downloader.nameToDownloadService.get(MOEX_DOWNLOADER));
+    for (String ticker : Portfolios.MOEX){
+      trendService.calculateAndStorePriceTrendForAllTimeframes(ticker);
+    }
   }
+
 }
